@@ -1,0 +1,1 @@
+PHDTournament.modules.push("statistics");
