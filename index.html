@@ -8,36 +8,40 @@
 </head>
 <body>
   <header class="app-header">
-  <div class="brand-header">
-    <div id="headerLogo" class="header-logo">PHD</div>
+    <div class="brand-header">
+      <div id="headerLogo" class="header-logo">PHD</div>
 
-    <div>
-      <p class="eyebrow">PHDTournament</p>
-      <h1 id="pageTitle">Tournament Manager</h1>
-      <p class="lede">A browser-based Swiss-style tournament manager.</p>
+      <div>
+        <p class="eyebrow">PHDTournament</p>
+        <h1 id="pageTitle">Tournament Manager</h1>
+        <p class="lede">A browser-based Swiss-style tournament manager.</p>
+      </div>
     </div>
-  </div>
 
-  <div class="header-actions">
-    <span id="saveStatus">Ready</span>
-    <button id="themeToggle" type="button">Toggle Theme</button>
-    <button id="resetTournament" class="danger" type="button">Reset</button>
-  </div>
-</header>
-<div id="brandBanner" class="brand-banner"></div>
+    <div class="header-actions">
+      <span id="saveStatus">Ready</span>
+      <button id="themeToggle" type="button">Toggle Theme</button>
+      <button id="displayModeToggle" type="button">Display Mode</button>
+      <button id="resetTournament" class="danger" type="button">Reset</button>
+    </div>
+  </header>
+
+  <div id="brandBanner" class="brand-banner"></div>
+  <div id="displayMode" class="display-mode"></div>
 
   <main class="app-layout">
     <section class="card wide">
-  <div class="section-heading">
-    <div>
-      <h2>Tournament Report</h2>
-      <p class="muted">Printable report with standings and match history.</p>
-    </div>
-    <button id="printFullReport" type="button" class="secondary">Print Full Report</button>
-  </div>
+      <div class="section-heading">
+        <div>
+          <h2>Tournament Report</h2>
+          <p class="muted">Printable report with standings and match history.</p>
+        </div>
+        <button id="printFullReport" type="button" class="secondary">Print Full Report</button>
+      </div>
 
-  <div id="reportPreview"></div>
-</section>
+      <div id="reportPreview"></div>
+    </section>
+
     <section class="card wide">
       <div class="section-heading">
         <div>
@@ -194,18 +198,19 @@
     </section>
   </main>
 
-<script src="js/state.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/dom.js"></script>
-<script src="js/validation.js"></script>
-<script src="js/helpers.js"></script>
-<script src="js/teams.js"></script>
-<script src="js/ladder.js"></script>
-<script src="js/rounds.js"></script>
-<script src="js/statistics.js"></script>
-<script src="js/export.js"></script>
-<script src="js/history.js"></script>
-<script src="js/reports.js"></script>
-<script src="js/app.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/dom.js"></script>
+  <script src="js/validation.js"></script>
+  <script src="js/helpers.js"></script>
+  <script src="js/teams.js"></script>
+  <script src="js/ladder.js"></script>
+  <script src="js/rounds.js"></script>
+  <script src="js/statistics.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/display.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

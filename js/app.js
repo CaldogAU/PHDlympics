@@ -60,10 +60,11 @@ function renderTournamentSummary() {
 
   setText("summaryTeams", PHDTournament.state.teams.length);
   setText("summaryRounds", PHDTournament.state.rounds.length);
+
   setText(
-  "summaryBranding",
-  tournament.logoUrl || tournament.bannerUrl ? "Custom branding active" : "Default"
-);
+    "summaryBranding",
+    tournament.logoUrl || tournament.bannerUrl ? "Custom branding active" : "Default"
+  );
 }
 
 function render() {
@@ -77,11 +78,13 @@ function render() {
   renderMatchHistory();
   renderReportPreview();
 
+  if (document.body.classList.contains("display-active")) {
+    renderDisplayMode();
+  }
 }
 
 function updateTournamentSettings() {
   const tournament = getTournament();
-
   const name = getValue("tournamentName").trim();
 
   tournament.name = isBlank(name) ? "Untitled Tournament" : name;
@@ -101,19 +104,19 @@ function updateTournamentSettings() {
 function bindTournamentEvents() {
   bindClick("saveTournament", updateTournamentSettings);
 
-[
-  "tournamentName",
-  "tournamentDescription",
-  "tournamentLogoUrl",
-  "tournamentBannerUrl",
-  "tournamentAccentColour",
-  "winPoints",
-  "drawPoints",
-  "byePoints"
-]
-  .forEach(id => {
+  [
+    "tournamentName",
+    "tournamentDescription",
+    "tournamentLogoUrl",
+    "tournamentBannerUrl",
+    "tournamentAccentColour",
+    "winPoints",
+    "drawPoints",
+    "byePoints"
+  ].forEach(id => {
     bindChange(id, updateTournamentSettings);
   });
+
   [
     "tournamentLogoUrl",
     "tournamentBannerUrl",
@@ -123,9 +126,7 @@ function bindTournamentEvents() {
 
     if (!element) return;
 
-    element.addEventListener("input", () => {
-      updateTournamentSettings();
-    });
+    element.addEventListener("input", updateTournamentSettings);
   });
 }
 
@@ -213,7 +214,9 @@ function bindDataToolEvents() {
 }
 
 function bindAppEvents() {
-    bindClick("themeToggle", () => {
+  bindClick("displayModeToggle", toggleDisplayMode);
+
+  bindClick("themeToggle", () => {
     document.body.classList.toggle("dark");
 
     const theme = document.body.classList.contains("dark") ? "dark" : "light";
