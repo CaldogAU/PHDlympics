@@ -64,8 +64,12 @@ function renderDisplayMode() {
   `;
 }
 
-function toggleDisplayMode() {
-  document.body.classList.toggle("display-active");
+function toggleDisplayMode(forceOff = false) {
+  if (forceOff) {
+    document.body.classList.remove("display-active");
+  } else {
+    document.body.classList.toggle("display-active");
+  }
 
   const isActive = document.body.classList.contains("display-active");
 
@@ -76,5 +80,14 @@ function toggleDisplayMode() {
     setSaveStatus("Loaded");
   }
 }
+
+document.addEventListener("keydown", event => {
+  if (
+    event.key === "Escape" &&
+    document.body.classList.contains("display-active")
+  ) {
+    toggleDisplayMode(true);
+  }
+});
 
 PHDTournament.modules.push("display");
