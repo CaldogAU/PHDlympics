@@ -213,8 +213,9 @@ function bindDataToolEvents() {
 }
 
 function bindAppEvents() {
-  bindClick("themeToggle", () => {
   bindClick("displayModeToggle", toggleDisplayMode);
+
+  bindClick("themeToggle", () => {
     document.body.classList.toggle("dark");
 
     const theme = document.body.classList.contains("dark") ? "dark" : "light";
