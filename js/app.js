@@ -77,9 +77,6 @@ function render() {
   renderMatchHistory();
   renderReportPreview();
 
-  if (document.body.classList.contains("display-active")) {
-    renderDisplayMode();
-  }
 }
 
 function updateTournamentSettings() {
@@ -216,9 +213,7 @@ function bindDataToolEvents() {
 }
 
 function bindAppEvents() {
-  bindClick("displayModeToggle", toggleDisplayMode);
-
-  bindClick("themeToggle", () => {
+    bindClick("themeToggle", () => {
     document.body.classList.toggle("dark");
 
     const theme = document.body.classList.contains("dark") ? "dark" : "light";
