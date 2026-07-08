@@ -540,3 +540,32 @@ th {
     page-break-inside: avoid;
   }
 }
+.history-container {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.history-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--card);
+}
+
+.history-match {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .history-item {
+    grid-template-columns: 1fr;
+  }
+}

@@ -35,6 +35,7 @@ function render() {
   renderTeams();
   renderRounds();
   renderStandings();
+  renderMatchHistory();
 }
 
 function updateTournamentSettings() {
