@@ -196,6 +196,8 @@ function bindRoundEvents() {
 
 function bindDataToolEvents() {
   bindClick("exportJson", exportTournamentJson);
+  bindClick("createRestorePoint", createRestorePoint);
+  bindClick("restoreLastPoint", restoreLastPoint);
   bindClick("exportStandingsCsv", exportStandingsCsv);
   bindClick("exportMatchesCsv", exportMatchesCsv);
 

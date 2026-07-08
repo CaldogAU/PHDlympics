@@ -56,4 +56,51 @@ function loadThemePreference() {
   }
 }
 
+function getRestoreKey() {
+  return `${PHDTournament.storageKey}:restore`;
+}
+
+function createRestorePoint() {
+  const snapshot = {
+    createdAt: new Date().toISOString(),
+    state: structuredClone(PHDTournament.state)
+  };
+
+  localStorage.setItem(getRestoreKey(), JSON.stringify(snapshot));
+  setSaveStatus("Restore point created");
+  alert("Restore point created.");
+}
+
+function restoreLastPoint() {
+  const saved = localStorage.getItem(getRestoreKey());
+
+  if (!saved) {
+    alert("No restore point found.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Restore the last saved restore point? This will replace the current tournament."
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const snapshot = JSON.parse(saved);
+
+    if (!snapshot.state) {
+      alert("Restore point is invalid.");
+      return;
+    }
+
+    PHDTournament.state = snapshot.state;
+    saveState();
+    render();
+    setSaveStatus("Restored");
+    alert("Restore point restored.");
+  } catch {
+    alert("Could not restore this restore point.");
+  }
+}
+
 PHDTournament.modules.push("storage");

@@ -679,3 +679,9 @@ th {
     margin-top: 24px;
   }
 }
+
+.restore-note {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 12px;
+}
