@@ -6,13 +6,6 @@ function getCurrentRound() {
   return PHDTournament.state.rounds.at(-1) || null;
 }
 
-function getRecentResults(limit = 8) {
-  return getMatchHistory()
-    .filter(item => item.status === "Completed")
-    .slice(-limit)
-    .reverse();
-}
-
 function formatDisplayTime() {
   return new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -28,6 +21,24 @@ function updateDisplayClock() {
   clock.textContent = formatDisplayTime();
 }
 
+function getDisplayTickerText() {
+  const activity = getRecentActivity(8);
+
+  if (activity.length === 0) {
+    return "No completed games yet.";
+  }
+
+  return activity
+    .map(item => {
+      if (item.type === "Bye") {
+        return `Round ${item.round}: ${item.teamA} received a BYE`;
+      }
+
+      return `Round ${item.round}: ${item.game} — ${item.teamA} ${item.score} ${item.teamB}`;
+    })
+    .join(" · ");
+}
+
 function renderDisplayMode() {
   const container = getElement("displayMode");
   if (!container) return;
@@ -35,7 +46,6 @@ function renderDisplayMode() {
   const tournament = getTournament();
   const standings = getStandings().slice(0, 8);
   const currentRound = getCurrentRound();
-  const recentResults = getRecentResults();
 
   const currentLeader = standings[0] ? standings[0].id : null;
   const leaderChanged = previousDisplayLeader && currentLeader !== previousDisplayLeader;
@@ -55,6 +65,7 @@ function renderDisplayMode() {
     ? currentRound.matches.map(match => {
       const teamA = getTeamById(match.teamAId);
       const teamB = getTeamById(match.teamBId);
+      const gameLabel = match.gameId ? getGameLabel(match.gameId) : "No game selected";
 
       if (match.bye) {
         return `
@@ -67,20 +78,18 @@ function renderDisplayMode() {
       }
 
       return `
-        <div class="display-match">
-          <strong>${escapeHtml(teamA ? teamA.name : "Unknown")}</strong>
-          <span>${match.completed ? `${match.scoreA} - ${match.scoreB}` : "vs"}</span>
-          <strong>${escapeHtml(teamB ? teamB.name : "Unknown")}</strong>
+        <div class="display-match-with-game">
+          <div class="display-game-name">${escapeHtml(gameLabel)}</div>
+
+          <div class="display-match">
+            <strong>${escapeHtml(teamA ? teamA.name : "Unknown")}</strong>
+            <span>${match.completed ? `${match.scoreA} - ${match.scoreB}` : "vs"}</span>
+            <strong>${escapeHtml(teamB ? teamB.name : "Unknown")}</strong>
+          </div>
         </div>
       `;
     }).join("")
     : `<p>No current round.</p>`;
-
-  const tickerHtml = recentResults.length
-    ? recentResults.map(item =>
-      `Round ${item.round}: ${escapeHtml(item.teamA)} ${escapeHtml(item.score)} ${escapeHtml(item.teamB || "BYE")}`
-    ).join(" · ")
-    : "No completed results yet.";
 
   container.innerHTML = `
     <section class="display-topbar">
@@ -109,7 +118,7 @@ function renderDisplayMode() {
     </section>
 
     <section class="display-ticker">
-      <div>${tickerHtml}</div>
+      <div>${escapeHtml(getDisplayTickerText())}</div>
     </section>
   `;
 

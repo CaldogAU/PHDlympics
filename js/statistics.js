@@ -38,23 +38,21 @@ function getLeaderName() {
 }
 
 function renderStatistics() {
-  document.getElementById("statTeams").textContent =
-    PHDTournament.state.teams.length;
+  const statTeams = getElement("statTeams");
+  const statGames = getElement("statGames");
+  const statRounds = getElement("statRounds");
+  const statCompletedMatches = getElement("statCompletedMatches");
+  const statLeader = getElement("statLeader");
+  const statHighestScore = getElement("statHighestScore");
+  const statLargestMargin = getElement("statLargestMargin");
 
-  document.getElementById("statRounds").textContent =
-    PHDTournament.state.rounds.length;
-
-  document.getElementById("statCompletedMatches").textContent =
-    getCompletedMatches().length;
-
-  document.getElementById("statLeader").textContent =
-    getLeaderName();
-
-  document.getElementById("statHighestScore").textContent =
-    getHighestScore();
-
-  document.getElementById("statLargestMargin").textContent =
-    getLargestMargin();
+  if (statTeams) statTeams.textContent = PHDTournament.state.teams.length;
+  if (statGames) statGames.textContent = getGames().length;
+  if (statRounds) statRounds.textContent = PHDTournament.state.rounds.length;
+  if (statCompletedMatches) statCompletedMatches.textContent = getCompletedMatches().length;
+  if (statLeader) statLeader.textContent = getLeaderName();
+  if (statHighestScore) statHighestScore.textContent = getHighestScore();
+  if (statLargestMargin) statLargestMargin.textContent = getLargestMargin();
 }
 
 PHDTournament.modules.push("statistics");

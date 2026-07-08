@@ -128,11 +128,13 @@ function createSwissPairings() {
       roundNumber,
       teamAId: byeTeam.id,
       teamBId: null,
+      gameId: "",
       bye: true,
       completed: true,
       scoreA: null,
       scoreB: null,
-      winnerId: byeTeam.id
+      winnerId: byeTeam.id,
+      updatedAt: new Date().toISOString()
     });
 
     workingStandings = workingStandings.filter(team => team.id !== byeTeam.id);
@@ -150,11 +152,13 @@ function createSwissPairings() {
         roundNumber,
         teamAId: pair.teamA.id,
         teamBId: pair.teamB.id,
+        gameId: "",
         bye: false,
         completed: false,
         scoreA: null,
         scoreB: null,
-        winnerId: null
+        winnerId: null,
+        updatedAt: null
       });
     });
 
@@ -183,11 +187,13 @@ function createSwissPairings() {
         roundNumber,
         teamAId: displacedTeamId,
         teamBId: candidateMatch.teamBId,
+        gameId: "",
         bye: false,
         completed: false,
         scoreA: null,
         scoreB: null,
-        winnerId: null
+        winnerId: null,
+        updatedAt: null
       });
     }
   }
@@ -237,6 +243,7 @@ function saveMatchScore(roundId, matchId, matchElement) {
 
   const scoreAInput = matchElement.querySelector(".score-a");
   const scoreBInput = matchElement.querySelector(".score-b");
+  const gameSelect = matchElement.querySelector(".match-game-select");
 
   const scoreA = Number(scoreAInput.value);
   const scoreB = Number(scoreBInput.value);
@@ -253,7 +260,9 @@ function saveMatchScore(roundId, matchId, matchElement) {
 
   match.scoreA = scoreA;
   match.scoreB = scoreB;
+  match.gameId = gameSelect ? gameSelect.value : "";
   match.completed = true;
+  match.updatedAt = new Date().toISOString();
 
   if (scoreA > scoreB) {
     match.winnerId = match.teamAId;
@@ -276,6 +285,7 @@ function clearMatchScore(roundId, matchId) {
   match.scoreB = null;
   match.completed = false;
   match.winnerId = null;
+  match.updatedAt = null;
 
   const round = getRoundById(roundId);
   if (round) round.completed = false;
@@ -357,10 +367,19 @@ function renderRounds() {
             ${renderMatchTeam(teamA)}
           </div>
 
-          <div class="score-box">
-            <input class="score-a" type="number" min="0" value="${match.scoreA ?? ""}" placeholder="0" />
-            <span>–</span>
-            <input class="score-b" type="number" min="0" value="${match.scoreB ?? ""}" placeholder="0" />
+          <div class="match-middle">
+            <label class="match-game-label">
+              Game
+              <select class="match-game-select">
+                ${buildGameOptions(match.gameId || "")}
+              </select>
+            </label>
+
+            <div class="score-box">
+              <input class="score-a" type="number" min="0" value="${match.scoreA ?? ""}" placeholder="0" />
+              <span>–</span>
+              <input class="score-b" type="number" min="0" value="${match.scoreB ?? ""}" placeholder="0" />
+            </div>
           </div>
 
           <div class="match-team">

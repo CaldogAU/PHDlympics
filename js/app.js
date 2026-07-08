@@ -2,6 +2,20 @@ function getTournament() {
   return PHDTournament.state.tournament;
 }
 
+function ensureStateShape() {
+  if (!Array.isArray(PHDTournament.state.teams)) {
+    PHDTournament.state.teams = [];
+  }
+
+  if (!Array.isArray(PHDTournament.state.games)) {
+    PHDTournament.state.games = [];
+  }
+
+  if (!Array.isArray(PHDTournament.state.rounds)) {
+    PHDTournament.state.rounds = [];
+  }
+}
+
 function renderTournamentForm() {
   const tournament = getTournament();
 
@@ -59,6 +73,7 @@ function renderTournamentSummary() {
   );
 
   setText("summaryTeams", PHDTournament.state.teams.length);
+  setText("summaryGames", getGames().length);
   setText("summaryRounds", PHDTournament.state.rounds.length);
 
   setText(
@@ -68,14 +83,18 @@ function renderTournamentSummary() {
 }
 
 function render() {
+  ensureStateShape();
+
   renderBranding();
   renderTournamentForm();
   renderTournamentSummary();
   renderStatistics();
+  renderGames();
   renderTeams();
   renderRounds();
   renderStandings();
   renderMatchHistory();
+  renderRecentActivityTicker();
   renderReportPreview();
 
   if (document.body.classList.contains("display-active")) {
@@ -128,6 +147,38 @@ function bindTournamentEvents() {
 
     element.addEventListener("input", updateTournamentSettings);
   });
+}
+
+function bindGameEvents() {
+  bindClick("saveGame", saveGameFromForm);
+  bindClick("clearGameForm", clearGameForm);
+
+  const gameNameInput = getElement("gameName");
+
+  if (gameNameInput) {
+    gameNameInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") saveGameFromForm();
+    });
+  }
+
+  const gameList = getElement("gameList");
+
+  if (gameList) {
+    gameList.addEventListener("click", event => {
+      const gameId = event.target.dataset.gameId;
+
+      if (!gameId) return;
+
+      if (event.target.classList.contains("edit-game")) {
+        editGame(gameId);
+        return;
+      }
+
+      if (event.target.classList.contains("delete-game")) {
+        deleteGame(gameId);
+      }
+    });
+  }
 }
 
 function bindTeamEvents() {
@@ -228,6 +279,7 @@ function bindAppEvents() {
     if (!confirmed) return;
 
     resetState();
+    clearGameForm();
     clearTeamForm();
     render();
   });
@@ -236,8 +288,10 @@ function bindAppEvents() {
 function initApp() {
   loadThemePreference();
   loadState();
+  ensureStateShape();
 
   bindTournamentEvents();
+  bindGameEvents();
   bindTeamEvents();
   bindRoundEvents();
   bindDataToolEvents();
