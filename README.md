@@ -1,18 +1,31 @@
 # PHDTournament
 
-A browser-based Swiss-style tournament manager.
+PHDTournament is a browser-based Swiss-style tournament manager.
 
-## Current status
-
-Package 1 establishes the project shell and modular JavaScript structure.
-
-## Planned features
+## Features
 
 - Tournament setup
 - Team management
-- Swiss pairing generation
-- Match score entry
+- Team colours and logo URLs
+- Swiss-style round generation
+- Automatic byes
+- Score entry
 - Live standings
-- Statistics
-- JSON import/export
-- Print-friendly views
+- Dashboard statistics
+- JSON export/import
+- Print-friendly tournament report
+- Local browser autosave
+- Light/dark theme toggle
+
+## How to use
+
+Open `index.html` in a browser.
+
+No server is required.
+
+## Data storage
+
+Tournament data is saved in browser Local Storage.
+
+Use **Export JSON** to back up a tournament.
+Use **Import JSON** to restore or move a tournament to another device.

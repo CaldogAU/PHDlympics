@@ -304,4 +304,23 @@ function renderRounds() {
   });
 }
 
+function deleteLatestRound() {
+  if (PHDTournament.state.rounds.length === 0) {
+    alert("There are no rounds to delete.");
+    return;
+  }
+
+  const latestRound = PHDTournament.state.rounds.at(-1);
+
+  const confirmed = confirm(
+    `Delete Round ${latestRound.number}? This cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  PHDTournament.state.rounds.pop();
+  autosave();
+  render();
+}
+
 PHDTournament.modules.push("rounds");

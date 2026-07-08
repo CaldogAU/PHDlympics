@@ -44,5 +44,16 @@ function resetState() {
   localStorage.removeItem(PHDTournament.storageKey);
   setSaveStatus("Reset");
 }
+function saveThemePreference(theme) {
+  localStorage.setItem(PHDTournament.themeKey, theme);
+}
+
+function loadThemePreference() {
+  const savedTheme = localStorage.getItem(PHDTournament.themeKey);
+
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+  }
+}
 
 PHDTournament.modules.push("storage");

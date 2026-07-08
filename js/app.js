@@ -113,6 +113,12 @@ function bindRoundEvents() {
   document.getElementById("generateRound")
     .addEventListener("click", generateRound);
 
+  document.addEventListener("keydown", event => {
+    if (event.ctrlKey && event.key.toLowerCase() === "backspace") {
+      deleteLatestRound();
+    }
+  });
+
   document.getElementById("roundsContainer")
     .addEventListener("click", event => {
       const roundId = event.target.dataset.roundId;
@@ -135,11 +141,13 @@ function bindRoundEvents() {
     });
 }
 
-function bindAppEvents() {
-  document.getElementById("themeToggle")
-    .addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-    });
+document.getElementById("themeToggle")
+  .addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    const theme = document.body.classList.contains("dark") ? "dark" : "light";
+    saveThemePreference(theme);
+  });
 
   document.getElementById("resetTournament")
     .addEventListener("click", () => {
@@ -159,6 +167,7 @@ function bindAppEvents() {
 }
 
 function initApp() {
+  loadThemePreference();
   loadState();
   bindTournamentEvents();
   bindTeamEvents();
