@@ -75,6 +75,7 @@ function render() {
   renderRounds();
   renderStandings();
   renderMatchHistory();
+  renderReportPreview();
 }
 
 function updateTournamentSettings() {
@@ -203,6 +204,7 @@ function bindDataToolEvents() {
   }
 
   bindClick("printReport", printTournamentReport);
+  bindClick("printFullReport", printFullReport);
 }
 
 function bindAppEvents() {

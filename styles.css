@@ -654,3 +654,28 @@ th {
     min-height: 140px;
   }
 }
+.report-preview {
+  margin-top: 18px;
+  display: grid;
+  gap: 18px;
+}
+
+.report-preview h2,
+.report-preview h3 {
+  margin-bottom: 0;
+}
+
+@media print {
+  #reportPreview {
+    display: block;
+  }
+
+  .report-preview {
+    display: block;
+  }
+
+  .report-preview h2,
+  .report-preview h3 {
+    margin-top: 24px;
+  }
+}
