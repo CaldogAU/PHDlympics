@@ -7,6 +7,9 @@ function renderTournamentForm() {
 
   setValue("tournamentName", tournament.name);
   setValue("tournamentDescription", tournament.description);
+  setValue("tournamentLogoUrl", tournament.logoUrl || "");
+  setValue("tournamentBannerUrl", tournament.bannerUrl || "");
+  setValue("tournamentAccentColour", tournament.accentColour || "#6d5dfc");
   setValue("winPoints", tournament.settings.winPoints);
   setValue("drawPoints", tournament.settings.drawPoints);
   setValue("byePoints", tournament.settings.byePoints);
@@ -26,6 +29,15 @@ function renderTournamentSummary() {
 
   setText("summaryTeams", PHDTournament.state.teams.length);
   setText("summaryRounds", PHDTournament.state.rounds.length);
+  setText(
+  "summaryBranding",
+  tournament.logoUrl || tournament.bannerUrl ? "Custom branding active" : "Default"
+);
+
+document.documentElement.style.setProperty(
+  "--accent",
+  tournament.accentColour || "#6d5dfc"
+);
 }
 
 function render() {
@@ -45,6 +57,9 @@ function updateTournamentSettings() {
 
   tournament.name = isBlank(name) ? "Untitled Tournament" : name;
   tournament.description = getValue("tournamentDescription").trim();
+  tournament.logoUrl = getValue("tournamentLogoUrl").trim();
+  tournament.bannerUrl = getValue("tournamentBannerUrl").trim();
+  tournament.accentColour = getValue("tournamentAccentColour") || "#6d5dfc";
 
   tournament.settings.winPoints = toPositiveNumber(getValue("winPoints"), 3);
   tournament.settings.drawPoints = toNumber(getValue("drawPoints"), 0);
@@ -60,6 +75,9 @@ function bindTournamentEvents() {
   [
     "tournamentName",
     "tournamentDescription",
+    "TournamentLogoUrl",
+    "tournamentBannerUrl",
+    "tournamentAccentColour",
     "winPoints",
     "drawPoints",
     "byePoints"

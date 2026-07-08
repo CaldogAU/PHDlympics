@@ -53,6 +53,21 @@
         <textarea id="tournamentDescription" placeholder="Optional tournament notes"></textarea>
       </label>
 
+      <label>
+        Tournament Logo URL
+        <input id="tournamentLogoUrl" type="url" placeholder="Optional logo URL" />
+      </label>
+
+      <label>
+        Banner Image URL
+        <input id="tournamentBannerUrl" type="url" placeholder="Optional banner image URL" />
+      </label>
+
+      <label>
+        Accent Colour
+        <input id="tournamentColour" type="color" value="#6d5dfc" />
+      </label>
+
       <div class="grid three">
         <label>Win Points <input id="winPoints" type="number" min="1" /></label>
         <label>Draw Points <input id="drawPoints" type="number" min="0" /></label>
@@ -71,6 +86,7 @@
         <div><dt>Scoring</dt><dd id="summaryScoring">—</dd></div>
         <div><dt>Teams</dt><dd id="summaryTeams">0</dd></div>
         <div><dt>Rounds</dt><dd id="summaryRounds">0</dd></div>
+        <div><dt>Branding</dt><dd id="summaryBranding">Default</dd></div>
       </dl>
     </section>
 

@@ -9,6 +9,9 @@ const PHDTournament = {
     tournament: {
       name: "PHDlympics",
       description: "",
+      logoUrl: "",
+      bannerUrl: "",
+      accentColour: "#6d5dfc",
       settings: {
         winPoints: 3,
         drawPoints: 1,
