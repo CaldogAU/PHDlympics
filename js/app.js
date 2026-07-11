@@ -20,17 +20,35 @@ function renderTournamentForm() {
   const tournament = getTournament();
 
   setValue("tournamentName", tournament.name);
-  setValue("tournamentDescription", tournament.description);
-  setValue("tournamentLogoUrl", tournament.logoUrl || "");
-  setValue("tournamentBannerUrl", tournament.bannerUrl || "");
+  setValue(
+    "tournamentDescription",
+    tournament.description
+  );
+  setValue(
+    "tournamentLogoUrl",
+    tournament.logoUrl || ""
+  );
+  setValue(
+    "tournamentBannerUrl",
+    tournament.bannerUrl || ""
+  );
   setValue(
     "tournamentAccentColour",
     tournament.accentColour || "#6d5dfc"
   );
 
-  setValue("winPoints", tournament.settings.winPoints);
-  setValue("drawPoints", tournament.settings.drawPoints);
-  setValue("byePoints", tournament.settings.byePoints);
+  setValue(
+    "winPoints",
+    tournament.settings.winPoints
+  );
+  setValue(
+    "drawPoints",
+    tournament.settings.drawPoints
+  );
+  setValue(
+    "byePoints",
+    tournament.settings.byePoints
+  );
 }
 
 function renderBranding() {
@@ -89,7 +107,8 @@ function renderTournamentSummary() {
 
   setText(
     "summaryDescription",
-    tournament.description || "No description yet."
+    tournament.description ||
+      "No description yet."
   );
 
   setText(
@@ -116,7 +135,8 @@ function renderTournamentSummary() {
 
   setText(
     "summaryBranding",
-    tournament.logoUrl || tournament.bannerUrl
+    tournament.logoUrl ||
+      tournament.bannerUrl
       ? "Custom branding active"
       : "Default"
   );
@@ -127,17 +147,18 @@ function getGameTabName(game) {
 }
 
 function getMatchesForGame(gameId) {
-  return PHDTournament.state.rounds.flatMap(round =>
-    round.matches
-      .filter(
-        match =>
-          !match.bye &&
-          match.gameId === gameId
-      )
-      .map(match => ({
-        ...match,
-        roundNumber: round.number
-      }))
+  return PHDTournament.state.rounds.flatMap(
+    round =>
+      round.matches
+        .filter(
+          match =>
+            !match.bye &&
+            match.gameId === gameId
+        )
+        .map(match => ({
+          ...match,
+          roundNumber: round.number
+        }))
   );
 }
 
@@ -416,14 +437,124 @@ function requireAdminForAction() {
   return false;
 }
 
-function updateTournamentSettings() {
+function getTournamentAuditDetails(
+  tournament
+) {
+  return {
+    name:
+      tournament.name || "",
+    description:
+      tournament.description || "",
+    logoUrl:
+      tournament.logoUrl || "",
+    bannerUrl:
+      tournament.bannerUrl || "",
+    accentColour:
+      tournament.accentColour ||
+      "#6d5dfc",
+    settings: {
+      winPoints:
+        tournament.settings.winPoints,
+      drawPoints:
+        tournament.settings.drawPoints,
+      byePoints:
+        tournament.settings.byePoints
+    }
+  };
+}
+
+function getTournamentChanges(
+  previousTournament,
+  updatedTournament
+) {
+  const changes = {};
+
+  [
+    "name",
+    "description",
+    "logoUrl",
+    "bannerUrl",
+    "accentColour"
+  ].forEach(field => {
+    const previousValue =
+      previousTournament[field] || "";
+
+    const updatedValue =
+      updatedTournament[field] || "";
+
+    if (
+      previousValue !== updatedValue
+    ) {
+      changes[field] = {
+        from: previousValue,
+        to: updatedValue
+      };
+    }
+  });
+
+  [
+    "winPoints",
+    "drawPoints",
+    "byePoints"
+  ].forEach(field => {
+    const previousValue =
+      previousTournament.settings[field];
+
+    const updatedValue =
+      updatedTournament.settings[field];
+
+    if (
+      previousValue !== updatedValue
+    ) {
+      changes[`settings.${field}`] = {
+        from: previousValue,
+        to: updatedValue
+      };
+    }
+  });
+
+  return changes;
+}
+
+function previewTournamentBranding() {
   if (!requireAdminForAction()) {
     return;
   }
 
   const tournament = getTournament();
+
+  tournament.logoUrl =
+    getValue(
+      "tournamentLogoUrl"
+    ).trim();
+
+  tournament.bannerUrl =
+    getValue(
+      "tournamentBannerUrl"
+    ).trim();
+
+  tournament.accentColour =
+    getValue(
+      "tournamentAccentColour"
+    ) || "#6d5dfc";
+
+  renderBranding();
+}
+
+async function updateTournamentSettings() {
+  if (!requireAdminForAction()) {
+    return;
+  }
+
+  const tournament = getTournament();
+
+  const previousTournament =
+    structuredClone(tournament);
+
   const name =
-    getValue("tournamentName").trim();
+    getValue(
+      "tournamentName"
+    ).trim();
 
   tournament.name = isBlank(name)
     ? "Untitled Tournament"
@@ -467,8 +598,59 @@ function updateTournamentSettings() {
       0
     );
 
-  autosave();
+  const changes =
+    getTournamentChanges(
+      previousTournament,
+      tournament
+    );
+
+  if (
+    Object.keys(changes).length === 0
+  ) {
+    render();
+    setSaveStatus(
+      "No tournament changes"
+    );
+    return;
+  }
+
   render();
+
+  try {
+    await saveState();
+
+    if (
+      typeof recordAuditEntry ===
+      "function"
+    ) {
+      await recordAuditEntry(
+        "tournament.updated",
+        `Updated tournament settings for "${tournament.name}".`,
+        {
+          previous:
+            getTournamentAuditDetails(
+              previousTournament
+            ),
+          current:
+            getTournamentAuditDetails(
+              tournament
+            ),
+          changes
+        }
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Tournament settings could not be saved.",
+      error
+    );
+
+    alert(
+      error && error.message
+        ? error.message
+        : "Tournament settings could not be saved."
+    );
+  }
 }
 
 function switchTab(tabName) {
@@ -538,7 +720,8 @@ function getValidTabName(tabName) {
   const matchingGame =
     getGames().find(
       game =>
-        getGameTabName(game) === tabName
+        getGameTabName(game) ===
+        tabName
     );
 
   return matchingGame
@@ -638,7 +821,7 @@ function bindTournamentEvents() {
 
     element.addEventListener(
       "input",
-      updateTournamentSettings
+      previewTournamentBranding
     );
   });
 }
@@ -1003,6 +1186,98 @@ function bindDataToolEvents() {
   );
 }
 
+async function resetTournamentWithAudit() {
+  if (!requireAdminForAction()) {
+    return;
+  }
+
+  const confirmed = confirm(
+    "Reset this tournament for every viewer? This cannot be undone unless a cloud restore point exists."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const previousState =
+    structuredClone(
+      PHDTournament.state
+    );
+
+  PHDTournament.state =
+    mergeTournamentState(
+      PHDTournament.defaultState
+    );
+
+  clearGameForm();
+  clearTeamForm();
+  render();
+  switchTab("home");
+
+  try {
+    await saveState();
+
+    if (
+      typeof recordAuditEntry ===
+      "function"
+    ) {
+      await recordAuditEntry(
+        "tournament.reset",
+        "Reset the tournament to its default state.",
+        {
+          previousSummary: {
+            tournament:
+              getTournamentAuditDetails(
+                previousState.tournament
+              ),
+            teamCount:
+              Array.isArray(
+                previousState.teams
+              )
+                ? previousState.teams.length
+                : 0,
+            gameCount:
+              Array.isArray(
+                previousState.games
+              )
+                ? previousState.games.length
+                : 0,
+            roundCount:
+              Array.isArray(
+                previousState.rounds
+              )
+                ? previousState.rounds.length
+                : 0
+          },
+          currentSummary: {
+            tournament:
+              getTournamentAuditDetails(
+                PHDTournament.state.tournament
+              ),
+            teamCount:
+              PHDTournament.state.teams.length,
+            gameCount:
+              PHDTournament.state.games.length,
+            roundCount:
+              PHDTournament.state.rounds.length
+          }
+        }
+      );
+    }
+  } catch (error) {
+    console.error(
+      "The tournament could not be reset.",
+      error
+    );
+
+    alert(
+      error && error.message
+        ? error.message
+        : "The tournament could not be reset."
+    );
+  }
+}
+
 function bindAppEvents() {
   bindClick(
     "displayModeToggle",
@@ -1034,23 +1309,7 @@ function bindAppEvents() {
 
   bindClick(
     "resetTournament",
-    () => {
-      if (!requireAdminForAction()) {
-        return;
-      }
-
-      const confirmed = confirm(
-        "Reset this tournament for every viewer? This cannot be undone unless a cloud restore point exists."
-      );
-
-      if (!confirmed) return;
-
-      resetState();
-      clearGameForm();
-      clearTeamForm();
-      render();
-      switchTab("home");
-    }
+    resetTournamentWithAudit
   );
 }
 
