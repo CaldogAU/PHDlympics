@@ -391,7 +391,14 @@ function render() {
   renderGames();
   renderGameTabs();
   renderTeams();
-  renderRounds();
+
+if (
+  typeof renderTeamPages ===
+  "function"
+) {
+  renderTeamPages();
+}
+renderRounds();
   renderStandings();
   renderMatchHistory();
   renderRecentActivityTicker();
@@ -724,7 +731,29 @@ function getValidTabName(tabName) {
         tabName
     );
 
-  return matchingGame
+  if (matchingGame) {
+    return tabName;
+  }
+
+  const teams =
+    Array.isArray(
+      PHDTournament.state.teams
+    )
+      ? PHDTournament.state.teams
+      : [];
+
+  const matchingTeam =
+    teams.find(team => {
+      const teamTabName =
+        typeof getTeamPageTabName ===
+        "function"
+          ? getTeamPageTabName(team)
+          : `team-${team.id}`;
+
+      return teamTabName === tabName;
+    });
+
+  return matchingTeam
     ? tabName
     : "home";
 }
