@@ -26,6 +26,7 @@
         <button class="tab-button" type="button" data-tab="admin">Admin</button>
         <button class="tab-button" type="button" data-tab="games">Games</button>
         <button class="tab-button" type="button" data-tab="schedule">Schedule</button>
+        <button class="tab-button" type="button" data-tab="events">Events</button>
         <button class="tab-button" type="button" data-tab="standings">Standings</button>
         <button class="tab-button" type="button" data-tab="reports">Reports</button>
         <button class="tab-button" type="button" data-tab="display">Display</button>
@@ -395,6 +396,32 @@
               </div>
 
               <div id="roundsContainer" class="rounds-container"></div>
+            </section>
+          </div>
+              </section>
+
+        <section id="eventsTab" class="tab-panel">
+          <div class="app-layout">
+            <section class="card wide">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Events</p>
+                  <h2>Time Trials and Grand Prix</h2>
+                  <p id="eventStatus" class="muted">
+                    No non-Swiss events created yet.
+                  </p>
+                </div>
+
+                <button id="createEvent" type="button">
+                  Create Event
+                </button>
+              </div>
+
+              <div id="eventsContainer">
+                <div class="empty-state">
+                  Add a Time Trial or Grand Prix game, then create its event.
+                </div>
+              </div>
             </section>
           </div>
         </section>

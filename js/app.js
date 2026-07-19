@@ -11,9 +11,9 @@ function ensureStateShape() {
     PHDTournament.state.games = [];
   }
 
-  if (!Array.isArray(PHDTournament.state.rounds)) {
-    PHDTournament.state.rounds = [];
-  }
+if (!Array.isArray(PHDTournament.state.events)) {
+  PHDTournament.state.events = [];
+}
 }
 
 function renderTournamentForm() {
@@ -168,6 +168,7 @@ function getStaticTabs() {
     "admin",
     "games",
     "schedule",
+    "events",
     "standings",
     "reports",
     "display"
