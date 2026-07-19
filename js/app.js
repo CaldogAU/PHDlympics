@@ -404,7 +404,8 @@ if (
   renderTeamPages();
 }
 renderRounds();
-  renderStandings();
+renderEvents();
+renderStandings();
   renderMatchHistory();
   renderRecentActivityTicker();
   renderReportPreview();
