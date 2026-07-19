@@ -17,6 +17,25 @@ function getEventByGameId(gameId) {
   );
 }
 
+function getEventResultForTeam(
+  event,
+  teamId
+) {
+  if (
+    !event ||
+    !Array.isArray(event.results)
+  ) {
+    return null;
+  }
+
+  return (
+    event.results.find(
+      result =>
+        result.teamId === teamId
+    ) || null
+  );
+}
+
 function renderEventGameOptions() {
   const select =
     getElement("eventGameSelect");
@@ -68,6 +87,169 @@ function renderEventGameOptions() {
       `;
     })
   ].join("");
+}
+
+function renderTimeTrialEntries(
+  event
+) {
+  const teams =
+    Array.isArray(
+      PHDTournament.state.teams
+    )
+      ? PHDTournament.state.teams
+      : [];
+
+  if (teams.length === 0) {
+    return `
+      <div class="empty-state">
+        Add teams before entering Time Trial results.
+      </div>
+    `;
+  }
+
+  return `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Minutes</th>
+            <th>Seconds</th>
+            <th>Milliseconds</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${teams
+            .map(team => {
+              const result =
+                getEventResultForTeam(
+                  event,
+                  team.id
+                );
+
+              const totalMilliseconds =
+                result &&
+                Number.isFinite(
+                  Number(
+                    result.timeMilliseconds
+                  )
+                )
+                  ? Number(
+                      result.timeMilliseconds
+                    )
+                  : null;
+
+              const minutes =
+                totalMilliseconds == null
+                  ? ""
+                  : Math.floor(
+                      totalMilliseconds /
+                        60000
+                    );
+
+              const seconds =
+                totalMilliseconds == null
+                  ? ""
+                  : Math.floor(
+                      (
+                        totalMilliseconds %
+                        60000
+                      ) / 1000
+                    );
+
+              const milliseconds =
+                totalMilliseconds == null
+                  ? ""
+                  : totalMilliseconds %
+                    1000;
+
+              return `
+                <tr
+                  data-event-id="${event.id}"
+                  data-team-id="${team.id}"
+                >
+                  <td>
+                    <strong>
+                      ${escapeHtml(
+                        team.name
+                      )}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <input
+                      class="time-minutes"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value="${minutes}"
+                      placeholder="0"
+                      ${
+                        event.completed
+                          ? "disabled"
+                          : ""
+                      }
+                    />
+                  </td>
+
+                  <td>
+                    <input
+                      class="time-seconds"
+                      type="number"
+                      min="0"
+                      max="59"
+                      step="1"
+                      value="${seconds}"
+                      placeholder="00"
+                      ${
+                        event.completed
+                          ? "disabled"
+                          : ""
+                      }
+                    />
+                  </td>
+
+                  <td>
+                    <input
+                      class="time-milliseconds"
+                      type="number"
+                      min="0"
+                      max="999"
+                      step="1"
+                      value="${milliseconds}"
+                      placeholder="000"
+                      ${
+                        event.completed
+                          ? "disabled"
+                          : ""
+                      }
+                    />
+                  </td>
+                </tr>
+              `;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+
+    ${
+      event.completed
+        ? ""
+        : `
+          <div class="button-row">
+            <button
+              class="save-time-trial-results"
+              type="button"
+              data-event-id="${event.id}"
+            >
+              Save Times
+            </button>
+          </div>
+        `
+    }
+  `;
 }
 
 function renderEvents() {
@@ -159,8 +341,23 @@ function renderEvents() {
                     : "Open"
                 }
               </span>
-            </div>
-          </article>
+return `
+  <article class="round-card">
+    <div class="section-heading">
+      ...
+    </div>
+
+    ${
+      event.mode === "time-trial"
+        ? renderTimeTrialEntries(event)
+        : `
+          <div class="empty-state">
+            Grand Prix result entry will be added next.
+          </div>
+        `
+    }
+  </article>
+`;
         `;
       })
       .join("");
