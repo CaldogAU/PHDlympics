@@ -19,9 +19,10 @@ const PHDTournament = {
         byePoints: 3
       }
     },
-    teams: [],
-    games: [],
-    rounds: []
+teams: [],
+games: [],
+rounds: [],
+events: []
   },
   state: null
 };
