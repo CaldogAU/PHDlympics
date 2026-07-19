@@ -308,48 +308,46 @@ function renderEvents() {
             : event.mode || "Unknown";
 
         return `
-          <article class="round-card">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">
-                  ${escapeHtml(modeName)}
-                </p>
-
-                <h3>
-                  ${escapeHtml(gameName)}
-                </h3>
-
-                <p class="muted">
-                  ${
-                    event.completed
-                      ? "Event completed"
-                      : "Event awaiting results"
-                  }
-                </p>
-              </div>
-
-              <span
-                class="status-pill ${
-                  event.completed
-                    ? "completed"
-                    : "open"
-                }"
-              >
-                ${
-                  event.completed
-                    ? "Completed"
-                    : "Open"
-                }
-              </span>
-return `
   <article class="round-card">
     <div class="section-heading">
-      ...
+      <div>
+        <p class="eyebrow">
+          ${escapeHtml(modeName)}
+        </p>
+
+        <h3>
+          ${escapeHtml(gameName)}
+        </h3>
+
+        <p class="muted">
+          ${
+            event.completed
+              ? "Event completed"
+              : "Event awaiting results"
+          }
+        </p>
+      </div>
+
+      <span
+        class="status-pill ${
+          event.completed
+            ? "completed"
+            : "open"
+        }"
+      >
+        ${
+          event.completed
+            ? "Completed"
+            : "Open"
+        }
+      </span>
     </div>
 
     ${
       event.mode === "time-trial"
-        ? renderTimeTrialEntries(event)
+        ? renderTimeTrialEntries(
+            event
+          )
         : `
           <div class="empty-state">
             Grand Prix result entry will be added next.
@@ -358,7 +356,6 @@ return `
     }
   </article>
 `;
-        `;
       })
       .join("");
 }
