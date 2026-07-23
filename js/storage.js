@@ -10,7 +10,7 @@ let initialCloudCreationPromise = null;
 function mergeTournamentState(sourceState) {
   const source = sourceState || {};
 
-  return {
+  const mergedState = {
     ...structuredClone(
       PHDTournament.defaultState
     ),
@@ -38,8 +38,27 @@ function mergeTournamentState(sourceState) {
       : [],
     rounds: Array.isArray(source.rounds)
       ? source.rounds
+      : [],
+    events: Array.isArray(source.events)
+      ? source.events
       : []
   };
+
+  if (
+    window.PHDGameModes &&
+    typeof window.PHDGameModes
+      .migrateGames === "function"
+  ) {
+    window.PHDGameModes.migrateGames(
+      mergedState.games
+    );
+  }
+
+  mergedState.schemaVersion =
+    PHDTournament.defaultState
+      .schemaVersion;
+
+  return mergedState;
 }
 
 function getTournamentDocumentReference(

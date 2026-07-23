@@ -1,169 +1,10 @@
-function getPlayedPairs() {
-  const pairs = new Set();
-
-  PHDTournament.state.rounds.forEach(round => {
-    round.matches.forEach(match => {
-      if (match.bye || !match.teamBId) return;
-
-      const pair = [
-        match.teamAId,
-        match.teamBId
-      ]
-        .sort()
-        .join("::");
-
-      pairs.add(pair);
-    });
-  });
-
-  return pairs;
-}
-
-function teamsHavePlayed(
-  teamAId,
-  teamBId
+function createSwissPairings(
+  context = {}
 ) {
-  const pair = [
-    teamAId,
-    teamBId
-  ]
-    .sort()
-    .join("::");
-
-  return getPlayedPairs().has(pair);
-}
-
-function getByeCounts() {
-  const counts = new Map();
-
-  PHDTournament.state.teams.forEach(
-    team => {
-      counts.set(team.id, 0);
-    }
-  );
-
-  PHDTournament.state.rounds.forEach(
-    round => {
-      round.matches.forEach(match => {
-        if (!match.bye) return;
-
-        counts.set(
-          match.teamAId,
-          (counts.get(match.teamAId) || 0) +
-            1
-        );
-      });
-    }
-  );
-
-  return counts;
-}
-
-function chooseByeTeam(standings) {
-  const byeCounts = getByeCounts();
-
-  const neverHadBye =
-    standings.filter(
-      team =>
-        (byeCounts.get(team.id) || 0) ===
-        0
-    );
-
-  const candidates =
-    neverHadBye.length > 0
-      ? neverHadBye
-      : standings;
-
-  return [...candidates].sort(
-    (a, b) =>
-      a.points - b.points ||
-      getScoreDifference(a) -
-        getScoreDifference(b) ||
-      a.pointsFor - b.pointsFor ||
-      a.name.localeCompare(b.name)
-  )[0];
-}
-
-function groupStandingsByPoints(
-  standings
-) {
-  const groups = new Map();
-
-  standings.forEach(team => {
-    const key = team.points || 0;
-
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-
-    groups.get(key).push(team);
-  });
-
-  return [...groups.entries()]
-    .sort((a, b) => b[0] - a[0])
-    .map(([, teams]) => teams);
-}
-
-function findBestOpponentIndex(
-  teamA,
-  candidates
-) {
-  const freshOpponentIndex =
-    candidates.findIndex(
-      teamB =>
-        !teamsHavePlayed(
-          teamA.id,
-          teamB.id
-        )
-    );
-
-  if (freshOpponentIndex !== -1) {
-    return freshOpponentIndex;
-  }
-
-  return 0;
-}
-
-function pairWithinGroup(
-  group,
-  carryOver = null
-) {
-  const matches = [];
-
-  const teams = carryOver
-    ? [carryOver, ...group]
-    : [...group];
-
-  while (teams.length >= 2) {
-    const teamA = teams.shift();
-
-    const opponentIndex =
-      findBestOpponentIndex(
-        teamA,
-        teams
-      );
-
-    const teamB =
-      teams.splice(
-        opponentIndex,
-        1
-      )[0];
-
-    matches.push({
-      teamA,
-      teamB
-    });
-  }
-
-  return {
-    matches,
-    carryOver: teams[0] || null
-  };
-}
-
-function createSwissPairings() {
-  const teams =
-    PHDTournament.state.teams;
+  const state =
+    context.state ||
+    PHDTournament.state;
+  const teams = state.teams;
 
   if (teams.length < 2) {
     alert(
@@ -173,141 +14,18 @@ function createSwissPairings() {
     return null;
   }
 
-  const roundNumber =
-    PHDTournament.state.rounds.length +
-    1;
-
-  const standings = getStandings();
-  const matches = [];
-
-  let workingStandings = [
-    ...standings
-  ];
-
-  if (
-    workingStandings.length % 2 ===
-    1
-  ) {
-    const byeTeam =
-      chooseByeTeam(
-        workingStandings
-      );
-
-    matches.push({
-      id: crypto.randomUUID(),
-      roundNumber,
-      teamAId: byeTeam.id,
-      teamBId: null,
-      gameId: "",
-      bye: true,
-      completed: true,
-      scoreA: null,
-      scoreB: null,
-      winnerId: byeTeam.id,
-      updatedAt:
+  return window.PHDSwissEngine
+    .createRound({
+      teams,
+      standings:
+        context.standings ||
+        getStandings(),
+      rounds: state.rounds,
+      createId: () =>
+        crypto.randomUUID(),
+      now: () =>
         new Date().toISOString()
     });
-
-    workingStandings =
-      workingStandings.filter(
-        team =>
-          team.id !== byeTeam.id
-      );
-  }
-
-  const pointGroups =
-    groupStandingsByPoints(
-      workingStandings
-    );
-
-  let carryOver = null;
-
-  pointGroups.forEach(group => {
-    const result =
-      pairWithinGroup(
-        group,
-        carryOver
-      );
-
-    result.matches.forEach(pair => {
-      matches.push({
-        id: crypto.randomUUID(),
-        roundNumber,
-        teamAId: pair.teamA.id,
-        teamBId: pair.teamB.id,
-        gameId: "",
-        bye: false,
-        completed: false,
-        scoreA: null,
-        scoreB: null,
-        winnerId: null,
-        updatedAt: null
-      });
-    });
-
-    carryOver =
-      result.carryOver;
-  });
-
-  if (carryOver) {
-    const alreadyPairedTeamIds =
-      new Set(
-        matches
-          .filter(
-            match => !match.bye
-          )
-          .flatMap(match => [
-            match.teamAId,
-            match.teamBId
-          ])
-      );
-
-    const candidateMatch =
-      matches.find(
-        match =>
-          !match.bye &&
-          !teamsHavePlayed(
-            carryOver.id,
-            match.teamAId
-          ) &&
-          !alreadyPairedTeamIds.has(
-            carryOver.id
-          )
-      );
-
-    if (candidateMatch) {
-      const displacedTeamId =
-        candidateMatch.teamAId;
-
-      candidateMatch.teamAId =
-        carryOver.id;
-
-      matches.push({
-        id: crypto.randomUUID(),
-        roundNumber,
-        teamAId:
-          displacedTeamId,
-        teamBId:
-          candidateMatch.teamBId,
-        gameId: "",
-        bye: false,
-        completed: false,
-        scoreA: null,
-        scoreB: null,
-        winnerId: null,
-        updatedAt: null
-      });
-    }
-  }
-
-  return {
-    id: crypto.randomUUID(),
-    number: roundNumber,
-    completed: false,
-    createdAt:
-      new Date().toISOString(),
-    matches
-  };
 }
 
 function getRoundById(roundId) {
@@ -444,7 +162,15 @@ async function generateRound() {
   }
 
   const round =
-    createSwissPairings();
+    window.PHDGameModes
+      .createNextRound(
+        window.PHDGameModes
+          .DEFAULT_MODE_ID,
+        {
+          state:
+            PHDTournament.state
+        }
+      );
 
   if (!round) {
     return;

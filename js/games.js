@@ -392,7 +392,50 @@ function getGameModeLabel(game) {
   return "Swiss";
 }
 
+function renderGameModeOptions() {
+  const select =
+    getElement("gameMode");
+
+  if (
+    !select ||
+    !window.PHDGameModes
+  ) {
+    return;
+  }
+
+  const selectedModeId =
+    select.value ||
+    window.PHDGameModes
+      .DEFAULT_MODE_ID;
+  const modes =
+    window.PHDGameModes.list();
+
+  select.innerHTML = modes
+    .map(
+      mode => `
+        <option value="${escapeHtml(
+          mode.id
+        )}">
+          ${escapeHtml(
+            mode.displayName
+          )}
+        </option>
+      `
+    )
+    .join("");
+
+  select.value =
+    window.PHDGameModes.has(
+      selectedModeId
+    )
+      ? selectedModeId
+      : window.PHDGameModes
+          .DEFAULT_MODE_ID;
+}
+
 function renderGames() {
+  renderGameModeOptions();
+
   const list =
     getElement("gameList");
 

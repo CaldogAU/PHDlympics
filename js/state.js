@@ -5,8 +5,9 @@ const PHDTournament = {
   editingTeamId: null,
   editingGameId: null,
   defaultState: {
-    appName: "PHDTournament",
-    version: "1.1.0",
+    appName: "PHDlympics",
+    version: "1.3.0",
+    schemaVersion: 1,
     tournament: {
       name: "PHDlympics",
       description: "",
