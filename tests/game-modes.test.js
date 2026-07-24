@@ -26,6 +26,26 @@ function loadGameModes(overrides = {}) {
   return window.PHDGameModes;
 }
 
+function loadAllGameModes() {
+  const window = {
+    crypto: {
+      randomUUID() {
+        return "id";
+      }
+    }
+  };
+  const context = { window, crypto: window.crypto };
+  vm.runInNewContext(
+    fs.readFileSync(path.join(__dirname, "..", "js", "competition-formats.js"), "utf8"),
+    context
+  );
+  vm.runInNewContext(
+    fs.readFileSync(path.join(__dirname, "..", "js", "game-modes.js"), "utf8"),
+    context
+  );
+  return window.PHDGameModes;
+}
+
 test("registers the supported game modes", () => {
   const gameModes = loadGameModes();
 
@@ -64,6 +84,34 @@ test("registers the supported game modes", () => {
       gameModes.SDK_VERSION
     );
   });
+});
+
+test("registers approved bracket modes when format engines are available", () => {
+  const gameModes = loadAllGameModes();
+  assert.deepEqual(
+    Array.from(gameModes.list(), mode => mode.id),
+    ["swiss", "time-trial", "grand-prix", "single-elimination", "round-robin"]
+  );
+  assert.equal(gameModes.getRequired("single-elimination").getResultEntryType(), "match-score");
+});
+
+test("single elimination advances winners into the next round", () => {
+  const gameModes = loadAllGameModes();
+  const mode = gameModes.getRequired("single-elimination");
+  const state = { teams: ["a", "b", "c", "d"].map(id => ({ id })) };
+  const first = mode.createNextRound({ state, gameId: "game", rounds: [] });
+  first.completed = true;
+  first.matches.forEach((match, index) => {
+    match.completed = true;
+    match.winnerId = index ? "b" : "a";
+  });
+  const final = mode.createNextRound({ state, gameId: "game", rounds: [first] });
+  assert.equal(final.number, 2);
+  assert.equal(final.matches.length, 1);
+  assert.deepEqual(
+    [final.matches[0].teamAId, final.matches[0].teamBId].sort(),
+    ["a", "b"]
+  );
 });
 
 test("rejects plugins targeting an incompatible SDK", () => {

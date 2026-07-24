@@ -285,8 +285,13 @@ function renderGameTabs() {
             </div>
           `;
 
+      const gameModeDefinition =
+        window.PHDGameModes.get(mode);
+      const isMatchMode =
+        gameModeDefinition.getResultEntryType() ===
+        "match-score";
       const managementHtml =
-        mode === "swiss"
+        isMatchMode
           ? renderSwissGameManagement(
               game
             )
@@ -356,7 +361,7 @@ function renderGameTabs() {
             ${managementHtml}
 
             ${
-              mode === "swiss"
+              isMatchMode
                 ? `
                   <section class="card">
                     <h3>Total Matches</h3>
@@ -380,7 +385,7 @@ function renderGameTabs() {
                           Match Summary
                         </h2>
                         <p class="muted">
-                          Results from this game's Swiss rounds.
+                          Results from this game's tournament rounds.
                         </p>
                       </div>
                     </div>
@@ -398,12 +403,60 @@ function renderGameTabs() {
     .join("");
 }
 
+function renderChampionshipAndArchive() {
+  const input = getElement("championshipPoints");
+  const list = getElement("archiveList");
+  if (input) {
+    input.value = (
+      PHDTournament.state.championship.pointsByPosition || []
+    ).join(", ");
+  }
+  if (list) {
+    const archives = PHDTournament.state.archive || [];
+    list.innerHTML = archives.length
+      ? archives.map(item => `
+          <li>
+            <strong>${escapeHtml(item.tournament.name || "Tournament")}</strong>
+            <span>${escapeHtml(new Date(item.archivedAt).toLocaleString())}</span>
+          </li>
+        `).join("")
+      : '<li class="empty-state">No archived tournaments yet.</li>';
+  }
+}
+
+async function saveChampionshipConfiguration() {
+  try {
+    const values = getValue("championshipPoints")
+      .split(",")
+      .map(value => value.trim())
+      .filter(Boolean);
+    PHDTournament.state.championship.pointsByPosition =
+      window.PHDTournamentLifecycle.validatePointsByPosition(values);
+    await saveState();
+    render();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function archiveCurrentTournament() {
+  if (!confirm("Archive the current tournament results?")) return;
+  PHDTournament.state.archive.push(
+    window.PHDTournamentLifecycle.createArchiveSnapshot(
+      PHDTournament.state
+    )
+  );
+  await saveState();
+  render();
+}
+
 function render() {
   ensureStateShape();
 
   renderBranding();
   renderTournamentForm();
   renderTournamentSummary();
+  renderChampionshipAndArchive();
   renderStatistics();
   renderGames();
   renderGameTabs();
@@ -418,8 +471,10 @@ if (
 getGames()
   .filter(
     game =>
-      (game.mode || "swiss") ===
-      "swiss"
+      window.PHDGameModes
+        .getForGame(game)
+        .getResultEntryType() ===
+      "match-score"
   )
   .forEach(game => {
     renderRounds(game.id);
@@ -1297,6 +1352,8 @@ async function resetTournamentWithAudit() {
 }
 
 function bindAppEvents() {
+  bindClick("saveChampionshipPoints", saveChampionshipConfiguration);
+  bindClick("archiveTournament", archiveCurrentTournament);
   bindClick(
     "displayModeToggle",
     toggleDisplayMode

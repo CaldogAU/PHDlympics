@@ -3,6 +3,7 @@ const PHD_ADMIN_UID = "prUrxokN7YQbloBefGQHMTQEPjJ3";
 const PHDAuth = {
   user: null,
   isAdmin: false,
+  role: "viewer",
   ready: null,
   listeners: new Set(),
   accessObserver: null
@@ -18,6 +19,9 @@ const ADMIN_CONTROL_IDS = [
   "drawPoints",
   "byePoints",
   "saveTournament",
+  "championshipPoints",
+  "saveChampionshipPoints",
+  "archiveTournament",
   "teamName",
   "teamShortName",
   "teamLogoUrl",
@@ -60,7 +64,11 @@ const ADMIN_DYNAMIC_SELECTORS = [
 function getAuthState() {
   return {
     user: PHDAuth.user,
-    isAdmin: PHDAuth.isAdmin
+    isAdmin: PHDAuth.isAdmin,
+    role: PHDAuth.role,
+    can(capability) {
+      return window.PHDAccessControl.can(PHDAuth.role, capability);
+    }
   };
 }
 
@@ -115,11 +123,20 @@ async function signInAdmin(email, password) {
       enteredPassword
     );
 
-  if (credential.user.uid !== PHD_ADMIN_UID) {
+  const token =
+    await credential.user.getIdTokenResult();
+  const role =
+    credential.user.uid === PHD_ADMIN_UID
+      ? "administrator"
+      : window.PHDAccessControl.normaliseRole(
+          token.claims.tournamentRole
+        );
+
+  if (role === "viewer") {
     await firebase.authSdk.signOut(firebase.auth);
 
     throw new Error(
-      "This account does not have tournament administrator access."
+      "This account does not have tournament staff access."
     );
   }
 
@@ -140,6 +157,10 @@ function getSignedInUser() {
 
 function isTournamentAdmin() {
   return PHDAuth.isAdmin;
+}
+
+function canTournament(capability) {
+  return window.PHDAccessControl.can(PHDAuth.role, capability);
 }
 
 function setElementAdminState(element, isAdmin) {
@@ -283,30 +304,42 @@ function updateViewOnlyNotice(isAdmin) {
 function applyAdminAccessState() {
   const isAdmin =
     isTournamentAdmin();
+  const canManageTournament =
+    canTournament("tournament.manage");
+  const canEnterResults =
+    canTournament("results.manage");
+  const canEdit =
+    canManageTournament ||
+    canEnterResults;
 
   document.body.classList.toggle(
     "admin-mode",
-    isAdmin
+    canEdit
   );
 
   document.body.classList.toggle(
     "view-only-mode",
-    !isAdmin
+    !canEdit
   );
 
   document.body.dataset.accessMode =
-    isAdmin ? "admin" : "viewer";
+    PHDAuth.role;
 
-  getAdminControlledElements().forEach(
-    element => {
-      setElementAdminState(
-        element,
-        isAdmin
-      );
-    }
-  );
+  getAdminControlledElements().forEach(element => {
+    const resultControl = Boolean(
+      element.closest(
+        ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card"
+      )
+    );
+    setElementAdminState(
+      element,
+      resultControl
+        ? canEnterResults
+        : canManageTournament
+    );
+  });
 
-  updateViewOnlyNotice(isAdmin);
+  updateViewOnlyNotice(canEdit);
 }
 
 function isProtectedElement(element) {
@@ -435,15 +468,21 @@ PHDAuth.ready =
         firebase.auth,
         user => {
           PHDAuth.user = user;
-
-          PHDAuth.isAdmin = Boolean(
-            user &&
-            user.uid === PHD_ADMIN_UID
-          );
-
-          notifyAuthListeners();
-
-          resolve(getAuthState());
+          const finish = role => {
+            PHDAuth.role = window.PHDAccessControl.normaliseRole(role);
+            PHDAuth.isAdmin = PHDAuth.role === "administrator";
+            notifyAuthListeners();
+            resolve(getAuthState());
+          };
+          if (!user) {
+            finish("viewer");
+          } else if (user.uid === PHD_ADMIN_UID) {
+            finish("administrator");
+          } else {
+            user.getIdTokenResult()
+              .then(token => finish(token.claims.tournamentRole))
+              .catch(() => finish("viewer"));
+          }
         },
         error => {
           console.error(
@@ -453,6 +492,7 @@ PHDAuth.ready =
 
           PHDAuth.user = null;
           PHDAuth.isAdmin = false;
+          PHDAuth.role = "viewer";
 
           notifyAuthListeners();
 
@@ -480,6 +520,8 @@ window.getSignedInUser =
   getSignedInUser;
 window.isTournamentAdmin =
   isTournamentAdmin;
+window.canTournament =
+  canTournament;
 window.subscribeToAuth =
   subscribeToAuth;
 window.applyAdminAccessState =

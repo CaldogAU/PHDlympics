@@ -7,7 +7,14 @@ const PHDTournament = {
   defaultState: {
     appName: "PHDlympics",
     version: "1.3.0",
-    schemaVersion: 1,
+    schemaVersion: 2,
+    access: {
+      assignments: {}
+    },
+    championship: {
+      pointsByPosition: [10, 8, 6, 5, 4, 3, 2, 1]
+    },
+    archive: [],
     tournament: {
       name: "PHDlympics",
       description: "",

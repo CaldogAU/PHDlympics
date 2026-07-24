@@ -3,8 +3,9 @@
 PHDlympics is a browser-based tournament platform for running a multi-game
 competition with shared teams, results, standings, reports, and public displays.
 
-The current application supports Swiss tournaments, Time Trials, and Grand Prix
-events. Firebase provides authentication, real-time shared state, audit history,
+The current application supports Swiss tournaments, Single Elimination, Round
+Robin, Time Trials, and Grand Prix events. Firebase provides role-based
+authentication, real-time shared state, audit history,
 and cloud restore points.
 
 ## Features
@@ -17,6 +18,10 @@ and cloud restore points.
 - Automatic byes
 - Time Trial events
 - Grand Prix events
+- Single Elimination brackets
+- Round Robin schedules
+- Configurable championship points
+- Completed tournament archives
 - Score entry
 - Live standings
 - Dashboard statistics
@@ -98,3 +103,4 @@ Pull requests and pushes to `main` run the same suite through GitHub Actions.
 
 - [Architecture overview](docs/architecture.md)
 - [GameMode SDK](docs/game-mode-sdk.md)
+- [Roles and access](docs/roles-and-access.md)

@@ -8,12 +8,24 @@ service cloud.firestore {
 
     function isTournamentAdmin() {
       return isSignedIn()
-        && request.auth.uid == "prUrxokN7YQbloBefGQHMTQEPjJ3";
+        && (
+          request.auth.uid == "prUrxokN7YQbloBefGQHMTQEPjJ3"
+          || request.auth.token.tournamentRole == "administrator"
+        );
+    }
+
+    function isTournamentOperator() {
+      return isSignedIn() && (
+        isTournamentAdmin()
+        || request.auth.token.tournamentRole == "tournament-director"
+        || request.auth.token.tournamentRole == "score-entry"
+      );
     }
 
     match /tournaments/{tournamentId} {
       allow read: if true;
-      allow create, update, delete: if isTournamentAdmin();
+      allow create, update: if isTournamentOperator();
+      allow delete: if isTournamentAdmin();
     }
 
     match /backups/{backupId} {

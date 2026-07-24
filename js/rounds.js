@@ -201,13 +201,19 @@ async function generateRound(gameId) {
   const game =
     getGameById(gameId);
 
+  const modeId =
+    game && (game.mode || "swiss");
+  const mode =
+    game &&
+    window.PHDGameModes.get(modeId);
   if (
     !game ||
-    (game.mode || "swiss") !==
-      "swiss"
+    !mode ||
+    mode.getResultEntryType() !==
+      "match-score"
   ) {
     alert(
-      "Select a Swiss game before generating a round."
+      "Select a round-based game before generating a round."
     );
     return;
   }
@@ -231,12 +237,12 @@ async function generateRound(gameId) {
   const round =
     window.PHDGameModes
       .createNextRound(
-        window.PHDGameModes
-          .DEFAULT_MODE_ID,
+        modeId,
         {
           state:
             PHDTournament.state,
-          gameId
+          gameId,
+          rounds: gameRounds
         }
       );
 

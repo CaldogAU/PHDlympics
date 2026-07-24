@@ -275,22 +275,35 @@
   }
 
   function awardChampionshipPoints(
-    rankings
+    rankings,
+    pointsByPosition
   ) {
     const participantCount =
       rankings.length;
+    const configuredPoints =
+      Array.isArray(pointsByPosition)
+        ? pointsByPosition.map(Number)
+        : [];
 
     return rankings.map(
       entry => ({
         ...entry,
 
         championshipPoints:
-          Math.max(
-            1,
-            participantCount -
-              entry.position +
-              1
+          Number.isFinite(
+            configuredPoints[
+              entry.position - 1
+            ]
           )
+            ? configuredPoints[
+                entry.position - 1
+              ]
+            : Math.max(
+                1,
+                participantCount -
+                  entry.position +
+                  1
+              )
       })
     );
   }
@@ -784,6 +797,98 @@
       );
     }
   });
+
+  function createMatchMode(modeId, displayName, description, createSchedule) {
+    register({
+      id: modeId,
+      name: displayName,
+      icon: "bracket",
+      version: "1.0.0",
+      compatibilityVersion: SDK_VERSION,
+      description,
+      tieFields: ["points", "scoreDifference", "pointsFor"],
+      getResultEntryType() {
+        return "match-score";
+      },
+      createNextRound(context = {}) {
+        const state = context.state || {};
+        const existing = Array.isArray(context.rounds) ? context.rounds : [];
+        let entrantIds =
+          (state.teams || []).map(team => team.id);
+        if (
+          modeId === "single-elimination" &&
+          existing.length
+        ) {
+          const latest = existing.at(-1);
+          if (!latest.completed) return null;
+          entrantIds = latest.matches
+            .map(match => match.winnerId)
+            .filter(Boolean);
+          if (entrantIds.length < 2) return null;
+        }
+        const schedules = createSchedule(
+          entrantIds,
+          () => global.crypto.randomUUID()
+        );
+        const scheduled =
+          modeId === "single-elimination"
+            ? schedules[0]
+            : schedules[existing.length];
+        if (!scheduled) return null;
+        return {
+          id: global.crypto.randomUUID(),
+          number: existing.length + 1,
+          gameId: context.gameId || "",
+          completed: scheduled.matches.every(match => match.completed),
+          createdAt: new Date().toISOString(),
+          matches: scheduled.matches.map(match => ({
+            ...match,
+            gameId: context.gameId || ""
+          }))
+        };
+      },
+      calculateRankings() {
+        return typeof global.getStandings === "function"
+          ? global.getStandings().map(team => ({
+              teamId: team.id,
+              teamName: team.name,
+              points: team.points,
+              rankValue: team.points,
+              custom: {}
+            }))
+          : [];
+      },
+      calculateChampionshipPoints(rankings, context = {}) {
+        return awardChampionshipPoints(
+          rankings,
+          context.pointsByPosition
+        );
+      },
+      areResultsComplete(context = {}) {
+        return Array.isArray(context.rounds) &&
+          context.rounds.length > 0 &&
+          context.rounds.every(round => round.completed);
+      },
+      shouldRevealResults() {
+        return true;
+      }
+    });
+  }
+
+  if (global.PHDCompetitionFormats) {
+    createMatchMode(
+      "single-elimination",
+      "Single Elimination",
+      "Knockout bracket where one loss eliminates a team.",
+      global.PHDCompetitionFormats.singleEliminationFirstRound
+    );
+    createMatchMode(
+      "round-robin",
+      "Round Robin",
+      "Every team plays every other team once.",
+      global.PHDCompetitionFormats.roundRobinSchedule
+    );
+  }
 
   global.PHDGameModes =
     Object.freeze({

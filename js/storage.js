@@ -41,6 +41,19 @@ function mergeTournamentState(sourceState) {
       : [],
     events: Array.isArray(source.events)
       ? source.events
+      : [],
+    access: {
+      assignments: {
+        ...PHDTournament.defaultState.access.assignments,
+        ...((source.access && source.access.assignments) || {})
+      }
+    },
+    championship: {
+      ...PHDTournament.defaultState.championship,
+      ...(source.championship || {})
+    },
+    archive: Array.isArray(source.archive)
+      ? source.archive
       : []
   };
 
@@ -89,12 +102,15 @@ function cloneStateForCloud() {
 
 function requireTournamentAdmin() {
   if (
-    typeof isTournamentAdmin !==
+    typeof canTournament !==
       "function" ||
-    !isTournamentAdmin()
+    !(
+      canTournament("tournament.manage") ||
+      canTournament("results.manage")
+    )
   ) {
     throw new Error(
-      "Administrator access is required to change tournament data."
+      "Tournament staff access is required to change tournament data."
     );
   }
 }

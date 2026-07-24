@@ -271,6 +271,22 @@
             </section>
 
             <section class="card wide">
+              <h2>Championship &amp; Archive</h2>
+              <p class="muted">
+                Set points awarded by finishing position, then preserve a completed tournament as a read-only snapshot.
+              </p>
+              <label>
+                Points by position
+                <input id="championshipPoints" type="text" placeholder="10, 8, 6, 5, 4, 3, 2, 1" />
+              </label>
+              <div class="button-row">
+                <button id="saveChampionshipPoints" type="button">Save Points</button>
+                <button id="archiveTournament" class="secondary" type="button">Archive Tournament</button>
+              </div>
+              <ul id="archiveList" class="summary-list"></ul>
+            </section>
+
+            <section class="card wide">
               <div class="section-heading">
                 <div>
                   <h2>Teams</h2>
@@ -554,6 +570,9 @@
     </div>
   </div>
 
+  <script src="js/access-control.js"></script>
+  <script src="js/competition-formats.js"></script>
+  <script src="js/tournament-lifecycle.js"></script>
   <script src="js/firebase.js"></script>
   <script src="js/auth.js"></script>
 
@@ -602,29 +621,35 @@
       function renderAuthenticationState(authState) {
         const user = authState && authState.user;
         const isAdmin = Boolean(authState && authState.isAdmin);
+        const role = authState && authState.role
+          ? authState.role
+          : "viewer";
+        const isStaff = Boolean(
+          user && role !== "viewer"
+        );
 
         if (signedOutPanel) {
-          signedOutPanel.hidden = isAdmin;
+          signedOutPanel.hidden = isStaff;
         }
 
         if (signedInPanel) {
-          signedInPanel.hidden = !isAdmin;
+          signedInPanel.hidden = !isStaff;
         }
 
         if (identity) {
           identity.textContent = user && user.email
             ? user.email
-            : "Tournament administrator";
+            : "Tournament staff";
         }
 
         if (headerAuthStatus) {
-          headerAuthStatus.textContent = isAdmin
-            ? "Administrator mode"
+          headerAuthStatus.textContent = isStaff
+            ? `${role.replaceAll("-", " ")} mode`
             : "View-only mode";
         }
 
-        if (isAdmin) {
-          setAuthenticationMessage("Administrator access active.", false);
+        if (isStaff) {
+          setAuthenticationMessage(`${role.replaceAll("-", " ")} access active.`, false);
         } else {
           setAuthenticationMessage(
             "Sign in to access administrator controls.",
