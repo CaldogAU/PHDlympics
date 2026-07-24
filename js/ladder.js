@@ -39,10 +39,20 @@ function getStandings(
 
       const teamA = standings.get(match.teamAId);
       const teamB = standings.get(match.teamBId);
+      const matchGame =
+        typeof getGameById === "function"
+          ? getGameById(
+              gameId || match.gameId
+            )
+          : null;
+      const scoring = {
+        ...PHDTournament.state.tournament.settings,
+        ...((matchGame && matchGame.settings) || {})
+      };
 
       if (match.bye && teamA) {
         teamA.byes += 1;
-        teamA.points += PHDTournament.state.tournament.settings.byePoints;
+        teamA.points += scoring.byePoints;
         return;
       }
 
@@ -59,16 +69,16 @@ function getStandings(
       if (scoreA > scoreB) {
         teamA.wins += 1;
         teamB.losses += 1;
-        teamA.points += PHDTournament.state.tournament.settings.winPoints;
+        teamA.points += scoring.winPoints;
       } else if (scoreB > scoreA) {
         teamB.wins += 1;
         teamA.losses += 1;
-        teamB.points += PHDTournament.state.tournament.settings.winPoints;
+        teamB.points += scoring.winPoints;
       } else {
         teamA.draws += 1;
         teamB.draws += 1;
-        teamA.points += PHDTournament.state.tournament.settings.drawPoints;
-        teamB.points += PHDTournament.state.tournament.settings.drawPoints;
+        teamA.points += scoring.drawPoints;
+        teamB.points += scoring.drawPoints;
       }
     });
   });

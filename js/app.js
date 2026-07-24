@@ -41,18 +41,6 @@ function renderTournamentForm() {
     tournament.accentColour || "#6d5dfc"
   );
 
-  setValue(
-    "winPoints",
-    tournament.settings.winPoints
-  );
-  setValue(
-    "drawPoints",
-    tournament.settings.drawPoints
-  );
-  setValue(
-    "byePoints",
-    tournament.settings.byePoints
-  );
 }
 
 function renderBranding() {
@@ -115,12 +103,6 @@ function renderTournamentSummary() {
       "No description yet."
   );
 
-  setText(
-    "summaryScoring",
-    `Win ${tournament.settings.winPoints}, ` +
-      `Draw ${tournament.settings.drawPoints}, ` +
-      `Bye ${tournament.settings.byePoints}`
-  );
 
   setText(
     "summaryTeams",
@@ -539,14 +521,7 @@ function getTournamentAuditDetails(
     accentColour:
       tournament.accentColour ||
       "#6d5dfc",
-    settings: {
-      winPoints:
-        tournament.settings.winPoints,
-      drawPoints:
-        tournament.settings.drawPoints,
-      byePoints:
-        tournament.settings.byePoints
-    }
+    settings: {}
   };
 }
 
@@ -573,27 +548,6 @@ function getTournamentChanges(
       previousValue !== updatedValue
     ) {
       changes[field] = {
-        from: previousValue,
-        to: updatedValue
-      };
-    }
-  });
-
-  [
-    "winPoints",
-    "drawPoints",
-    "byePoints"
-  ].forEach(field => {
-    const previousValue =
-      previousTournament.settings[field];
-
-    const updatedValue =
-      updatedTournament.settings[field];
-
-    if (
-      previousValue !== updatedValue
-    ) {
-      changes[`settings.${field}`] = {
         from: previousValue,
         to: updatedValue
       };
@@ -666,24 +620,6 @@ async function updateTournamentSettings() {
     getValue(
       "tournamentAccentColour"
     ) || "#6d5dfc";
-
-  tournament.settings.winPoints =
-    toPositiveNumber(
-      getValue("winPoints"),
-      3
-    );
-
-  tournament.settings.drawPoints =
-    toNumber(
-      getValue("drawPoints"),
-      0
-    );
-
-  tournament.settings.byePoints =
-    toNumber(
-      getValue("byePoints"),
-      0
-    );
 
   const changes =
     getTournamentChanges(
@@ -907,10 +843,7 @@ function bindTournamentEvents() {
     "tournamentDescription",
     "tournamentLogoUrl",
     "tournamentBannerUrl",
-    "tournamentAccentColour",
-    "winPoints",
-    "drawPoints",
-    "byePoints"
+    "tournamentAccentColour"
   ].forEach(id => {
     bindChange(
       id,
@@ -1136,12 +1069,29 @@ function bindRoundEvents() {
         ) &&
         !target.classList.contains(
           "toggle-round"
+        ) &&
+        !target.classList.contains(
+          "save-game-scoring"
         )
       ) {
         return;
       }
 
       if (!requireAdminForAction()) {
+        return;
+      }
+
+      if (
+        target.classList.contains(
+          "save-game-scoring"
+        )
+      ) {
+        saveGameScoring(
+          target.dataset.gameId,
+          target.closest(
+            ".game-scoring-form"
+          )
+        );
         return;
       }
 

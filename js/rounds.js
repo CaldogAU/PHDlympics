@@ -608,6 +608,12 @@ function renderMatchTeam(team) {
 function renderSwissGameManagement(
   game
 ) {
+  const scoring = {
+    winPoints: 3,
+    drawPoints: 1,
+    byePoints: 3,
+    ...(game.settings || {})
+  };
   return `
     <section class="card wide">
       <div class="section-heading">
@@ -634,11 +640,79 @@ function renderSwissGameManagement(
       </div>
 
       <div
+        class="game-scoring-form grid three"
+        data-game-id="${game.id}"
+      >
+        <label>
+          Win Points
+          <input
+            data-score-field="winPoints"
+            type="number"
+            min="0"
+            value="${scoring.winPoints}"
+          />
+        </label>
+        <label>
+          Draw Points
+          <input
+            data-score-field="drawPoints"
+            type="number"
+            min="0"
+            value="${scoring.drawPoints}"
+          />
+        </label>
+        <label>
+          Bye Points
+          <input
+            data-score-field="byePoints"
+            type="number"
+            min="0"
+            value="${scoring.byePoints}"
+          />
+        </label>
+        <button
+          class="save-game-scoring"
+          type="button"
+          data-game-id="${game.id}"
+        >
+          Save Scoring
+        </button>
+      </div>
+
+      <div
         id="roundsContainer-${game.id}"
         class="rounds-container"
       ></div>
     </section>
   `;
+}
+
+async function saveGameScoring(gameId, form) {
+  const game = getGameById(gameId);
+  if (!game || !form) return;
+
+  const read = field => {
+    const input = form.querySelector(
+      `[data-score-field="${field}"]`
+    );
+    const value = Number(input && input.value);
+    return Number.isFinite(value) && value >= 0
+      ? value
+      : null;
+  };
+  const settings = {
+    winPoints: read("winPoints"),
+    drawPoints: read("drawPoints"),
+    byePoints: read("byePoints")
+  };
+  if (Object.values(settings).some(value => value === null)) {
+    alert("Scoring values must be zero or greater.");
+    return;
+  }
+
+  game.settings = settings;
+  await saveState();
+  render();
 }
 
 function renderRounds(gameId) {

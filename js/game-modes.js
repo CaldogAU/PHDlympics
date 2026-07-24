@@ -208,6 +208,15 @@
 
         changed = true;
       }
+
+      if (!game.settings) {
+        game.settings = {
+          winPoints: 3,
+          drawPoints: 1,
+          byePoints: 3
+        };
+        changed = true;
+      }
     });
 
     return changed;
