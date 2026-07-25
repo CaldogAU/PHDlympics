@@ -21,7 +21,7 @@ function updateDisplayClock() {
   clock.textContent = formatDisplayTime();
 }
 
-function getDisplayTickerText() {
+function getDisplayActivityText() {
   const activity = getRecentActivity(8);
 
   if (activity.length === 0) {
@@ -39,9 +39,33 @@ function getDisplayTickerText() {
     .join(" · ");
 }
 
+function getDisplayTickerText() {
+  const activity = getRecentActivity(8);
+  const commentary = window.PHDCommentary
+    ? window.PHDCommentary.generate({
+        activity,
+        standings: getStandings()
+      })
+    : [];
+  const activityText =
+    getDisplayActivityText();
+
+  if (!commentary.length) {
+    return activityText;
+  }
+
+  return `${commentary.join(" · ")} · ${activityText}`;
+}
+
 function renderDisplayMode() {
   const container = getElement("displayMode");
   if (!container) return;
+  const previousTicker =
+    container.querySelector(
+      ".display-ticker"
+    );
+  const tickerText =
+    getDisplayTickerText();
 
   const tournament = getTournament();
   const standings = getStandings().slice(0, 8);
@@ -118,9 +142,24 @@ function renderDisplayMode() {
     </section>
 
     <section class="display-ticker">
-      <div>${escapeHtml(getDisplayTickerText())}</div>
+      <div>${escapeHtml(tickerText)}</div>
     </section>
   `;
+
+  const replacementTicker =
+    container.querySelector(
+      ".display-ticker"
+    );
+  if (
+    previousTicker &&
+    replacementTicker &&
+    previousTicker.textContent.trim() ===
+      tickerText.trim()
+  ) {
+    replacementTicker.replaceWith(
+      previousTicker
+    );
+  }
 
   bindDisplayModeInnerButtons();
 }
