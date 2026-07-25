@@ -980,8 +980,10 @@ body.display-active .display-mode {
 
 .display-ticker div {
   display: inline-block;
+  width: max-content;
   padding-left: 100%;
   animation: tickerScroll 28s linear infinite;
+  will-change: transform;
 }
 
 @keyframes tickerScroll {
