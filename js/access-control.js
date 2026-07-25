@@ -9,7 +9,10 @@
       "games.manage",
       "results.manage",
       "reports.view",
-      "display.manage"
+      "display.manage",
+      "staff.manage",
+      "backups.manage",
+      "audit.view"
     ],
     "score-entry": ["results.manage", "reports.view"],
     volunteer: ["results.view", "reports.view"],

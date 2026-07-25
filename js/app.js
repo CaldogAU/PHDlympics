@@ -1231,7 +1231,16 @@ function bindDataToolEvents() {
 }
 
 async function resetTournamentWithAudit() {
-  if (!requireAdminForAction()) {
+  if (
+    typeof canTournament !==
+      "function" ||
+    !canTournament(
+      "tournament.reset"
+    )
+  ) {
+    alert(
+      "Only the primary administrator can reset the tournament."
+    );
     return;
   }
 

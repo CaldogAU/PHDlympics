@@ -6,7 +6,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isTournamentAdmin() {
+    function isRootAdministrator() {
       return isSignedIn()
         && (
           request.auth.uid == "prUrxokN7YQbloBefGQHMTQEPjJ3"
@@ -14,10 +14,31 @@ service cloud.firestore {
         );
     }
 
+    function isManagedStaff() {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.active == true
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.role == "tournament-director";
+    }
+
+    function isTournamentManager() {
+      return isRootAdministrator()
+        || isManagedStaff()
+        || (
+          isSignedIn()
+          && request.auth.token.tournamentRole == "tournament-director"
+        );
+    }
+
     function isTournamentOperator() {
       return isSignedIn() && (
-        isTournamentAdmin()
-        || request.auth.token.tournamentRole == "tournament-director"
+        isTournamentManager()
         || request.auth.token.tournamentRole == "score-entry"
       );
     }
@@ -25,17 +46,17 @@ service cloud.firestore {
     match /tournaments/{tournamentId} {
       allow read: if true;
       allow create, update: if isTournamentOperator();
-      allow delete: if isTournamentAdmin();
+      allow delete: if isRootAdministrator();
     }
 
     match /backups/{backupId} {
-      allow read, create, update, delete: if isTournamentAdmin();
+      allow read, create, update, delete: if isTournamentManager();
     }
 
     match /auditLogs/{auditId} {
-      allow read: if isTournamentAdmin();
+      allow read: if isTournamentManager();
 
-      allow create: if isTournamentAdmin()
+      allow create: if isTournamentManager()
         && request.resource.data.adminUid == request.auth.uid
         && request.resource.data.action is string
         && request.resource.data.action.size() > 0
@@ -44,6 +65,22 @@ service cloud.firestore {
         && request.resource.data.tournamentDocument == "current";
 
       allow update, delete: if false;
+    }
+
+    match /staff/{staffId} {
+      allow read: if isRootAdministrator()
+        || isManagedStaff()
+        || (
+          isSignedIn()
+          && request.auth.uid == staffId
+        );
+
+      allow create, update: if isTournamentManager()
+        && request.resource.data.email is string
+        && request.resource.data.role == "tournament-director"
+        && request.resource.data.active is bool;
+
+      allow delete: if false;
     }
 
     match /{document=**} {

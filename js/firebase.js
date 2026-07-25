@@ -20,6 +20,11 @@ const firebaseConfig = {
   measurementId: "G-ZFDDYN9DDS"
 };
 
+PHDFirebase.config =
+  Object.freeze({
+    ...firebaseConfig
+  });
+
 PHDFirebase.ready = Promise.all([
   import("https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js"),
   import("https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js"),

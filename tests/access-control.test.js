@@ -26,4 +26,32 @@ test("enforces capabilities by role", () => {
   assert.equal(access.can("score-entry", "results.manage"), true);
   assert.equal(access.can("score-entry", "games.manage"), false);
   assert.equal(access.can("display-operator", "display.manage"), true);
+  assert.equal(
+    access.can(
+      "administrator",
+      "tournament.reset"
+    ),
+    true
+  );
+  assert.equal(
+    access.can(
+      "tournament-director",
+      "tournament.manage"
+    ),
+    true
+  );
+  assert.equal(
+    access.can(
+      "tournament-director",
+      "staff.manage"
+    ),
+    true
+  );
+  assert.equal(
+    access.can(
+      "tournament-director",
+      "tournament.reset"
+    ),
+    false
+  );
 });

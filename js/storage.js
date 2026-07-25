@@ -602,7 +602,17 @@ function loadState() {
 }
 
 function resetState() {
-  requireTournamentAdmin();
+  if (
+    typeof canTournament !==
+      "function" ||
+    !canTournament(
+      "tournament.reset"
+    )
+  ) {
+    throw new Error(
+      "Only the primary administrator can reset the tournament."
+    );
+  }
 
   PHDTournament.state =
     mergeTournamentState(
