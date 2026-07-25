@@ -735,6 +735,19 @@ function switchTab(tabName) {
 
 function getValidTabName(tabName) {
   if (
+    ["admin", "games"].includes(
+      tabName
+    ) &&
+    (
+      typeof isTournamentAdmin !==
+        "function" ||
+      !isTournamentAdmin()
+    )
+  ) {
+    return "home";
+  }
+
+  if (
     getStaticTabs().includes(tabName)
   ) {
     return tabName;

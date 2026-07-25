@@ -117,3 +117,15 @@ test("keeps mode management on game pages", () => {
     /data-score-field="winPoints"/
   );
 });
+
+test("marks Admin and Games navigation as administrator-only", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
+
+  assert.match(html, /data-tab="admin" hidden/);
+  assert.match(html, /data-tab="games" hidden/);
+  assert.match(app, /\["admin", "games"\]/);
+  assert.match(auth, /\.admin-only-tab, #adminTab, #gamesTab/);
+});
