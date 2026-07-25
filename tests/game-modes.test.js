@@ -61,6 +61,7 @@ test("registers the supported game modes", () => {
     ),
     [
       "swiss",
+      "four-player-swiss",
       "time-trial",
       "grand-prix"
     ]
@@ -90,7 +91,7 @@ test("registers approved bracket modes when format engines are available", () =>
   const gameModes = loadAllGameModes();
   assert.deepEqual(
     Array.from(gameModes.list(), mode => mode.id),
-    ["swiss", "time-trial", "grand-prix", "single-elimination", "round-robin"]
+    ["swiss", "four-player-swiss", "time-trial", "grand-prix", "single-elimination", "round-robin"]
   );
   assert.equal(gameModes.getRequired("single-elimination").getResultEntryType(), "match-score");
 });
@@ -480,5 +481,78 @@ test("ranks Grand Prix results by finishing position", () => {
         1
       ]
     ]
+  );
+});
+
+test("assigns configured tournament points to final four-player Swiss rankings", () => {
+  const rankings = [
+    {
+      teamId: "team-a",
+      points: 4,
+      firsts: 1,
+      seconds: 0,
+      thirds: 0,
+      opponentScore: 6
+    },
+    {
+      teamId: "team-b",
+      points: 3,
+      firsts: 0,
+      seconds: 1,
+      thirds: 0,
+      opponentScore: 7
+    },
+    {
+      teamId: "team-c",
+      points: 2,
+      firsts: 0,
+      seconds: 0,
+      thirds: 1,
+      opponentScore: 8
+    },
+    {
+      teamId: "team-d",
+      points: 1,
+      firsts: 0,
+      seconds: 0,
+      thirds: 0,
+      opponentScore: 9
+    }
+  ];
+  const gameModes =
+    loadGameModes({
+      PHDFourPlayerSwiss: {
+        calculateStandings() {
+          return rankings;
+        }
+      }
+    });
+  const mode =
+    gameModes.getRequired(
+      "four-player-swiss"
+    );
+  const result =
+    gameModes.buildResult(mode, {
+      teams: [],
+      rounds: [
+        {
+          completed: true
+        }
+      ],
+      pointsByPosition: [
+        10,
+        8,
+        6,
+        5
+      ]
+    });
+
+  assert.deepEqual(
+    Array.from(
+      result.leaderboard,
+      entry =>
+        entry.championshipPoints
+    ),
+    [10, 8, 6, 5]
   );
 });

@@ -20,6 +20,10 @@ test("loads tournament engines before their workflow adapters", () => {
     html.indexOf(
       'src="js/game-modes.js"'
     );
+  const fourPlayerSwissIndex =
+    html.indexOf(
+      'src="js/four-player-swiss.js"'
+    );
   const roundsIndex =
     html.indexOf(
       'src="js/rounds.js"'
@@ -34,11 +38,19 @@ test("loads tournament engines before their workflow adapters", () => {
     -1
   );
   assert.notEqual(
+    fourPlayerSwissIndex,
+    -1
+  );
+  assert.notEqual(
     roundsIndex,
     -1
   );
   assert.ok(
     swissEngineIndex <
+      gameModesIndex
+  );
+  assert.ok(
+    fourPlayerSwissIndex <
       gameModesIndex
   );
   assert.ok(

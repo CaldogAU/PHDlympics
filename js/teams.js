@@ -215,6 +215,36 @@ async function deleteTeam(teamId) {
     return;
   }
 
+  const usedInFourPlayerSwiss =
+    PHDTournament.state.games.some(
+      game =>
+        game.fourPlayerSwiss &&
+        Array.isArray(
+          game.fourPlayerSwiss.rounds
+        ) &&
+        game.fourPlayerSwiss.rounds
+          .some(round =>
+            (round.groups || [])
+              .some(group =>
+                (
+                  group.competitors ||
+                  []
+                ).some(
+                  competitor =>
+                    competitor.teamId ===
+                    teamId
+                )
+              )
+          )
+    );
+
+  if (usedInFourPlayerSwiss) {
+    alert(
+      "This competitor already has 4 Player Swiss tournament data and cannot be deleted."
+    );
+    return;
+  }
+
   const confirmed = confirm(
     `Delete ${team.name}?`
   );

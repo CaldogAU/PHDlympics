@@ -607,6 +607,66 @@ th {
   background: rgba(22, 163, 74, 0.05);
 }
 
+.four-player-ranking,
+.four-player-rounds {
+  margin-top: 24px;
+}
+
+.four-player-group-list {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(320px, 1fr)
+    );
+  gap: 14px;
+}
+
+.four-player-group {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--card);
+}
+
+.four-player-group.completed {
+  border-color:
+    rgba(22, 163, 74, 0.35);
+  background:
+    rgba(22, 163, 74, 0.05);
+}
+
+.four-player-group h4 {
+  margin: 0;
+}
+
+.four-player-competitors {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.four-player-competitor {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) 130px;
+  gap: 12px;
+  align-items: center;
+  border-bottom:
+    1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.four-player-competitor > span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.four-player-competitor select {
+  margin-top: 4px;
+  padding: 8px;
+}
+
 .round-heading {
   margin-bottom: 12px;
 }

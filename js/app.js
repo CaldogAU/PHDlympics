@@ -269,17 +269,25 @@ function renderGameTabs() {
 
       const gameModeDefinition =
         window.PHDGameModes.get(mode);
+      const resultEntryType =
+        gameModeDefinition
+          .getResultEntryType();
       const isMatchMode =
-        gameModeDefinition.getResultEntryType() ===
+        resultEntryType ===
         "match-score";
       const managementHtml =
-        isMatchMode
-          ? renderSwissGameManagement(
+        resultEntryType ===
+        "group-placements"
+          ? renderFourPlayerSwissManagement(
               game
             )
-          : renderEventGameManagement(
-              game
-            );
+          : isMatchMode
+            ? renderSwissGameManagement(
+                game
+              )
+            : renderEventGameManagement(
+                game
+              );
 
       return `
         <section

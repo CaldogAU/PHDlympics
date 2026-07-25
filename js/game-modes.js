@@ -508,6 +508,106 @@
   });
 
   register({
+    id: "four-player-swiss",
+
+    name: "4 Player Swiss Rounds",
+
+    icon: "groups",
+
+    version: "1.0.0",
+
+    compatibilityVersion:
+      SDK_VERSION,
+
+    description:
+      "Swiss rounds in ranked groups of four with 1st-to-4th placement entry.",
+
+    tieFields: [
+      "points",
+      "firsts",
+      "seconds",
+      "thirds",
+      "opponentScore"
+    ],
+
+    getResultEntryType() {
+      return "group-placements";
+    },
+
+    createNextRound(
+      context = {}
+    ) {
+      if (
+        !global.PHDFourPlayerSwiss
+      ) {
+        throw new Error(
+          "The 4 Player Swiss engine is not available."
+        );
+      }
+
+      return global
+        .PHDFourPlayerSwiss
+        .createRound({
+          teams:
+            (
+              context.state ||
+              {}
+            ).teams || [],
+          rounds:
+            context.rounds || [],
+          gameId:
+            context.gameId || "",
+          createId: () =>
+            global.crypto
+              .randomUUID(),
+          now: () =>
+            new Date()
+              .toISOString()
+        });
+    },
+
+    calculateRankings(
+      context = {}
+    ) {
+      return global
+        .PHDFourPlayerSwiss
+        .calculateStandings(
+          context.teams || [],
+          context.rounds || []
+        );
+    },
+
+    calculateChampionshipPoints(
+      rankings,
+      context = {}
+    ) {
+      return awardChampionshipPoints(
+        rankings,
+        context.pointsByPosition
+      );
+    },
+
+    areResultsComplete(
+      context = {}
+    ) {
+      return (
+        Array.isArray(
+          context.rounds
+        ) &&
+        context.rounds.length > 0 &&
+        context.rounds.every(
+          round =>
+            round.completed
+        )
+      );
+    },
+
+    shouldRevealResults() {
+      return true;
+    }
+  });
+
+  register({
     id: "time-trial",
 
     name: "Time Trial",
