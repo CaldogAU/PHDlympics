@@ -44,7 +44,17 @@ function getDisplayTickerText() {
   const commentary = window.PHDCommentary
     ? window.PHDCommentary.generate({
         activity,
-        standings: getStandings()
+        standings: getStandings(),
+        events:
+          PHDTournament.state.events ||
+          [],
+        teams:
+          PHDTournament.state.teams ||
+          [],
+        games:
+          PHDTournament.state.games ||
+          [],
+        limit: 6
       })
     : [];
   const activityText =
