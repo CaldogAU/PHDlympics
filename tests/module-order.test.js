@@ -96,4 +96,24 @@ test("keeps mode management on game pages", () => {
     events,
     /saveGrandPrixResults/
   );
+  assert.equal(
+    html.includes('id="summaryScoring"'),
+    false
+  );
+  assert.equal(
+    html.includes('id="winPoints"'),
+    false
+  );
+  const rounds = fs.readFileSync(
+    path.join(root, "js", "rounds.js"),
+    "utf8"
+  );
+  assert.match(
+    rounds,
+    /saveGameScoring/
+  );
+  assert.match(
+    rounds,
+    /data-score-field="winPoints"/
+  );
 });

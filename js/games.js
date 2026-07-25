@@ -40,6 +40,8 @@ setValue("gameLogoUrl", "");
 }
 
 function createGame(values) {
+  const legacyScoring =
+    PHDTournament.state.tournament.settings;
   return {
   id: crypto.randomUUID(),
   name: values.name,
@@ -47,6 +49,11 @@ function createGame(values) {
   mode: values.mode,
   format: values.format,
   logoUrl: values.logoUrl,
+  settings: {
+    winPoints: legacyScoring.winPoints,
+    drawPoints: legacyScoring.drawPoints,
+    byePoints: legacyScoring.byePoints
+  },
   createdAt: new Date().toISOString()
 };
 }
