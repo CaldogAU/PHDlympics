@@ -115,7 +115,7 @@ function renderDisplayMode() {
     }).join("")
     : `<p>No current round.</p>`;
 
-  container.innerHTML = `
+  const displayHtml = `
     <section class="display-topbar">
       <div>
         <p class="eyebrow">Public Display</p>
@@ -146,19 +146,61 @@ function renderDisplayMode() {
     </section>
   `;
 
-  const replacementTicker =
-    container.querySelector(
-      ".display-ticker"
-    );
-  if (
-    previousTicker &&
-    replacementTicker &&
-    previousTicker.textContent.trim() ===
-      tickerText.trim()
-  ) {
-    replacementTicker.replaceWith(
-      previousTicker
-    );
+  if (!previousTicker) {
+    container.innerHTML =
+      displayHtml;
+  } else {
+    const nextDisplay =
+      document.createElement("div");
+    nextDisplay.innerHTML =
+      displayHtml;
+
+    const currentTopbar =
+      container.querySelector(
+        ".display-topbar"
+      );
+    const currentGrid =
+      container.querySelector(
+        ".display-grid"
+      );
+    const nextTopbar =
+      nextDisplay.querySelector(
+        ".display-topbar"
+      );
+    const nextGrid =
+      nextDisplay.querySelector(
+        ".display-grid"
+      );
+
+    if (currentTopbar && nextTopbar) {
+      currentTopbar.replaceWith(
+        nextTopbar
+      );
+    }
+    if (currentGrid && nextGrid) {
+      currentGrid.replaceWith(
+        nextGrid
+      );
+    }
+
+    const tickerTrack =
+      previousTicker.querySelector(
+        "div"
+      );
+    if (
+      tickerTrack &&
+      tickerTrack.textContent !==
+        tickerText
+    ) {
+      tickerTrack.textContent =
+        tickerText;
+      tickerTrack.style.animation =
+        "none";
+      requestAnimationFrame(() => {
+        tickerTrack.style.animation =
+          "";
+      });
+    }
   }
 
   bindDisplayModeInnerButtons();
