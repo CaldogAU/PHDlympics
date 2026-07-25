@@ -324,6 +324,31 @@ function applyAdminAccessState() {
   document.body.dataset.accessMode =
     PHDAuth.role;
 
+  document
+    .querySelectorAll(
+      '.admin-only-tab, #adminTab, #gamesTab'
+    )
+    .forEach(element => {
+      element.hidden = !isAdmin;
+      element.setAttribute(
+        "aria-hidden",
+        String(!isAdmin)
+      );
+    });
+
+  if (
+    !isAdmin &&
+    typeof switchTab === "function"
+  ) {
+    const activeAdminPanel =
+      document.querySelector(
+        "#adminTab.active, #gamesTab.active"
+      );
+    if (activeAdminPanel) {
+      switchTab("home");
+    }
+  }
+
   getAdminControlledElements().forEach(element => {
     const resultControl = Boolean(
       element.closest(
