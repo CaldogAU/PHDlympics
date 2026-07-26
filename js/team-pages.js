@@ -277,7 +277,10 @@ function getTeamPageGameBreakdown(
   });
 }
 
-function renderTeamPageLogo(team) {
+function renderTeamPageLogo(
+  team,
+  compact = false
+) {
   if (team.logoUrl) {
     return `
       <img
@@ -296,10 +299,33 @@ function renderTeamPageLogo(team) {
       .join("")
       .slice(0, 3)
       .toUpperCase();
+  const shortName =
+    String(initials || "TEAM");
+  const fittedFontSize =
+    Math.max(
+      3.5,
+      Math.min(
+        14,
+        40 /
+          Math.max(
+            1,
+            shortName.length * 0.8
+          )
+      )
+    );
 
-  return escapeHtml(
-    initials || "TEAM"
-  );
+  return `
+    <span
+      class="team-page-logo-text"
+      ${
+        compact
+          ? `style="font-size:${fittedFontSize.toFixed(2)}px"`
+          : ""
+      }
+    >
+      ${escapeHtml(shortName)}
+    </span>
+  `;
 }
 
 function createTeamPageNavigation() {
@@ -513,7 +539,8 @@ function renderTeamPageMatchRows(
               ${
                 opponent
                   ? renderTeamPageLogo(
-                      opponent
+                      opponent,
+                      true
                     )
                   : "?"
               }
