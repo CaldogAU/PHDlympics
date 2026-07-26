@@ -76,10 +76,19 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
 
-.sidebar-brand h1 {
-  color: white;
-  font-size: 18px;
-  line-height: 1.15;
+.sidebar-brand-title {
+  min-width: 0;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-brand .eyebrow {
+  color: var(--sidebar-muted);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.12em;
   margin: 0;
   word-break: break-word;
 }
@@ -1736,6 +1745,21 @@ body.dark .audit-entry-marker {
 .team-page-opponent-logo {
   width: 48px;
   height: 48px;
+  display: grid !important;
+  place-items: center;
+  padding: 4px;
+  text-align: center;
+  line-height: 1;
+}
+
+.team-page-opponent-logo .team-page-logo-text {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .team-page-score {

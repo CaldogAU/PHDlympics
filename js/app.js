@@ -88,11 +88,6 @@ function renderTournamentSummary() {
   const tournament = getTournament();
 
   setText(
-    "pageTitle",
-    tournament.name || "Tournament Manager"
-  );
-
-  setText(
     "summaryName",
     tournament.name || "Untitled Tournament"
   );
