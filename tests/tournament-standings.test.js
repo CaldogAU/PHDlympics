@@ -199,6 +199,21 @@ test("aggregates reverse-position points from every completed event", () => {
       ["d", 6, 3]
     ]
   );
+
+  assert.deepEqual(
+    Array.from(
+      standings[0].gamePoints,
+      result => [
+        result.gameName,
+        result.points
+      ]
+    ),
+    [
+      ["Grand Prix", 4],
+      ["Time Trial", 1],
+      ["4 Player Swiss", 4]
+    ]
+  );
 });
 
 test("excludes match games until the game itself is completed", () => {
@@ -219,8 +234,24 @@ test("excludes match games until the game itself is completed", () => {
     3
   );
   assert.equal(
+    before.find(team => team.id === "a")
+      .gamePoints.some(
+        result =>
+          result.gameId === "swiss"
+      ),
+    false
+  );
+  assert.equal(
     after.find(team => team.id === "a")
       .gamesCompleted,
+    4
+  );
+  assert.equal(
+    after.find(team => team.id === "a")
+      .gamePoints.find(
+        result =>
+          result.gameId === "swiss"
+      ).points,
     4
   );
   assert.equal(

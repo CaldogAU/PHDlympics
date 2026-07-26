@@ -637,6 +637,16 @@ th {
   font-weight: 800;
 }
 
+.game-points-heading,
+.game-points-cell {
+  min-width: 110px;
+  text-align: center;
+}
+
+.game-points-cell {
+  font-weight: 800;
+}
+
 .team-cell,
 .match-team {
   display: flex;
