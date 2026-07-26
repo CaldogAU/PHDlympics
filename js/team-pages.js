@@ -40,6 +40,189 @@ function getTeamPageMatches(teamId) {
   );
 }
 
+function formatTeamPageTime(
+  milliseconds
+) {
+  const total = Number(milliseconds);
+
+  if (!Number.isFinite(total)) {
+    return "—";
+  }
+
+  const minutes =
+    Math.floor(total / 60000);
+  const seconds =
+    Math.floor(
+      (total % 60000) / 1000
+    );
+  const remainder =
+    Math.floor(total % 1000);
+
+  return `${minutes}:${String(
+    seconds
+  ).padStart(2, "0")}.${String(
+    remainder
+  ).padStart(3, "0")}`;
+}
+
+function getPlacementLabel(placement) {
+  const value = Number(placement);
+  const remainder100 = value % 100;
+  const remainder10 = value % 10;
+  const suffix =
+    remainder100 >= 11 &&
+    remainder100 <= 13
+      ? "th"
+      : remainder10 === 1
+        ? "st"
+        : remainder10 === 2
+          ? "nd"
+          : remainder10 === 3
+            ? "rd"
+            : "th";
+
+  return `${value}${suffix}`;
+}
+
+function getTeamPageEventHistory(
+  teamId
+) {
+  return (
+    PHDTournament.state.events || []
+  ).flatMap(event => {
+    const result =
+      (event.results || []).find(
+        item =>
+          item.teamId === teamId
+      );
+
+    if (!result) return [];
+
+    const isGrandPrix =
+      event.mode === "grand-prix";
+    const displayScore =
+      isGrandPrix
+        ? getPlacementLabel(
+            result.finishPosition
+          )
+        : formatTeamPageTime(
+            result.timeMilliseconds
+          );
+
+    return [{
+      id: `event-${event.id}-${teamId}`,
+      gameId: event.gameId,
+      completed:
+        Boolean(event.completed),
+      multiplayer: true,
+      roundLabel:
+        isGrandPrix
+          ? "Grand Prix"
+          : "Time Trial",
+      displayScore,
+      resultLabel:
+        event.completed
+          ? "Completed"
+          : "Awaiting Others",
+      sortOrder:
+        Date.parse(
+          event.updatedAt ||
+          event.createdAt ||
+          ""
+        ) || 0
+    }];
+  });
+}
+
+function getTeamPageFourPlayerHistory(
+  teamId
+) {
+  return (
+    PHDTournament.state.games || []
+  ).flatMap(game => {
+    if (
+      (game.mode || "") !==
+      "four-player-swiss"
+    ) {
+      return [];
+    }
+
+    const rounds =
+      game.fourPlayerSwiss &&
+      Array.isArray(
+        game.fourPlayerSwiss.rounds
+      )
+        ? game.fourPlayerSwiss.rounds
+        : [];
+
+    return rounds.flatMap(round =>
+      (round.groups || []).flatMap(
+        group => {
+          const competitor =
+            (
+              group.competitors || []
+            ).find(
+              item =>
+                item.teamId === teamId
+            );
+
+          if (
+            !group.completed ||
+            !competitor
+          ) {
+            return [];
+          }
+
+          return [{
+            id:
+              `four-player-${round.id}-${group.id}-${teamId}`,
+            gameId: game.id,
+            completed: true,
+            multiplayer: true,
+            roundNumber:
+              round.number,
+            roundLabel:
+              `Round ${round.number} · Group ${group.number}`,
+            displayScore:
+              getPlacementLabel(
+                competitor.placement
+              ),
+            resultLabel: "Completed",
+            sortOrder:
+              Date.parse(
+                group.updatedAt ||
+                round.createdAt ||
+                ""
+              ) ||
+              Number(round.number) ||
+              0
+          }];
+        }
+      )
+    );
+  });
+}
+
+function getTeamPageHistoryEntries(
+  teamId,
+  matches = getTeamPageMatches(
+    teamId
+  )
+) {
+  return [
+    ...matches.map(match => ({
+      ...match,
+      sortOrder:
+        Number(match.roundNumber) ||
+        0
+    })),
+    ...getTeamPageEventHistory(teamId),
+    ...getTeamPageFourPlayerHistory(
+      teamId
+    )
+  ];
+}
+
 function getTeamPageByes(teamId) {
   const rounds =
     Array.isArray(PHDTournament.state.rounds)
@@ -109,6 +292,20 @@ function getTeamPageMatchResult(
   teamId,
   match
 ) {
+  if (match.multiplayer) {
+    return {
+      label:
+        match.resultLabel ||
+        (match.completed
+          ? "Completed"
+          : "Pending"),
+      className:
+        match.completed
+          ? "completed"
+          : "open"
+    };
+  }
+
   if (!match.completed) {
     return {
       label: "Scheduled",
@@ -172,6 +369,10 @@ function getTeamPageScore(
   teamId,
   match
 ) {
+  if (match.multiplayer) {
+    return match.displayScore || "—";
+  }
+
   if (!match.completed) {
     return "vs";
   }
@@ -474,8 +675,8 @@ function renderTeamPageMatchRows(
   if (!matches.length) {
     return `
       <div class="empty-state">
-        No matches have been scheduled
-        for this team yet.
+        No game results or matches are
+        available for this team yet.
       </div>
     `;
   }
@@ -483,8 +684,10 @@ function renderTeamPageMatchRows(
   return matches
     .sort(
       (matchA, matchB) =>
-        matchB.roundNumber -
-        matchA.roundNumber
+        Number(matchB.sortOrder) -
+          Number(matchA.sortOrder) ||
+        Number(matchB.roundNumber) -
+          Number(matchA.roundNumber)
     )
     .map(match => {
       const opponent =
@@ -512,7 +715,10 @@ function renderTeamPageMatchRows(
         <article class="team-page-match">
           <div class="team-page-match-round">
             <span>
-              Round ${match.roundNumber}
+              ${escapeHtml(
+                match.roundLabel ||
+                `Round ${match.roundNumber}`
+              )}
             </span>
 
             <small>
@@ -528,7 +734,9 @@ function renderTeamPageMatchRows(
             <span
               class="team-logo team-page-opponent-logo"
               style="background:${
-                opponent &&
+                match.multiplayer
+                  ? "#475467"
+                  : opponent &&
                 opponent.colour
                   ? escapeHtml(
                       opponent.colour
@@ -537,7 +745,9 @@ function renderTeamPageMatchRows(
               }"
             >
               ${
-                opponent
+                match.multiplayer
+                  ? `<span class="team-page-logo-text" style="font-size:7px">MULTI</span>`
+                  : opponent
                   ? renderTeamPageLogo(
                       opponent,
                       true
@@ -553,7 +763,9 @@ function renderTeamPageMatchRows(
 
               <strong>
                 ${escapeHtml(
-                  opponent
+                  match.multiplayer
+                    ? "Multiple"
+                    : opponent
                     ? opponent.name
                     : "Unknown team"
                 )}
@@ -664,6 +876,11 @@ function renderTeamPagePanel(team) {
   const completedMatches =
     matches.filter(
       match => match.completed
+    );
+  const historyEntries =
+    getTeamPageHistoryEntries(
+      team.id,
+      matches
     );
   const matchesPlayed =
     typeof getCompletedMatchCount ===
@@ -837,8 +1054,9 @@ function renderTeamPagePanel(team) {
               <h2>Match History</h2>
 
               <p class="muted">
-                Completed and upcoming matches
-                for ${escapeHtml(team.name)}.
+                Results and upcoming matches
+                across every game mode for
+                ${escapeHtml(team.name)}.
               </p>
             </div>
           </div>
@@ -846,7 +1064,7 @@ function renderTeamPagePanel(team) {
           <div class="team-page-match-list">
             ${renderTeamPageMatchRows(
               team,
-              matches
+              historyEntries
             )}
           </div>
         </section>
