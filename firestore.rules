@@ -75,10 +75,11 @@ service cloud.firestore {
           && request.auth.uid == staffId
         );
 
-      allow create, update: if isTournamentManager()
+      allow create, update: if isRootAdministrator()
         && request.resource.data.email is string
         && request.resource.data.role == "tournament-director"
-        && request.resource.data.active is bool;
+        && request.resource.data.active is bool
+        && request.resource.data.teamId is string;
 
       allow delete: if false;
     }

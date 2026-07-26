@@ -4,6 +4,7 @@ const PHDAuth = {
   user: null,
   isAdmin: false,
   role: "viewer",
+  teamId: "",
   ready: null,
   listeners: new Set(),
   accessObserver: null
@@ -35,6 +36,7 @@ const ADMIN_CONTROL_IDS = [
   "importJson",
   "staffEmail",
   "staffPassword",
+  "staffTeam",
   "createStaffAccount",
   "resetTournament"
 ];
@@ -64,6 +66,7 @@ const ADMIN_DYNAMIC_SELECTORS = [
   ".reopen-four-player-tournament",
   "[data-four-player-game-id] select",
   ".toggle-staff-access",
+  ".staff-team-assignment",
   ".match-game-select",
   ".match-card input",
   ".match-card select",
@@ -75,6 +78,7 @@ function getAuthState() {
     user: PHDAuth.user,
     isAdmin: PHDAuth.isAdmin,
     role: PHDAuth.role,
+    teamId: PHDAuth.teamId,
     can(capability) {
       return window.PHDAccessControl.can(PHDAuth.role, capability);
     }
@@ -85,11 +89,14 @@ async function resolveFirebaseUserRole(
   firebase,
   user
 ) {
+  PHDAuth.teamId = "";
+
   if (!user) {
     return "viewer";
   }
 
   if (user.uid === PHD_ADMIN_UID) {
+    PHDAuth.teamId = "";
     return "administrator";
   }
 
@@ -116,6 +123,11 @@ async function resolveFirebaseUserRole(
         staff.role ===
           "tournament-director"
       ) {
+        PHDAuth.teamId =
+          typeof staff.teamId ===
+            "string"
+            ? staff.teamId
+            : "";
         return "tournament-director";
       }
     }
@@ -217,6 +229,26 @@ async function signOutAdmin() {
 
 function getSignedInUser() {
   return PHDAuth.user;
+}
+
+function getAssignedStaffTeamId() {
+  return PHDAuth.teamId || "";
+}
+
+function isTeamScopedStaff() {
+  return (
+    PHDAuth.role ===
+    "tournament-director"
+  );
+}
+
+function canManageTeamResult(teamId) {
+  return isRootAdministrator() ||
+    (
+      isTeamScopedStaff() &&
+      Boolean(PHDAuth.teamId) &&
+      PHDAuth.teamId === teamId
+    );
 }
 
 function isTournamentAdmin() {
@@ -438,17 +470,62 @@ function applyAdminAccessState() {
       element.id ===
         "staffPassword" ||
       element.id ===
+        "staffTeam" ||
+      element.id ===
         "createStaffAccount" ||
       Boolean(
         element.closest(
-          ".toggle-staff-access"
+          ".toggle-staff-access, .staff-team-assignment"
         )
       );
     const resultControl = Boolean(
       element.closest(
-        ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card"
+        ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card, .generate-four-player-round, .save-four-player-group, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, [data-four-player-game-id]"
       )
     );
+    const lifecycleControl =
+      Boolean(
+        element.closest(
+          ".generate-game-round, .create-game-event, .reopen-game-event, .toggle-round, .generate-four-player-round, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, .close-match-game, .reopen-match-game"
+        )
+      );
+    const teamElement =
+      element.closest(
+        "[data-team-id]"
+      );
+    const teamResultAllowed =
+      !isTeamScopedStaff() ||
+      (
+        teamElement
+          ? canManageTeamResult(
+              teamElement.dataset.teamId
+            )
+          : element.closest(
+              ".match-card"
+            )
+            ? [
+                element.closest(
+                  ".match-card"
+                ).dataset.teamAId,
+                element.closest(
+                  ".match-card"
+                ).dataset.teamBId
+              ].includes(
+                getAssignedStaffTeamId()
+              )
+            : true
+      );
+    const completedEvent =
+      Boolean(
+        element.closest(
+          '[data-event-completed="true"]'
+        )
+      );
+    const completedResultLocked =
+      completedEvent &&
+      !element.closest(
+        ".reopen-game-event"
+      );
     setElementAdminState(
       element,
       resetControl
@@ -462,7 +539,13 @@ function applyAdminAccessState() {
             element.dataset
               .selfAccount !== "true"
           : resultControl
-            ? canEnterResults
+            ? canEnterResults &&
+              teamResultAllowed &&
+              !completedResultLocked &&
+              !(
+                isTeamScopedStaff() &&
+                lifecycleControl
+              )
             : canManageTournament
     );
   });
@@ -610,6 +693,7 @@ PHDAuth.ready =
             resolve(getAuthState());
           };
           if (!user) {
+            PHDAuth.teamId = "";
             finish("viewer");
           } else {
             resolveFirebaseUserRole(
@@ -631,6 +715,7 @@ PHDAuth.ready =
           PHDAuth.user = null;
           PHDAuth.isAdmin = false;
           PHDAuth.role = "viewer";
+          PHDAuth.teamId = "";
 
           notifyAuthListeners();
 

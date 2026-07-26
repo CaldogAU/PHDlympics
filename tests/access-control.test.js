@@ -38,12 +38,19 @@ test("enforces capabilities by role", () => {
       "tournament-director",
       "tournament.manage"
     ),
-    true
+    false
   );
   assert.equal(
     access.can(
       "tournament-director",
       "staff.manage"
+    ),
+    false
+  );
+  assert.equal(
+    access.can(
+      "tournament-director",
+      "results.manage"
     ),
     true
   );

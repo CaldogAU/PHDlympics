@@ -270,7 +270,8 @@
                     Create staff logins with administrator-level tournament
                     controls. Staff cannot reset the tournament. Passwords are
                     sent directly to Firebase Authentication and are never
-                    stored in tournament data.
+                    stored in tournament data. Assign each account to the team
+                    whose results they may enter.
                   </p>
                 </div>
               </div>
@@ -297,6 +298,13 @@
                     placeholder="At least 6 characters"
                     required
                   />
+                </label>
+
+                <label>
+                  Assigned Team
+                  <select id="staffTeam" required>
+                    <option value="">Select team</option>
+                  </select>
                 </label>
 
                 <button id="createStaffAccount" type="submit">

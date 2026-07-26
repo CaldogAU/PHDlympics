@@ -860,6 +860,19 @@ function renderRounds(gameId) {
       const matchesHtml =
         round.matches
           .map(match => {
+            if (
+              typeof isTeamScopedStaff ===
+                "function" &&
+              isTeamScopedStaff() &&
+              !gameLocked &&
+              match.teamAId !==
+                getAssignedStaffTeamId() &&
+              match.teamBId !==
+                getAssignedStaffTeamId()
+            ) {
+              return "";
+            }
+
             const teamA =
               getTeamById(
                 match.teamAId
@@ -895,6 +908,8 @@ function renderRounds(gameId) {
                 class="match-card"
                 data-round-id="${round.id}"
                 data-match-id="${match.id}"
+                data-team-a-id="${match.teamAId}"
+                data-team-b-id="${match.teamBId || ""}"
               >
                 <div class="match-team">
                   ${renderMatchTeam(

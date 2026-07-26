@@ -34,6 +34,10 @@ test("provides staff management on the Admin page", () => {
     /id="staffPassword"/
   );
   assert.match(
+    html,
+    /id="staffTeam"/
+  );
+  assert.match(
     staff,
     /createUserWithEmailAndPassword/
   );
@@ -73,6 +77,10 @@ test("resolves managed staff from Firestore", () => {
   );
   assert.match(
     auth,
+    /staff\.teamId/
+  );
+  assert.match(
+    auth,
     /"tournament-director"/
   );
 });
@@ -107,6 +115,14 @@ test("protects managed staff records in Firestore rules", () => {
   assert.match(
     rules,
     /request\.resource\.data\.role == "tournament-director"/
+  );
+  assert.match(
+    rules,
+    /request\.resource\.data\.teamId is string/
+  );
+  assert.match(
+    rules,
+    /allow create, update: if isRootAdministrator\(\)/
   );
   assert.match(
     rules,

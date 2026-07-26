@@ -4,14 +4,8 @@
   const ROLE_CAPABILITIES = Object.freeze({
     administrator: ["*"],
     "tournament-director": [
-      "tournament.manage",
-      "teams.manage",
-      "games.manage",
       "results.manage",
       "reports.view",
-      "display.manage",
-      "staff.manage",
-      "backups.manage",
       "audit.view"
     ],
     "score-entry": ["results.manage", "reports.view"],
