@@ -377,29 +377,15 @@ function exportStandingsCsv() {
     [
       "Rank",
       "Team",
-      "Points",
-      "Wins",
-      "Draws",
-      "Losses",
-      "Byes",
-      "Points For",
-      "Points Against",
-      "Difference"
+      "Tournament Points",
+      "Completed Games"
     ],
     ...standings.map(
       (team, index) => [
         index + 1,
         team.name,
         team.points,
-        team.wins,
-        team.draws,
-        team.losses,
-        team.byes,
-        team.pointsFor,
-        team.pointsAgainst,
-        getScoreDifference(
-          team
-        )
+        team.gamesCompleted
       ]
     )
   ];

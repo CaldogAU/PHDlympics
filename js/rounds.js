@@ -608,6 +608,13 @@ function renderMatchTeam(team) {
 function renderSwissGameManagement(
   game
 ) {
+  const locked =
+    Boolean(game.completed);
+  const modeName =
+    typeof getGameModeLabel ===
+      "function"
+      ? getGameModeLabel(game)
+      : "Match Tournament";
   const scoring = {
     winPoints: 3,
     drawPoints: 1,
@@ -619,7 +626,7 @@ function renderSwissGameManagement(
       <div class="section-heading">
         <div>
           <p class="eyebrow">
-            Swiss Tournament
+            ${escapeHtml(modeName)}
           </p>
           <h2>Rounds</h2>
           <p
@@ -630,13 +637,20 @@ function renderSwissGameManagement(
           </p>
         </div>
 
-        <button
-          class="generate-game-round"
-          type="button"
-          data-game-id="${game.id}"
-        >
-          Generate Next Round
-        </button>
+        <div class="button-row">
+          <span class="status-pill ${locked ? "completed" : "open"}">
+            ${locked ? "Completed" : "Open"}
+          </span>
+          ${
+            locked
+              ? `<button class="secondary reopen-match-game" type="button"
+                   data-game-id="${game.id}">Reopen Game</button>`
+              : `<button class="generate-game-round" type="button"
+                   data-game-id="${game.id}">Generate Next Round</button>
+                 <button class="success close-match-game" type="button"
+                   data-game-id="${game.id}">Complete Game</button>`
+          }
+        </div>
       </div>
 
       <div
@@ -650,6 +664,7 @@ function renderSwissGameManagement(
             type="number"
             min="0"
             value="${scoring.winPoints}"
+            ${locked ? "disabled" : ""}
           />
         </label>
         <label>
@@ -659,6 +674,7 @@ function renderSwissGameManagement(
             type="number"
             min="0"
             value="${scoring.drawPoints}"
+            ${locked ? "disabled" : ""}
           />
         </label>
         <label>
@@ -668,12 +684,14 @@ function renderSwissGameManagement(
             type="number"
             min="0"
             value="${scoring.byePoints}"
+            ${locked ? "disabled" : ""}
           />
         </label>
         <button
           class="save-game-scoring"
           type="button"
           data-game-id="${game.id}"
+          ${locked ? "disabled" : ""}
         >
           Save Scoring
         </button>
@@ -715,6 +733,69 @@ async function saveGameScoring(gameId, form) {
   render();
 }
 
+async function closeMatchGame(gameId) {
+  const game = getGameById(gameId);
+  const rounds = getRoundsForGame(gameId);
+
+  if (!game) return;
+
+  if (
+    rounds.length === 0 ||
+    rounds.some(
+      round => !round.completed
+    )
+  ) {
+    alert(
+      "Complete every generated round before completing this game."
+    );
+    return;
+  }
+
+  if (
+    !confirm(
+      "Complete this game and add its final tournament points to the overall standings?"
+    )
+  ) {
+    return;
+  }
+
+  game.completed = true;
+  game.completedAt =
+    new Date().toISOString();
+  await saveState();
+  render();
+
+  if (
+    typeof recordAuditEntry ===
+    "function"
+  ) {
+    await recordAuditEntry(
+      "game.results.completed",
+      `Completed ${game.name} and assigned tournament points.`,
+      { gameId }
+    );
+  }
+}
+
+async function reopenMatchGame(gameId) {
+  const game = getGameById(gameId);
+
+  if (!game) return;
+
+  if (
+    !confirm(
+      "Reopen this game? Its tournament points will be removed until it is completed again."
+    )
+  ) {
+    return;
+  }
+
+  game.completed = false;
+  game.completedAt = "";
+  await saveState();
+  render();
+}
+
 function renderRounds(gameId) {
   const status =
     document.getElementById(
@@ -733,6 +814,9 @@ function renderRounds(gameId) {
   container.innerHTML = "";
   const rounds =
     getRoundsForGame(gameId);
+  const game = getGameById(gameId);
+  const gameLocked =
+    Boolean(game && game.completed);
 
   if (
     rounds.length === 0
@@ -837,6 +921,7 @@ function renderRounds(gameId) {
                         ""
                       }"
                       placeholder="0"
+                      ${gameLocked ? "disabled" : ""}
                     />
 
                     <span>–</span>
@@ -850,6 +935,7 @@ function renderRounds(gameId) {
                         ""
                       }"
                       placeholder="0"
+                      ${gameLocked ? "disabled" : ""}
                     />
                   </div>
                 </div>
@@ -866,6 +952,7 @@ function renderRounds(gameId) {
                     type="button"
                     data-round-id="${round.id}"
                     data-match-id="${match.id}"
+                    ${gameLocked ? "disabled" : ""}
                   >
                     Save
                   </button>
@@ -875,6 +962,7 @@ function renderRounds(gameId) {
                     type="button"
                     data-round-id="${round.id}"
                     data-match-id="${match.id}"
+                    ${gameLocked ? "disabled" : ""}
                   >
                     Clear
                   </button>
@@ -928,6 +1016,7 @@ function renderRounds(gameId) {
             } toggle-round"
             type="button"
             data-round-id="${round.id}"
+            ${gameLocked ? "disabled" : ""}
           >
             ${
               round.completed

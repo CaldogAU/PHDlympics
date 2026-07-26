@@ -8,13 +8,7 @@ function buildTournamentReportHtml() {
       <td>${index + 1}</td>
       <td>${escapeHtml(team.name)}</td>
       <td>${team.points}</td>
-      <td>${team.wins}</td>
-      <td>${team.draws}</td>
-      <td>${team.losses}</td>
-      <td>${team.byes}</td>
-      <td>${team.pointsFor}</td>
-      <td>${team.pointsAgainst}</td>
-      <td>${getScoreDifference(team)}</td>
+      <td>${team.gamesCompleted}</td>
     </tr>
   `).join("");
 
@@ -38,11 +32,10 @@ function buildTournamentReportHtml() {
         <table>
           <thead>
             <tr>
-              <th>#</th><th>Team</th><th>Pts</th><th>W</th><th>D</th><th>L</th>
-              <th>Bye</th><th>PF</th><th>PA</th><th>Diff</th>
+              <th>#</th><th>Team</th><th>Tournament Points</th><th>Completed Games</th>
             </tr>
           </thead>
-          <tbody>${standingsRows || `<tr><td colspan="10">No standings yet.</td></tr>`}</tbody>
+          <tbody>${standingsRows || `<tr><td colspan="4">No standings yet.</td></tr>`}</tbody>
         </table>
       </div>
 

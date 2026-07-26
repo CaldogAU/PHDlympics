@@ -19,9 +19,7 @@ function getScoreDifference(standing) {
   return (standing.pointsFor || 0) - (standing.pointsAgainst || 0);
 }
 
-function getStandings(
-  gameId = ""
-) {
+function getGameStandings(gameId = "") {
   const standings = new Map();
 
   PHDTournament.state.teams.forEach(team => {
@@ -30,10 +28,7 @@ function getStandings(
 
   PHDTournament.state.rounds.forEach(round => {
     round.matches.forEach(match => {
-      if (
-        gameId &&
-        match.gameId !== gameId
-      ) {
+      if (gameId && match.gameId !== gameId) {
         return;
       }
 
@@ -93,6 +88,150 @@ function getStandings(
   });
 }
 
+function getCompletedGameLeaderboard(game) {
+  if (!game || !window.PHDGameModes) {
+    return null;
+  }
+
+  if (
+    (game.mode || "swiss") ===
+    "four-player-swiss"
+  ) {
+    const tournament =
+      game.fourPlayerSwiss;
+
+    return tournament &&
+      tournament.closed &&
+      Array.isArray(
+        tournament.finalStandings
+      )
+      ? window.PHDGameModes
+          .awardChampionshipPoints(
+            tournament.finalStandings
+          )
+      : null;
+  }
+
+  const mode =
+    window.PHDGameModes
+      .getForGame(game);
+  const resultEntryType =
+    mode.getResultEntryType();
+  const context = {
+    state: PHDTournament.state,
+    teams: PHDTournament.state.teams,
+    teamIds:
+      PHDTournament.state.teams.map(
+        team => team.id
+      ),
+    gameId: game.id,
+    rounds:
+      typeof getRoundsForGame === "function"
+        ? getRoundsForGame(game.id)
+        : [],
+    pointsByPosition: []
+  };
+
+  if (
+    resultEntryType ===
+    "match-score"
+  ) {
+    if (!game.completed) {
+      return null;
+    }
+  } else {
+    const event =
+      PHDTournament.state.events.find(
+        item =>
+          item.gameId === game.id
+      );
+
+    if (!event || !event.completed) {
+      return null;
+    }
+
+    context.results =
+      event.results || [];
+    context.submissions =
+      event.results || [];
+  }
+
+  const result =
+    window.PHDGameModes.buildResult(
+      mode,
+      context
+    );
+
+  return result.complete
+    ? result.leaderboard
+    : null;
+}
+
+function getTournamentStandings() {
+  const standings = new Map();
+
+  PHDTournament.state.teams.forEach(
+    team => {
+      standings.set(team.id, {
+        ...createEmptyStanding(team),
+        gamesCompleted: 0,
+        gamePoints: []
+      });
+    }
+  );
+
+  PHDTournament.state.games.forEach(
+    game => {
+      const leaderboard =
+        getCompletedGameLeaderboard(
+          game
+        );
+
+      if (!leaderboard) {
+        return;
+      }
+
+      leaderboard.forEach(result => {
+        const standing =
+          standings.get(result.teamId);
+        const points = Number(
+          result.championshipPoints
+        );
+
+        if (
+          !standing ||
+          !Number.isFinite(points)
+        ) {
+          return;
+        }
+
+        standing.points += points;
+        standing.gamesCompleted += 1;
+        standing.gamePoints.push({
+          gameId: game.id,
+          gameName: game.name,
+          position: result.position,
+          points
+        });
+      });
+    }
+  );
+
+  return [...standings.values()]
+    .sort((a, b) =>
+      b.points - a.points ||
+      b.gamesCompleted -
+        a.gamesCompleted ||
+      a.name.localeCompare(b.name)
+    );
+}
+
+function getStandings(gameId = "") {
+  return gameId
+    ? getGameStandings(gameId)
+    : getTournamentStandings();
+}
+
 function renderStandings() {
   const body = document.getElementById("standingsBody");
   const standings = getStandings();
@@ -102,7 +241,7 @@ function renderStandings() {
   if (standings.length === 0) {
     body.innerHTML = `
       <tr>
-        <td colspan="10">No teams yet. Add teams to populate the ladder.</td>
+        <td colspan="4">No teams yet. Add teams to populate the standings.</td>
       </tr>
     `;
     return;
@@ -122,13 +261,7 @@ function renderStandings() {
         </div>
       </td>
       <td>${team.points}</td>
-      <td>${team.wins}</td>
-      <td>${team.draws}</td>
-      <td>${team.losses}</td>
-      <td>${team.byes}</td>
-      <td>${team.pointsFor}</td>
-      <td>${team.pointsAgainst}</td>
-      <td>${getScoreDifference(team)}</td>
+      <td>${team.gamesCompleted}</td>
     `;
 
     body.appendChild(row);
