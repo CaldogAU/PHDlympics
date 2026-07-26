@@ -141,3 +141,26 @@ test("marks Admin and Games navigation as administrator-only", () => {
   assert.match(app, /\["admin", "games"\]/);
   assert.match(auth, /\.admin-only-tab, #adminTab, #gamesTab/);
 });
+
+test("loads staff management after Firebase authentication", () => {
+  const html = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "index.html"
+    ),
+    "utf8"
+  );
+  const authIndex =
+    html.indexOf(
+      'src="js/auth.js"'
+    );
+  const staffIndex =
+    html.indexOf(
+      'src="js/staff-management.js"'
+    );
+
+  assert.notEqual(authIndex, -1);
+  assert.notEqual(staffIndex, -1);
+  assert.ok(authIndex < staffIndex);
+});

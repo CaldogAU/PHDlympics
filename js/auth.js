@@ -35,6 +35,9 @@ const ADMIN_CONTROL_IDS = [
   "createRestorePoint",
   "restoreLastPoint",
   "importJson",
+  "staffEmail",
+  "staffPassword",
+  "createStaffAccount",
   "resetTournament"
 ];
 
@@ -60,6 +63,7 @@ const ADMIN_DYNAMIC_SELECTORS = [
   ".close-four-player-tournament",
   ".reopen-four-player-tournament",
   "[data-four-player-game-id] select",
+  ".toggle-staff-access",
   ".match-game-select",
   ".match-card input",
   ".match-card select",
@@ -75,6 +79,64 @@ function getAuthState() {
       return window.PHDAccessControl.can(PHDAuth.role, capability);
     }
   };
+}
+
+async function resolveFirebaseUserRole(
+  firebase,
+  user
+) {
+  if (!user) {
+    return "viewer";
+  }
+
+  if (user.uid === PHD_ADMIN_UID) {
+    return "administrator";
+  }
+
+  try {
+    const staffReference =
+      firebase.firestoreSdk.doc(
+        firebase.db,
+        "staff",
+        user.uid
+      );
+    const staffSnapshot =
+      await firebase.firestoreSdk
+        .getDoc(staffReference);
+
+    if (
+      staffSnapshot.exists()
+    ) {
+      const staff =
+        staffSnapshot.data();
+
+      if (
+        staff &&
+        staff.active === true &&
+        staff.role ===
+          "tournament-director"
+      ) {
+        return "tournament-director";
+      }
+    }
+  } catch (error) {
+    console.error(
+      "Staff access could not be checked.",
+      error
+    );
+  }
+
+  try {
+    const token =
+      await user.getIdTokenResult();
+
+    return window.PHDAccessControl
+      .normaliseRole(
+        token.claims.tournamentRole
+      );
+  } catch (error) {
+    return "viewer";
+  }
 }
 
 function notifyAuthListeners() {
@@ -128,14 +190,11 @@ async function signInAdmin(email, password) {
       enteredPassword
     );
 
-  const token =
-    await credential.user.getIdTokenResult();
   const role =
-    credential.user.uid === PHD_ADMIN_UID
-      ? "administrator"
-      : window.PHDAccessControl.normaliseRole(
-          token.claims.tournamentRole
-        );
+    await resolveFirebaseUserRole(
+      firebase,
+      credential.user
+    );
 
   if (role === "viewer") {
     await firebase.authSdk.signOut(firebase.auth);
@@ -161,7 +220,16 @@ function getSignedInUser() {
 }
 
 function isTournamentAdmin() {
-  return PHDAuth.isAdmin;
+  return canTournament(
+    "tournament.manage"
+  );
+}
+
+function isRootAdministrator() {
+  return (
+    PHDAuth.role ===
+    "administrator"
+  );
 }
 
 function canTournament(capability) {
@@ -307,8 +375,6 @@ function updateViewOnlyNotice(isAdmin) {
 }
 
 function applyAdminAccessState() {
-  const isAdmin =
-    isTournamentAdmin();
   const canManageTournament =
     canTournament("tournament.manage");
   const canEnterResults =
@@ -335,15 +401,18 @@ function applyAdminAccessState() {
       '.admin-only-tab, #adminTab, #gamesTab'
     )
     .forEach(element => {
-      element.hidden = !isAdmin;
+      element.hidden =
+        !canManageTournament;
       element.setAttribute(
         "aria-hidden",
-        String(!isAdmin)
+        String(
+          !canManageTournament
+        )
       );
     });
 
   if (
-    !isAdmin &&
+    !canManageTournament &&
     typeof switchTab === "function"
   ) {
     const activeAdminPanel =
@@ -356,6 +425,25 @@ function applyAdminAccessState() {
   }
 
   getAdminControlledElements().forEach(element => {
+    const resetControl =
+      element.id ===
+        "resetTournament" ||
+      Boolean(
+        element.closest(
+          "#resetTournament"
+        )
+      );
+    const staffControl =
+      element.id === "staffEmail" ||
+      element.id ===
+        "staffPassword" ||
+      element.id ===
+        "createStaffAccount" ||
+      Boolean(
+        element.closest(
+          ".toggle-staff-access"
+        )
+      );
     const resultControl = Boolean(
       element.closest(
         ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card"
@@ -363,9 +451,19 @@ function applyAdminAccessState() {
     );
     setElementAdminState(
       element,
-      resultControl
-        ? canEnterResults
-        : canManageTournament
+      resetControl
+        ? canTournament(
+            "tournament.reset"
+          )
+        : staffControl
+          ? canTournament(
+              "staff.manage"
+            ) &&
+            element.dataset
+              .selfAccount !== "true"
+          : resultControl
+            ? canEnterResults
+            : canManageTournament
     );
   });
 
@@ -424,7 +522,14 @@ function showAdminRequiredMessage() {
 }
 
 function blockUnauthorisedInteraction(event) {
-  if (isTournamentAdmin()) {
+  if (
+    canTournament(
+      "tournament.manage"
+    ) ||
+    canTournament(
+      "results.manage"
+    )
+  ) {
     return;
   }
 
@@ -506,12 +611,15 @@ PHDAuth.ready =
           };
           if (!user) {
             finish("viewer");
-          } else if (user.uid === PHD_ADMIN_UID) {
-            finish("administrator");
           } else {
-            user.getIdTokenResult()
-              .then(token => finish(token.claims.tournamentRole))
-              .catch(() => finish("viewer"));
+            resolveFirebaseUserRole(
+              firebase,
+              user
+            )
+              .then(finish)
+              .catch(() =>
+                finish("viewer")
+              );
           }
         },
         error => {
@@ -550,6 +658,8 @@ window.getSignedInUser =
   getSignedInUser;
 window.isTournamentAdmin =
   isTournamentAdmin;
+window.isRootAdministrator =
+  isRootAdministrator;
 window.canTournament =
   canTournament;
 window.subscribeToAuth =

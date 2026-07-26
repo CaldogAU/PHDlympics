@@ -267,6 +267,63 @@
             <section class="card wide">
               <div class="section-heading">
                 <div>
+                  <p class="eyebrow">Administration</p>
+                  <h2>Staff Management</h2>
+                  <p class="muted">
+                    Create staff logins with administrator-level tournament
+                    controls. Staff cannot reset the tournament. Passwords are
+                    sent directly to Firebase Authentication and are never
+                    stored in tournament data.
+                  </p>
+                </div>
+              </div>
+
+              <form id="staffManagementForm" class="staff-management-form">
+                <label>
+                  Staff Email
+                  <input
+                    id="staffEmail"
+                    type="email"
+                    autocomplete="off"
+                    placeholder="staff@example.com"
+                    required
+                  />
+                </label>
+
+                <label>
+                  Staff Password
+                  <input
+                    id="staffPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="6"
+                    placeholder="At least 6 characters"
+                    required
+                  />
+                </label>
+
+                <button id="createStaffAccount" type="submit">
+                  Create Staff Account
+                </button>
+              </form>
+
+              <p
+                id="staffManagementMessage"
+                class="muted"
+                role="status"
+                aria-live="polite"
+              ></p>
+
+              <ul id="staffAccountList" class="staff-account-list">
+                <li class="empty-state">
+                  Sign in to load staff accounts.
+                </li>
+              </ul>
+            </section>
+
+            <section class="card wide">
+              <div class="section-heading">
+                <div>
                   <h2>Teams</h2>
                   <p class="muted">
                     Add competitors, colours, short names and optional logo URLs.
@@ -558,6 +615,7 @@
   <script src="js/audit.js"></script>
   <script src="js/audit-ui.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/staff-management.js"></script>
   <script src="js/dom.js"></script>
   <script src="js/validation.js"></script>
   <script src="js/helpers.js"></script>
