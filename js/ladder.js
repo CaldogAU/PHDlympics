@@ -233,15 +233,38 @@ function getStandings(gameId = "") {
 }
 
 function renderStandings() {
-  const body = document.getElementById("standingsBody");
+  const body =
+    document.getElementById(
+      "standingsBody"
+    );
+  const header =
+    document.getElementById(
+      "standingsHeader"
+    );
   const standings = getStandings();
+  const games =
+    PHDTournament.state.games || [];
+
+  if (header) {
+    header.innerHTML = `
+      <th>#</th>
+      <th>Team</th>
+      <th>Tournament Points</th>
+      <th>Completed Games</th>
+      ${games.map(game => `
+        <th class="game-points-heading">
+          ${escapeHtml(game.name)}
+        </th>
+      `).join("")}
+    `;
+  }
 
   body.innerHTML = "";
 
   if (standings.length === 0) {
     body.innerHTML = `
       <tr>
-        <td colspan="4">No teams yet. Add teams to populate the standings.</td>
+        <td colspan="${4 + games.length}">No teams yet. Add teams to populate the standings.</td>
       </tr>
     `;
     return;
@@ -262,6 +285,27 @@ function renderStandings() {
       </td>
       <td>${team.points}</td>
       <td>${team.gamesCompleted}</td>
+      ${games.map(game => {
+        const gameResult =
+          team.gamePoints.find(
+            result =>
+              result.gameId ===
+              game.id
+          );
+
+        return `
+          <td
+            class="game-points-cell"
+            title="${escapeHtml(game.name)}"
+          >
+            ${
+              gameResult
+                ? gameResult.points
+                : "—"
+            }
+          </td>
+        `;
+      }).join("")}
     `;
 
     body.appendChild(row);
