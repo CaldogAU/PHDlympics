@@ -394,13 +394,7 @@ function renderGameTabs() {
 }
 
 function renderChampionshipAndArchive() {
-  const input = getElement("championshipPoints");
   const list = getElement("archiveList");
-  if (input) {
-    input.value = (
-      PHDTournament.state.championship.pointsByPosition || []
-    ).join(", ");
-  }
   if (list) {
     const archives = PHDTournament.state.archive || [];
     list.innerHTML = archives.length
@@ -411,21 +405,6 @@ function renderChampionshipAndArchive() {
           </li>
         `).join("")
       : '<li class="empty-state">No archived tournaments yet.</li>';
-  }
-}
-
-async function saveChampionshipConfiguration() {
-  try {
-    const values = getValue("championshipPoints")
-      .split(",")
-      .map(value => value.trim())
-      .filter(Boolean);
-    PHDTournament.state.championship.pointsByPosition =
-      window.PHDTournamentLifecycle.validatePointsByPosition(values);
-    await saveState();
-    render();
-  } catch (error) {
-    alert(error.message);
   }
 }
 
@@ -1093,12 +1072,40 @@ function bindRoundEvents() {
         ) &&
         !target.classList.contains(
           "save-game-scoring"
+        ) &&
+        !target.classList.contains(
+          "close-match-game"
+        ) &&
+        !target.classList.contains(
+          "reopen-match-game"
         )
       ) {
         return;
       }
 
       if (!requireAdminForAction()) {
+        return;
+      }
+
+      if (
+        target.classList.contains(
+          "close-match-game"
+        )
+      ) {
+        closeMatchGame(
+          target.dataset.gameId
+        );
+        return;
+      }
+
+      if (
+        target.classList.contains(
+          "reopen-match-game"
+        )
+      ) {
+        reopenMatchGame(
+          target.dataset.gameId
+        );
         return;
       }
 
@@ -1332,7 +1339,6 @@ async function resetTournamentWithAudit() {
 }
 
 function bindAppEvents() {
-  bindClick("saveChampionshipPoints", saveChampionshipConfiguration);
   bindClick("archiveTournament", archiveCurrentTournament);
   bindClick(
     "displayModeToggle",

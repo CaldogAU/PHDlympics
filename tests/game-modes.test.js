@@ -484,7 +484,7 @@ test("ranks Grand Prix results by finishing position", () => {
   );
 });
 
-test("assigns configured tournament points to final four-player Swiss rankings", () => {
+test("assigns reverse-position tournament points to final four-player Swiss rankings", () => {
   const rankings = [
     {
       teamId: "team-a",
@@ -538,12 +538,6 @@ test("assigns configured tournament points to final four-player Swiss rankings",
         {
           completed: true
         }
-      ],
-      pointsByPosition: [
-        10,
-        8,
-        6,
-        5
       ]
     });
 
@@ -553,6 +547,6 @@ test("assigns configured tournament points to final four-player Swiss rankings",
       entry =>
         entry.championshipPoints
     ),
-    [10, 8, 6, 5]
+    [4, 3, 2, 1]
   );
 });

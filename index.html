@@ -251,14 +251,11 @@
             <section class="card wide">
               <h2>Championship &amp; Archive</h2>
               <p class="muted">
-                Set points awarded by finishing position, then preserve a completed tournament as a read-only snapshot.
+                Every completed game awards tournament points by final position:
+                last place receives 1 point, increasing by 1 through to first place.
+                Preserve a completed tournament as a read-only snapshot.
               </p>
-              <label>
-                Points by position
-                <input id="championshipPoints" type="text" placeholder="10, 8, 6, 5, 4, 3, 2, 1" />
-              </label>
               <div class="button-row">
-                <button id="saveChampionshipPoints" type="button">Save Points</button>
                 <button id="archiveTournament" class="secondary" type="button">Archive Tournament</button>
               </div>
               <ul id="archiveList" class="summary-list"></ul>
@@ -433,9 +430,9 @@
               <div class="section-heading">
                 <div>
                   <p class="eyebrow">Standings</p>
-                  <h2>Ladder</h2>
+                  <h2>Overall Tournament Standings</h2>
                   <p class="muted">
-                    The ladder updates when scores are saved and rounds are completed.
+                    Tournament points from every completed game are added together here.
                   </p>
                 </div>
               </div>
@@ -446,14 +443,8 @@
                     <tr>
                       <th>#</th>
                       <th>Team</th>
-                      <th>Pts</th>
-                      <th>W</th>
-                      <th>D</th>
-                      <th>L</th>
-                      <th>Bye</th>
-                      <th>PF</th>
-                      <th>PA</th>
-                      <th>Diff</th>
+                      <th>Tournament Points</th>
+                      <th>Completed Games</th>
                     </tr>
                   </thead>
 

@@ -284,36 +284,32 @@
   }
 
   function awardChampionshipPoints(
-    rankings,
-    pointsByPosition
+    rankings
   ) {
     const participantCount =
       rankings.length;
-    const configuredPoints =
-      Array.isArray(pointsByPosition)
-        ? pointsByPosition.map(Number)
-        : [];
 
     return rankings.map(
-      entry => ({
-        ...entry,
-
-        championshipPoints:
-          Number.isFinite(
-            configuredPoints[
-              entry.position - 1
-            ]
+      (entry, index) => {
+        const position =
+          Number.isInteger(
+            Number(entry.position)
           )
-            ? configuredPoints[
-                entry.position - 1
-              ]
-            : Math.max(
-                1,
-                participantCount -
-                  entry.position +
-                  1
-              )
-      })
+            ? Number(entry.position)
+            : index + 1;
+
+        return {
+          ...entry,
+          position,
+          championshipPoints:
+            Math.max(
+              1,
+              participantCount -
+                position +
+                1
+            )
+        };
+      }
     );
   }
 
@@ -412,7 +408,9 @@
         );
     },
 
-    calculateRankings() {
+    calculateRankings(
+      context = {}
+    ) {
       if (
         typeof global
           .getStandings !==
@@ -422,7 +420,9 @@
       }
 
       return global
-        .getStandings()
+        .getStandings(
+          context.gameId || ""
+        )
         .map(team => ({
           teamId: team.id,
 
@@ -956,12 +956,40 @@
           }))
         };
       },
-      calculateRankings() {
+      calculateRankings(
+        context = {}
+      ) {
         return typeof global.getStandings === "function"
-          ? global.getStandings().map(team => ({
+          ? global.getStandings(
+              context.gameId || ""
+            ).map(team => ({
               teamId: team.id,
               teamName: team.name,
               points: team.points,
+              wins: team.wins,
+              draws: team.draws,
+              losses: team.losses,
+              byes: team.byes,
+              pointsFor:
+                team.pointsFor,
+              pointsAgainst:
+                team.pointsAgainst,
+              scoreDifference:
+                typeof global
+                  .getScoreDifference ===
+                "function"
+                  ? global
+                      .getScoreDifference(
+                        team
+                      )
+                  : (
+                      team.pointsFor ||
+                      0
+                    ) -
+                    (
+                      team.pointsAgainst ||
+                      0
+                    ),
               rankValue: team.points,
               custom: {}
             }))

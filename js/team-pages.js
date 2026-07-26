@@ -74,6 +74,14 @@ function getTeamPageStanding(teamId) {
   }
 
   const standings = getStandings();
+  const matchStanding =
+    typeof getGameStandings ===
+      "function"
+      ? getGameStandings("").find(
+          standing =>
+            standing.id === teamId
+        )
+      : null;
 
   const index =
     standings.findIndex(
@@ -87,6 +95,12 @@ function getTeamPageStanding(teamId) {
 
   return {
     ...standings[index],
+    ...(matchStanding || {}),
+    points: standings[index].points,
+    gamesCompleted:
+      standings[index].gamesCompleted,
+    gamePoints:
+      standings[index].gamePoints,
     position: index + 1
   };
 }
