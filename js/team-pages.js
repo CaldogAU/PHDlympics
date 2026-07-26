@@ -665,6 +665,13 @@ function renderTeamPagePanel(team) {
     matches.filter(
       match => match.completed
     );
+  const matchesPlayed =
+    typeof getCompletedMatchCount ===
+      "function"
+      ? getCompletedMatchCount(
+          team.id
+        )
+      : completedMatches.length;
 
   const standing =
     getTeamPageStanding(team.id);
@@ -792,7 +799,7 @@ function renderTeamPagePanel(team) {
           <h3>Matches Played</h3>
 
           <strong class="big-number">
-            ${completedMatches.length}
+            ${matchesPlayed}
           </strong>
 
           <p class="muted">
