@@ -251,7 +251,7 @@ function renderFourPlayerSwissStandings(standings, closed) {
         </tr></thead>
         <tbody>
           ${standings.map(standing => `
-            <tr>
+            <tr class="animated-ranking-row" data-team-id="${standing.teamId}">
               <td class="rank-cell">${standing.position}</td>
               <td><strong>${escapeHtml(standing.teamName || standing.name)}</strong></td>
               <td>${standing.points}</td>
@@ -276,6 +276,29 @@ function placementSuffix(placement) {
 
 function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
   const locked = group.completed || tournamentClosed;
+  const scopedTeamId =
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff() &&
+    !tournamentClosed
+      ? getAssignedStaffTeamId()
+      : "";
+  const visibleCompetitors =
+    scopedTeamId
+      ? group.competitors.filter(
+          competitor =>
+            competitor.teamId ===
+            scopedTeamId
+        )
+      : group.competitors;
+
+  if (
+    scopedTeamId &&
+    visibleCompetitors.length === 0
+  ) {
+    return "";
+  }
+
   return `
     <article class="four-player-group ${group.completed ? "completed" : ""}"
       data-four-player-group data-round-id="${round.id}" data-group-id="${group.id}">
@@ -293,7 +316,7 @@ function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
           </button>` : ""}
       </div>
       <div class="four-player-competitors">
-        ${group.competitors.map(competitor => {
+        ${visibleCompetitors.map(competitor => {
           const team = getTeamById(competitor.teamId);
           return `
             <label class="four-player-competitor">
@@ -330,8 +353,25 @@ function renderFourPlayerSwissManagement(game) {
     tournament.rounds
   );
   const standings = tournament.closed && tournament.finalStandings.length
-    ? tournament.finalStandings
+    ? window.PHDGameModes.awardChampionshipPoints(
+        tournament.finalStandings
+      )
     : calculated;
+  const scopedTeamId =
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff() &&
+    !tournament.closed
+      ? getAssignedStaffTeamId()
+      : "";
+  const visibleStandings =
+    scopedTeamId
+      ? standings.filter(
+          standing =>
+            standing.teamId ===
+            scopedTeamId
+        )
+      : standings;
   const latestRound = tournament.rounds.at(-1);
   const canGenerate =
     !tournament.closed && (!latestRound || latestRound.completed);
@@ -382,7 +422,7 @@ function renderFourPlayerSwissManagement(game) {
         </div>`}
       <section class="four-player-ranking">
         <h3>${tournament.closed ? "Final Ranking" : "Current Swiss Ranking"}</h3>
-        ${renderFourPlayerSwissStandings(standings, tournament.closed)}
+        ${renderFourPlayerSwissStandings(visibleStandings, tournament.closed)}
       </section>
       <section class="four-player-rounds">
         <h3>Rounds</h3>
@@ -453,6 +493,73 @@ async function saveFourPlayerSwissGroup(gameId, roundId, groupId, groupElement) 
 
   const placements = [...groupElement.querySelectorAll(".four-player-placement")]
     .map(select => ({ teamId: select.dataset.teamId, placement: Number(select.value) }));
+  const scopedStaff =
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff();
+
+  if (scopedStaff) {
+    const assignedTeamId =
+      getAssignedStaffTeamId();
+    const submitted =
+      placements.find(
+        item =>
+          item.teamId ===
+          assignedTeamId
+      );
+
+    if (
+      !submitted ||
+      !Number.isInteger(
+        submitted.placement
+      ) ||
+      submitted.placement < 1 ||
+      submitted.placement > 4
+    ) {
+      alert("Select your team placement.");
+      return;
+    }
+
+    result.group.competitors =
+      result.group.competitors.map(
+        competitor =>
+          competitor.teamId ===
+            assignedTeamId
+            ? {
+                ...competitor,
+                placement:
+                  submitted.placement
+              }
+            : competitor
+      );
+    const savedPlacements =
+      result.group.competitors.map(
+        competitor =>
+          Number(
+            competitor.placement
+          )
+      );
+    result.group.completed =
+      savedPlacements.every(
+        placement =>
+          Number.isInteger(
+            placement
+          ) &&
+          placement >= 1 &&
+          placement <= 4
+      ) &&
+      new Set(savedPlacements).size === 4;
+    result.group.updatedAt =
+      new Date().toISOString();
+    result.round.completed =
+      result.round.groups.every(
+        group => group.completed
+      );
+    await saveState();
+    render();
+    return;
+  }
+
   if (
     placements.length !== 4 ||
     placements.some(item =>

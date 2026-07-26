@@ -36,6 +36,90 @@ function getEventResultForTeam(
   );
 }
 
+function getVisibleEventTeams(event) {
+  const teams = [
+    ...(PHDTournament.state.teams || [])
+  ];
+
+  if (
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff() &&
+    !event.completed
+  ) {
+    const assignedTeamId =
+      getAssignedStaffTeamId();
+
+    return teams.filter(
+      team =>
+        team.id === assignedTeamId
+    );
+  }
+
+  if (!event.completed) {
+    return teams;
+  }
+
+  return teams.sort((teamA, teamB) => {
+    const resultA =
+      getEventResultForTeam(
+        event,
+        teamA.id
+      );
+    const resultB =
+      getEventResultForTeam(
+        event,
+        teamB.id
+      );
+
+    if (event.mode === "grand-prix") {
+      return Number(
+        resultA &&
+          resultA.finishPosition
+      ) -
+        Number(
+          resultB &&
+            resultB.finishPosition
+        );
+    }
+
+    return Number(
+      resultA &&
+        resultA.timeMilliseconds
+    ) -
+      Number(
+        resultB &&
+          resultB.timeMilliseconds
+      );
+  });
+}
+
+function getEventResultPosition(
+  event,
+  teamId
+) {
+  if (!event.completed) return null;
+
+  const teams =
+    getVisibleEventTeams(event);
+  const index =
+    teams.findIndex(
+      team => team.id === teamId
+    );
+
+  return index === -1
+    ? null
+    : index + 1;
+}
+
+function canRevealDraftEventRankings() {
+  return !(
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff()
+  );
+}
+
 function renderEventGameOptions() {
   const select =
     getElement("eventGameSelect");
@@ -93,11 +177,9 @@ function renderTimeTrialEntries(
   event
 ) {
   const teams =
-    Array.isArray(
-      PHDTournament.state.teams
-    )
-      ? PHDTournament.state.teams
-      : [];
+    getVisibleEventTeams(event);
+  const participantCount =
+    PHDTournament.state.teams.length;
 
   if (teams.length === 0) {
     return `
@@ -112,10 +194,12 @@ function renderTimeTrialEntries(
       <table>
         <thead>
           <tr>
+            <th>Rank</th>
             <th>Team</th>
             <th>Minutes</th>
             <th>Seconds</th>
             <th>Milliseconds</th>
+            <th>Tournament Points</th>
           </tr>
         </thead>
 
@@ -163,12 +247,21 @@ function renderTimeTrialEntries(
                   ? ""
                   : totalMilliseconds %
                     1000;
+              const position =
+                getEventResultPosition(
+                  event,
+                  team.id
+                );
 
               return `
                 <tr
+                  class="animated-ranking-row"
                   data-event-id="${event.id}"
                   data-team-id="${team.id}"
                 >
+                  <td class="rank-cell">
+                    ${position || "—"}
+                  </td>
                   <td>
                     <strong>
                       ${escapeHtml(
@@ -192,7 +285,6 @@ function renderTimeTrialEntries(
                       }
                     />
                   </td>
-
                   <td>
                     <input
                       class="time-seconds"
@@ -226,6 +318,15 @@ function renderTimeTrialEntries(
                       }
                     />
                   </td>
+                  <td class="event-tournament-points">
+                    ${
+                      position
+                        ? participantCount -
+                          position +
+                          1
+                        : "—"
+                    }
+                  </td>
                 </tr>
               `;
             })
@@ -244,7 +345,13 @@ function renderTimeTrialEntries(
               type="button"
               data-event-id="${event.id}"
             >
-              Save Times
+              ${
+                typeof isTeamScopedStaff ===
+                  "function" &&
+                isTeamScopedStaff()
+                  ? "Save My Time"
+                  : "Save Times"
+              }
             </button>
           </div>
         `
@@ -256,7 +363,9 @@ function renderGrandPrixEntries(
   event
 ) {
   const teams =
-    PHDTournament.state.teams;
+    getVisibleEventTeams(event);
+  const participantCount =
+    PHDTournament.state.teams.length;
 
   if (teams.length === 0) {
     return `
@@ -271,8 +380,10 @@ function renderGrandPrixEntries(
       <table>
         <thead>
           <tr>
+            <th>Rank</th>
             <th>Team</th>
             <th>Finishing Position</th>
+            <th>Tournament Points</th>
           </tr>
         </thead>
         <tbody>
@@ -282,12 +393,21 @@ function renderGrandPrixEntries(
                 event,
                 team.id
               );
+            const position =
+              getEventResultPosition(
+                event,
+                team.id
+              );
 
             return `
               <tr
+                class="animated-ranking-row"
                 data-event-id="${event.id}"
                 data-team-id="${team.id}"
               >
+                <td class="rank-cell">
+                  ${position || "—"}
+                </td>
                 <td>
                   <strong>
                     ${escapeHtml(team.name)}
@@ -298,7 +418,7 @@ function renderGrandPrixEntries(
                     class="finish-position"
                     type="number"
                     min="1"
-                    max="${teams.length}"
+                    max="${participantCount}"
                     step="1"
                     value="${
                       result
@@ -311,6 +431,27 @@ function renderGrandPrixEntries(
                         : ""
                     }
                   />
+                </td>
+                <td class="event-tournament-points">
+                  ${
+                      position
+                        ? participantCount -
+                          position +
+                          1
+                        : canRevealDraftEventRankings() &&
+                            result &&
+                          Number.isInteger(
+                            Number(
+                              result.finishPosition
+                            )
+                          )
+                        ? participantCount -
+                          Number(
+                            result.finishPosition
+                          ) +
+                          1
+                        : "—"
+                  }
                 </td>
               </tr>
             `;
@@ -329,7 +470,13 @@ function renderGrandPrixEntries(
               type="button"
               data-event-id="${event.id}"
             >
-              Save Finishing Order
+              ${
+                typeof isTeamScopedStaff ===
+                  "function" &&
+                isTeamScopedStaff()
+                  ? "Save My Result"
+                  : "Save Finishing Order"
+              }
             </button>
           </div>
         `
@@ -374,6 +521,8 @@ function renderEventGameManagement(
     <section
       class="card wide"
       data-event-workspace="${event.id}"
+      data-event-mode="${event.mode}"
+      data-event-completed="${event.completed}"
     >
       <div class="section-heading">
         <div>
@@ -562,13 +711,15 @@ function getEventById(eventId) {
 async function persistEventResults(
   event,
   results,
-  summary
+  summary,
+  completed = true
 ) {
   const previousEvent =
     structuredClone(event);
 
   event.results = results;
-  event.completed = true;
+  event.completed =
+    Boolean(completed);
   event.updatedAt =
     new Date().toISOString();
   render();
@@ -607,6 +758,74 @@ async function persistEventResults(
         : "Event results could not be saved."
     );
   }
+}
+
+function mergeEventResult(
+  event,
+  result
+) {
+  return [
+    ...(event.results || []).filter(
+      existing =>
+        existing.teamId !==
+        result.teamId
+    ),
+    result
+  ];
+}
+
+function hasCompleteTimeTrialResults(
+  results
+) {
+  const teamIds =
+    PHDTournament.state.teams.map(
+      team => team.id
+    );
+  const resultMap = new Map(
+    results.map(result => [
+      result.teamId,
+      Number(
+        result.timeMilliseconds
+      )
+    ])
+  );
+
+  return teamIds.length > 0 &&
+    teamIds.every(teamId =>
+      Number.isFinite(
+        resultMap.get(teamId)
+      )
+    );
+}
+
+function hasCompleteGrandPrixResults(
+  results
+) {
+  const teamIds =
+    PHDTournament.state.teams.map(
+      team => team.id
+    );
+  const positions = teamIds.map(
+    teamId => {
+      const result = results.find(
+        item =>
+          item.teamId === teamId
+      );
+      return Number(
+        result &&
+          result.finishPosition
+      );
+    }
+  );
+
+  return teamIds.length > 0 &&
+    positions.every(position =>
+      Number.isInteger(position) &&
+      position >= 1 &&
+      position <= teamIds.length
+    ) &&
+    new Set(positions).size ===
+      teamIds.length;
 }
 
 async function saveTimeTrialResults(
@@ -672,10 +891,29 @@ async function saveTimeTrialResults(
     });
   }
 
+  const isScopedStaff =
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff();
+  const nextResults =
+    isScopedStaff
+      ? mergeEventResult(
+          event,
+          results[0]
+        )
+      : results;
+  const complete =
+    hasCompleteTimeTrialResults(
+      nextResults
+    );
+
   await persistEventResults(
     event,
-    results,
-    "Completed Time Trial results."
+    nextResults,
+    complete
+      ? "Completed Time Trial results."
+      : "Saved a Time Trial result.",
+    complete
   );
 }
 
@@ -706,18 +944,37 @@ async function saveGrandPrixResults(
       ).value
     )
   }));
-  const positions = results.map(
+  const isScopedStaff =
+    typeof isTeamScopedStaff ===
+      "function" &&
+    isTeamScopedStaff();
+  const nextResults =
+    isScopedStaff
+      ? mergeEventResult(
+          event,
+          results[0]
+        )
+      : results;
+  const positions = nextResults.map(
     result => result.finishPosition
   );
   const validPositions =
-    positions.every(
+    (
+      isScopedStaff ||
+      positions.every(
       position =>
         Number.isInteger(position) &&
         position >= 1 &&
-        position <= rows.length
+        position <=
+          PHDTournament.state.teams
+            .length
+      )
     ) &&
-    new Set(positions).size ===
-      rows.length;
+    (
+      isScopedStaff ||
+      new Set(positions).size ===
+        rows.length
+    );
 
   if (!validPositions) {
     alert(
@@ -728,8 +985,15 @@ async function saveGrandPrixResults(
 
   await persistEventResults(
     event,
-    results,
-    "Completed Grand Prix results."
+    nextResults,
+    hasCompleteGrandPrixResults(
+      nextResults
+    )
+      ? "Completed Grand Prix results."
+      : "Saved a Grand Prix result.",
+    hasCompleteGrandPrixResults(
+      nextResults
+    )
   );
 }
 
@@ -759,7 +1023,192 @@ async function reopenEvent(eventId) {
   }
 }
 
+function getDraftRowRankValue(
+  row,
+  mode
+) {
+  if (mode === "grand-prix") {
+    const input =
+      row.querySelector(
+        ".finish-position"
+      );
+    const value =
+      Number(input && input.value);
+
+    return Number.isInteger(value) &&
+      value > 0
+      ? value
+      : Number.POSITIVE_INFINITY;
+  }
+
+  const minuteInput =
+    row.querySelector(
+      ".time-minutes"
+    );
+  const secondInput =
+    row.querySelector(
+      ".time-seconds"
+    );
+  const millisecondInput =
+    row.querySelector(
+      ".time-milliseconds"
+    );
+
+  if (
+    !minuteInput ||
+    !secondInput ||
+    !millisecondInput ||
+    minuteInput.value === "" ||
+    secondInput.value === "" ||
+    millisecondInput.value === ""
+  ) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return Number(minuteInput.value) *
+      60000 +
+    Number(secondInput.value) *
+      1000 +
+    Number(millisecondInput.value);
+}
+
+function animateEventRanking(
+  workspace
+) {
+  if (
+    !workspace ||
+    !canRevealDraftEventRankings() ||
+    workspace.dataset
+      .eventCompleted === "true"
+  ) {
+    return;
+  }
+
+  const body =
+    workspace.querySelector("tbody");
+  const mode =
+    workspace.dataset.eventMode;
+
+  if (!body) return;
+
+  const rows = [
+    ...body.querySelectorAll(
+      "tr[data-team-id]"
+    )
+  ];
+  const before = new Map(
+    rows.map(row => [
+      row.dataset.teamId,
+      row.getBoundingClientRect()
+    ])
+  );
+  const sorted = [...rows].sort(
+    (rowA, rowB) =>
+      getDraftRowRankValue(
+        rowA,
+        mode
+      ) -
+        getDraftRowRankValue(
+          rowB,
+          mode
+        ) ||
+      rowA.dataset.teamId.localeCompare(
+        rowB.dataset.teamId
+      )
+  );
+
+  sorted.forEach(row =>
+    body.appendChild(row)
+  );
+
+  const participantCount =
+    PHDTournament.state.teams.length;
+
+  sorted.forEach((row, index) => {
+    const value =
+      getDraftRowRankValue(
+        row,
+        mode
+      );
+    const provisionalPosition =
+      Number.isFinite(value)
+        ? mode === "grand-prix"
+          ? value
+          : index + 1
+        : null;
+    const rankCell =
+      row.querySelector(
+        ".rank-cell"
+      );
+    const pointsCell =
+      row.querySelector(
+        ".event-tournament-points"
+      );
+
+    if (rankCell) {
+      rankCell.textContent =
+        provisionalPosition || "—";
+    }
+    if (pointsCell) {
+      pointsCell.textContent =
+        provisionalPosition
+          ? Math.max(
+              1,
+              participantCount -
+                provisionalPosition +
+                1
+            )
+          : "—";
+    }
+
+    const previous =
+      before.get(row.dataset.teamId);
+    const current =
+      row.getBoundingClientRect();
+    const deltaY =
+      previous
+        ? previous.top - current.top
+        : 0;
+
+    if (deltaY) {
+      row.animate(
+        [
+          {
+            transform:
+              `translateY(${deltaY}px)`
+          },
+          { transform: "translateY(0)" }
+        ],
+        {
+          duration: 420,
+          easing:
+            "cubic-bezier(.2,.8,.2,1)"
+        }
+      );
+    }
+  });
+}
+
 function initialiseEventControls() {
+  document.addEventListener(
+    "input",
+    event => {
+      if (
+        !event.target.matches(
+          ".finish-position, .time-minutes, .time-seconds, .time-milliseconds"
+        )
+      ) {
+        return;
+      }
+
+      animateEventRanking(
+        event.target.closest(
+          "[data-event-workspace]"
+        )
+      );
+    }
+  );
+
   document.addEventListener(
     "click",
     event => {

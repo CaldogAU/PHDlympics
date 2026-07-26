@@ -44,7 +44,38 @@ function formatStaffCreatedAt(value) {
     : date.toLocaleString();
 }
 
+function getStaffTeamOptions(
+  selectedTeamId = ""
+) {
+  const teams =
+    PHDTournament.state.teams || [];
+
+  return [
+    '<option value="">Select team</option>',
+    ...teams.map(team => `
+      <option value="${escapeHtml(team.id)}"
+        ${team.id === selectedTeamId ? "selected" : ""}>
+        ${escapeHtml(team.name)}
+      </option>
+    `)
+  ].join("");
+}
+
+function renderStaffTeamField() {
+  const select =
+    document.getElementById(
+      "staffTeam"
+    );
+
+  if (!select) return;
+
+  const selected = select.value;
+  select.innerHTML =
+    getStaffTeamOptions(selected);
+}
+
 function renderStaffManagement() {
+  renderStaffTeamField();
   const list =
     document.getElementById(
       "staffAccountList"
@@ -108,6 +139,17 @@ function renderStaffManagement() {
               </span>
             </div>
             <div class="staff-account-actions">
+              <label>
+                Assigned Team
+                <select
+                  class="staff-team-assignment"
+                  data-staff-uid="${staff.uid}"
+                >
+                  ${getStaffTeamOptions(
+                    staff.teamId || ""
+                  )}
+                </select>
+              </label>
               <span
                 class="status-pill ${
                   active
@@ -253,7 +295,8 @@ async function startStaffAccountListener() {
 
 async function createStaffAccount(
   email,
-  password
+  password,
+  teamId
 ) {
   if (
     !canTournament("staff.manage")
@@ -269,6 +312,8 @@ async function createStaffAccount(
       .toLowerCase();
   const enteredPassword =
     String(password || "");
+  const assignedTeamId =
+    String(teamId || "");
 
   if (!normalisedEmail) {
     throw new Error(
@@ -279,6 +324,17 @@ async function createStaffAccount(
   if (enteredPassword.length < 6) {
     throw new Error(
       "The staff password must contain at least six characters."
+    );
+  }
+
+  if (
+    !PHDTournament.state.teams.some(
+      team =>
+        team.id === assignedTeamId
+    )
+  ) {
+    throw new Error(
+      "Select the team assigned to this staff account."
     );
   }
 
@@ -319,6 +375,7 @@ async function createStaffAccount(
         email: normalisedEmail,
         role:
           "tournament-director",
+        teamId: assignedTeamId,
         active: true,
         createdAt:
           firebase.firestoreSdk
@@ -436,6 +493,8 @@ async function setStaffAccountActive(
         email: existing.email,
         role:
           "tournament-director",
+        teamId:
+          existing.teamId || "",
         active:
           Boolean(active),
         updatedAt:
@@ -450,6 +509,55 @@ async function setStaffAccountActive(
         merge: true
       }
     );
+}
+
+async function setStaffAccountTeam(
+  staffUid,
+  teamId
+) {
+  if (
+    !canTournament("staff.manage")
+  ) {
+    throw new Error(
+      "Administrator access is required."
+    );
+  }
+
+  if (
+    !PHDTournament.state.teams.some(
+      team => team.id === teamId
+    )
+  ) {
+    throw new Error(
+      "Select a valid team."
+    );
+  }
+
+  const firebase =
+    await PHDFirebase.ready;
+  const currentUser =
+    getSignedInUser();
+  const staffReference =
+    firebase.firestoreSdk.doc(
+      firebase.db,
+      "staff",
+      staffUid
+    );
+
+  await firebase.firestoreSdk.setDoc(
+    staffReference,
+    {
+      teamId,
+      updatedAt:
+        firebase.firestoreSdk
+          .serverTimestamp(),
+      updatedByUid:
+        currentUser
+          ? currentUser.uid
+          : ""
+    },
+    { merge: true }
+  );
 }
 
 function initialiseStaffManagement() {
@@ -471,6 +579,10 @@ function initialiseStaffManagement() {
         const passwordInput =
           document.getElementById(
             "staffPassword"
+          );
+        const teamInput =
+          document.getElementById(
+            "staffTeam"
           );
         const submitButton =
           document.getElementById(
@@ -495,6 +607,9 @@ function initialiseStaffManagement() {
                 : "",
               passwordInput
                 ? passwordInput.value
+                : "",
+              teamInput
+                ? teamInput.value
                 : ""
             );
 
@@ -536,6 +651,42 @@ function initialiseStaffManagement() {
       }
     );
   }
+
+  document.addEventListener(
+    "change",
+    async event => {
+      const target = event.target;
+
+      if (
+        !target.classList.contains(
+          "staff-team-assignment"
+        )
+      ) {
+        return;
+      }
+
+      target.disabled = true;
+
+      try {
+        await setStaffAccountTeam(
+          target.dataset.staffUid,
+          target.value
+        );
+        setStaffManagementMessage(
+          "Staff team assignment updated."
+        );
+      } catch (error) {
+        setStaffManagementMessage(
+          error && error.message
+            ? error.message
+            : "Team assignment could not be updated.",
+          true
+        );
+      } finally {
+        target.disabled = false;
+      }
+    }
+  );
 
   document.addEventListener(
     "click",

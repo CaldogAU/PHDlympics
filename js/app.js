@@ -198,14 +198,28 @@ function renderGameTabs() {
         game.mode || "swiss";
       const matches =
         getMatchesForGame(game.id);
+      const visibleMatches =
+        typeof isTeamScopedStaff ===
+          "function" &&
+        isTeamScopedStaff() &&
+        !game.completed
+          ? matches.filter(
+              match =>
+                match.teamAId ===
+                  getAssignedStaffTeamId() ||
+                match.teamBId ===
+                  getAssignedStaffTeamId()
+            )
+          : matches;
 
       const completedMatches =
-        matches.filter(
+        visibleMatches.filter(
           match => match.completed
         );
 
-      const matchRows = matches.length
-        ? matches
+      const matchRows =
+        visibleMatches.length
+        ? visibleMatches
             .map(match => {
               const teamA =
                 getTeamById(match.teamAId);
@@ -356,7 +370,7 @@ function renderGameTabs() {
                   <section class="card">
                     <h3>Total Matches</h3>
                     <strong class="big-number">
-                      ${matches.length}
+                      ${visibleMatches.length}
                     </strong>
                   </section>
 
@@ -430,6 +444,12 @@ function render() {
   renderGames();
   renderGameTabs();
   renderTeams();
+  if (
+    typeof renderStaffManagement ===
+      "function"
+  ) {
+    renderStaffManagement();
+  }
 
 if (
   typeof renderTeamPages ===
