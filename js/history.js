@@ -32,6 +32,59 @@ function formatHistoryTime(milliseconds) {
   ).padStart(3, "0")}`;
 }
 
+function getHistoryTeamName(teamId) {
+  const team = getTeamById(teamId);
+  return team ? team.name : "Unknown";
+}
+
+function getEventHistorySummary(
+  rankedResults,
+  isGrandPrix
+) {
+  return rankedResults
+    .map((result, index) => {
+      const teamName =
+        getHistoryTeamName(
+          result.teamId
+        );
+
+      if (isGrandPrix) {
+        return `${formatHistoryPlacement(
+          result.finishPosition
+        )} ${teamName}`;
+      }
+
+      return `${formatHistoryPlacement(
+        index + 1
+      )} ${teamName} ${formatHistoryTime(
+        result.timeMilliseconds
+      )}`;
+    })
+    .join(", ");
+}
+
+function getGroupHistorySummary(group) {
+  return [...(group.competitors || [])]
+    .sort(
+      (competitorA, competitorB) =>
+        Number(
+          competitorA.placement
+        ) -
+        Number(
+          competitorB.placement
+        )
+    )
+    .map(
+      competitor =>
+        `${formatHistoryPlacement(
+          competitor.placement
+        )} ${getHistoryTeamName(
+          competitor.teamId
+        )}`
+    )
+    .join(", ");
+}
+
 function getMatchHistory() {
   const history = [];
 
@@ -87,13 +140,11 @@ function getMatchHistory() {
     const leader = rankedResults[0];
     const leaderTeam = leader ? getTeamById(leader.teamId) : null;
     const leaderName = leaderTeam ? leaderTeam.name : "Unknown";
-    const detail = isGrandPrix
-      ? `${leaderName} leads in ${formatHistoryPlacement(
-          leader.finishPosition
-        )}`
-      : `${leaderName} leads with ${formatHistoryTime(
-          leader.timeMilliseconds
-        )}`;
+    const detail =
+      getEventHistorySummary(
+        rankedResults,
+        isGrandPrix
+      );
 
     history.push({
       round: "",
@@ -127,9 +178,9 @@ function getMatchHistory() {
         );
         const winnerTeam = winner ? getTeamById(winner.teamId) : null;
         const winnerName = winnerTeam ? winnerTeam.name : "Unknown";
-        const detail = winner
-          ? `${winnerName} placed 1st`
-          : "Placements completed";
+        const detail =
+          getGroupHistorySummary(group) ||
+          "Placements completed";
 
         history.push({
           round: round.number,

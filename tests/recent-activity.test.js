@@ -135,8 +135,8 @@ test("recent activity describes leaders and groups", () => {
   );
 
   assert.deepEqual(Array.from(messages), [
-    "Four Player Round 1, Group 1: Alpha placed 1st",
-    "Track Mania Time Trial: Charlie leads with 1:02.500",
-    "Mario Kart Grand Prix: Bravo leads in 1st"
+    "Four Player Round 1, Group 1: 1st Alpha, 2nd Bravo, 3rd Charlie, 4th Delta",
+    "Track Mania Time Trial: 1st Charlie 1:02.500",
+    "Mario Kart Grand Prix: 1st Bravo, 2nd Alpha"
   ]);
 });
