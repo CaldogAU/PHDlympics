@@ -184,3 +184,127 @@ test("multiplayer history uses Multiple and preserves result values", () => {
     ["1:02.500", "2nd", "3rd"]
   );
 });
+
+test("team match history renders every multiplayer result as Multiple", () => {
+  const state = {
+    teams: [
+      { id: "a", name: "Alpha" },
+      { id: "b", name: "Bravo" },
+      { id: "c", name: "Charlie" },
+      { id: "d", name: "Delta" }
+    ],
+    rounds: [],
+    events: [
+      {
+        id: "grand-prix",
+        gameId: "gp",
+        mode: "grand-prix",
+        completed: true,
+        results: [
+          {
+            teamId: "a",
+            finishPosition: 2
+          }
+        ]
+      },
+      {
+        id: "time-trial",
+        gameId: "tt",
+        mode: "time-trial",
+        completed: true,
+        results: [
+          {
+            teamId: "a",
+            timeMilliseconds: 62500
+          }
+        ]
+      }
+    ],
+    games: [
+      {
+        id: "gp",
+        name: "Grand Prix",
+        mode: "grand-prix"
+      },
+      {
+        id: "tt",
+        name: "Time Trial",
+        mode: "time-trial"
+      },
+      {
+        id: "four",
+        name: "Four Player",
+        mode: "four-player-swiss",
+        fourPlayerSwiss: {
+          rounds: [
+            {
+              id: "round-one",
+              number: 1,
+              groups: [
+                {
+                  id: "group-one",
+                  number: 1,
+                  completed: true,
+                  competitors: [
+                    {
+                      teamId: "a",
+                      placement: 3
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  };
+  const context = {
+    PHDTournament: {
+      state,
+      modules: []
+    },
+    window: {},
+    getTeamById(teamId) {
+      return state.teams.find(
+        team => team.id === teamId
+      );
+    },
+    getGameById(gameId) {
+      return state.games.find(
+        game => game.id === gameId
+      );
+    },
+    escapeHtml(value) {
+      return String(value);
+    }
+  };
+
+  vm.createContext(context);
+  vm.runInContext(
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "js",
+        "team-pages.js"
+      ),
+      "utf8"
+    ),
+    context
+  );
+
+  const html = vm.runInContext(
+    'renderTeamPageMatchRows(PHDTournament.state.teams[0], getTeamPageHistoryEntries("a"))',
+    context
+  );
+
+  assert.equal(
+    (html.match(/Multiple/g) || [])
+      .length,
+    3
+  );
+  assert.match(html, /1:02\.500/);
+  assert.match(html, /2nd/);
+  assert.match(html, /3rd/);
+});
