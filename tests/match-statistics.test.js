@@ -94,25 +94,41 @@ function createState() {
             }
           ]
         }
+      },
+      {
+        mode: "fall-guys-grand-prix",
+        fallGuysGrandPrix: {
+          heats: [
+            {
+              completed: true,
+              results: [
+                { teamId: "a" },
+                { teamId: "b" },
+                { teamId: "c" },
+                { teamId: "d" }
+              ]
+            }
+          ]
+        }
       }
     ]
   };
 }
 
-test("Grand Prix and completed 4-player groups count as four matches", () => {
+test("multiplayer modes contribute to matches played", () => {
   assert.equal(
     calculate(createState()),
-    9
+    10
   );
 });
 
 test("team match totals use the same four-match weighting", () => {
   assert.equal(
     calculate(createState(), "a"),
-    9
+    10
   );
   assert.equal(
     calculate(createState(), "c"),
-    8
+    9
   );
 });

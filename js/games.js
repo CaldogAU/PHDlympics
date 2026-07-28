@@ -313,10 +313,19 @@ async function deleteGame(gameId) {
     game.fourPlayerSwiss.rounds
       .length > 0;
 
+  const hasFallGuysData =
+    game.fallGuysGrandPrix &&
+    Array.isArray(
+      game.fallGuysGrandPrix.heats
+    ) &&
+    game.fallGuysGrandPrix.heats
+      .length > 0;
+
   if (
     isUsed ||
     hasEvent ||
-    hasFourPlayerSwissData
+    hasFourPlayerSwissData ||
+    hasFallGuysData
   ) {
     alert(
       "This game already has tournament data and cannot be deleted."

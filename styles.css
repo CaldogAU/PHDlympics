@@ -1143,6 +1143,22 @@ body.display-active .display-mode {
   font-weight: 700;
 }
 
+.fall-guys-workspace .game-scoring-form {
+  margin-top: 18px;
+}
+
+.fall-guys-result-count {
+  min-width: 64px;
+  text-align: center;
+}
+
+.fall-guys-heat-score {
+  min-width: 110px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
 .display-ticker div {
   display: inline-block;
   position: relative;

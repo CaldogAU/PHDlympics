@@ -263,3 +263,58 @@ test("excludes match games until the game itself is completed", () => {
     40
   );
 });
+
+test("closed Fall Guys Grand Prix awards final tournament points", () => {
+  const state = createState();
+  state.games.push({
+    id: "fall-guys",
+    name: "Fall Guys",
+    mode: "fall-guys-grand-prix",
+    fallGuysGrandPrix: {
+      closed: true,
+      finalStandings: [
+        {
+          teamId: "b",
+          position: 1,
+          championshipPoints: 4
+        },
+        {
+          teamId: "a",
+          position: 2,
+          championshipPoints: 3
+        },
+        {
+          teamId: "d",
+          position: 3,
+          championshipPoints: 2
+        },
+        {
+          teamId: "c",
+          position: 4,
+          championshipPoints: 1
+        }
+      ]
+    }
+  });
+
+  const standings =
+    loadStandings(state);
+
+  assert.equal(
+    standings.find(
+      team => team.id === "b"
+    ).gamePoints.find(
+      result =>
+        result.gameId ===
+        "fall-guys"
+    ).points,
+    4
+  );
+  assert.equal(
+    standings.every(
+      team =>
+        team.gamesCompleted === 4
+    ),
+    true
+  );
+});
