@@ -56,17 +56,12 @@ function renderBranding() {
   const headerLogo = getElement("headerLogo");
 
   if (headerLogo) {
-    if (tournament.logoUrl) {
-      headerLogo.innerHTML = `
-        <img
-          src="${escapeHtml(tournament.logoUrl)}"
-          alt="${escapeHtml(tournament.name)} logo"
-          onerror="this.parentElement.textContent='PHD'"
-        />
-      `;
-    } else {
-      headerLogo.textContent = "PHD";
-    }
+    headerLogo.innerHTML = `
+      <img
+        src="assets/phd-posters-looping.gif"
+        alt="PHD Blaze New Trails animated poster"
+      />
+    `;
   }
 
   const banner = getElement("brandBanner");
