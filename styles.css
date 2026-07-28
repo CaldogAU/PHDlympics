@@ -72,15 +72,12 @@ body {
   flex-direction: column;
   gap: 12px;
   align-items: center;
-  margin: -22px -22px 0;
-  padding: 22px 22px 20px;
-  background: #ffffff;
-  border-bottom: 1px solid
-    rgba(17, 24, 39, 0.16);
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 .sidebar-brand-title {
-  color: #2d126d;
+  color: var(--sidebar-text);
   font-size: 24px;
   font-weight: 900;
   line-height: 1;
@@ -94,16 +91,17 @@ body {
   width: min(184px, 100%);
   height: auto;
   aspect-ratio: 393 / 507;
-  border-radius: 16px;
+  border-radius: 0;
   background: #b9a1ce;
-  border: 1px solid rgba(255,255,255,0.24);
+  border: 0;
   display: block;
   overflow: hidden;
   flex-shrink: 0;
-  box-shadow: 0 14px 35px rgba(109, 93, 252, 0.35);
+  box-shadow: none;
 }
 
 .header-logo img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1300,7 +1298,7 @@ body.display-active .display-mode {
   .header-logo {
     width: min(160px, 100%);
     height: auto;
-    border-radius: 14px;
+    border-radius: 0;
   }
 
   .brand-banner {

@@ -25,11 +25,7 @@ function formatHistoryTime(milliseconds) {
 
   const minutes = Math.floor(total / 60000);
   const seconds = Math.floor((total % 60000) / 1000);
-  const remainder = Math.floor(total % 1000);
-
-  return `${minutes}:${String(seconds).padStart(2, "0")}.${String(
-    remainder
-  ).padStart(3, "0")}`;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 function getHistoryTeamName(teamId) {
@@ -134,8 +130,14 @@ function getMatchHistory() {
     const rankedResults = [...results].sort((resultA, resultB) =>
       isGrandPrix
         ? Number(resultA.finishPosition) - Number(resultB.finishPosition)
-        : Number(resultA.timeMilliseconds) -
-          Number(resultB.timeMilliseconds)
+        : Math.floor(
+            Number(resultA.timeMilliseconds) /
+              1000
+          ) -
+          Math.floor(
+            Number(resultB.timeMilliseconds) /
+              1000
+          )
     );
     const leader = rankedResults[0];
     const leaderTeam = leader ? getTeamById(leader.teamId) : null;

@@ -181,7 +181,7 @@ test("multiplayer history uses Multiple and preserves result values", () => {
       multiplayer,
       entry => entry.displayScore
     ).sort(),
-    ["1:02.500", "2nd", "3rd"]
+    ["1:02", "2nd", "3rd"]
   );
 });
 
@@ -304,7 +304,7 @@ test("team match history renders every multiplayer result as Multiple", () => {
       .length,
     3
   );
-  assert.match(html, /1:02\.500/);
+  assert.match(html, /1:02/);
   assert.match(html, /2nd/);
   assert.match(html, /3rd/);
 });

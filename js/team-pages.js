@@ -55,14 +55,9 @@ function formatTeamPageTime(
     Math.floor(
       (total % 60000) / 1000
     );
-  const remainder =
-    Math.floor(total % 1000);
-
   return `${minutes}:${String(
     seconds
-  ).padStart(2, "0")}.${String(
-    remainder
-  ).padStart(3, "0")}`;
+  ).padStart(2, "0")}`;
 }
 
 function getPlacementLabel(placement) {
