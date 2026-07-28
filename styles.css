@@ -1138,7 +1138,9 @@ body.display-active .display-mode {
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 999px;
   padding: 18px 0;
-  font-size: clamp(22px, 2vw, 34px);
+  font-size: clamp(34px, 3.5vw, 58px);
+  line-height: 1.1;
+  font-weight: 700;
 }
 
 .display-ticker div {
