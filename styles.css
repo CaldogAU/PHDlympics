@@ -72,12 +72,15 @@ body {
   flex-direction: column;
   gap: 12px;
   align-items: center;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  margin: -22px -22px 0;
+  padding: 22px 22px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid
+    rgba(17, 24, 39, 0.16);
 }
 
 .sidebar-brand-title {
-  color: var(--sidebar-text);
+  color: #2d126d;
   font-size: 24px;
   font-weight: 900;
   line-height: 1;
@@ -156,14 +159,14 @@ body {
   display: none;
   min-height: clamp(260px, 34vw, 430px);
   margin: 18px 0 0;
-  background-color: var(--sidebar);
+  background-color: #ffffff;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  border-top: 12px solid var(--sidebar);
-  border-right: 24px solid var(--sidebar);
-  border-bottom: 12px solid var(--sidebar);
-  border-left: 24px solid var(--sidebar);
+  border-top: 12px solid #ffffff;
+  border-right: 24px solid #ffffff;
+  border-bottom: 12px solid #ffffff;
+  border-left: 24px solid #ffffff;
   border-radius: 0;
   box-shadow:
     inset 0 0 0 1px
