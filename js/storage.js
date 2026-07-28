@@ -58,6 +58,18 @@ function mergeTournamentState(sourceState) {
   };
 
   if (
+    !mergedState.tournament.bannerUrl ||
+    String(
+      mergedState.tournament.bannerUrl
+    ).includes(
+      "thumbs.dreamstime.com"
+    )
+  ) {
+    mergedState.tournament.bannerUrl =
+      "assets/phdlympics-banner.jfif";
+  }
+
+  if (
     window.PHDGameModes &&
     typeof window.PHDGameModes
       .migrateGames === "function"
