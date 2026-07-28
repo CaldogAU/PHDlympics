@@ -83,13 +83,17 @@ function getVisibleEventTeams(event) {
         );
     }
 
-    return Number(
-      resultA &&
-        resultA.timeMilliseconds
-    ) -
+    return Math.floor(
       Number(
-        resultB &&
-          resultB.timeMilliseconds
+        resultA &&
+          resultA.timeMilliseconds
+      ) / 1000
+    ) -
+      Math.floor(
+        Number(
+          resultB &&
+            resultB.timeMilliseconds
+        ) / 1000
       );
   });
 }
@@ -198,7 +202,6 @@ function renderTimeTrialEntries(
             <th>Team</th>
             <th>Minutes</th>
             <th>Seconds</th>
-            <th>Milliseconds</th>
             <th>Tournament Points</th>
           </tr>
         </thead>
@@ -224,29 +227,24 @@ function renderTimeTrialEntries(
                     )
                   : null;
 
-              const minutes =
+              const totalSeconds =
                 totalMilliseconds == null
+                  ? null
+                  : Math.floor(
+                      totalMilliseconds / 1000
+                    );
+
+              const minutes =
+                totalSeconds == null
                   ? ""
                   : Math.floor(
-                      totalMilliseconds /
-                        60000
+                      totalSeconds / 60
                     );
 
               const seconds =
-                totalMilliseconds == null
+                totalSeconds == null
                   ? ""
-                  : Math.floor(
-                      (
-                        totalMilliseconds %
-                        60000
-                      ) / 1000
-                    );
-
-              const milliseconds =
-                totalMilliseconds == null
-                  ? ""
-                  : totalMilliseconds %
-                    1000;
+                  : totalSeconds % 60;
               const position =
                 getEventResultPosition(
                   event,
@@ -302,22 +300,6 @@ function renderTimeTrialEntries(
                     />
                   </td>
 
-                  <td>
-                    <input
-                      class="time-milliseconds"
-                      type="number"
-                      min="0"
-                      max="999"
-                      step="1"
-                      value="${milliseconds}"
-                      placeholder="000"
-                      ${
-                        event.completed
-                          ? "disabled"
-                          : ""
-                      }
-                    />
-                  </td>
                   <td class="event-tournament-points">
                     ${
                       position
@@ -860,21 +842,12 @@ async function saveTimeTrialResults(
         ".time-seconds"
       ).value
     );
-    const milliseconds = Number(
-      row.querySelector(
-        ".time-milliseconds"
-      ).value
-    );
-
     if (
       !Number.isInteger(minutes) ||
       minutes < 0 ||
       !Number.isInteger(seconds) ||
       seconds < 0 ||
-      seconds > 59 ||
-      !Number.isInteger(milliseconds) ||
-      milliseconds < 0 ||
-      milliseconds > 999
+      seconds > 59
     ) {
       alert(
         "Enter a valid time for every team."
@@ -886,8 +859,7 @@ async function saveTimeTrialResults(
       teamId: row.dataset.teamId,
       timeMilliseconds:
         minutes * 60000 +
-        seconds * 1000 +
-        milliseconds
+        seconds * 1000
     });
   }
 
@@ -1049,27 +1021,18 @@ function getDraftRowRankValue(
     row.querySelector(
       ".time-seconds"
     );
-  const millisecondInput =
-    row.querySelector(
-      ".time-milliseconds"
-    );
-
   if (
     !minuteInput ||
     !secondInput ||
-    !millisecondInput ||
     minuteInput.value === "" ||
-    secondInput.value === "" ||
-    millisecondInput.value === ""
+    secondInput.value === ""
   ) {
     return Number.POSITIVE_INFINITY;
   }
 
   return Number(minuteInput.value) *
       60000 +
-    Number(secondInput.value) *
-      1000 +
-    Number(millisecondInput.value);
+    Number(secondInput.value) * 1000;
 }
 
 function animateEventRanking(
@@ -1195,7 +1158,7 @@ function initialiseEventControls() {
     event => {
       if (
         !event.target.matches(
-          ".finish-position, .time-minutes, .time-seconds, .time-milliseconds"
+          ".finish-position, .time-minutes, .time-seconds"
         )
       ) {
         return;

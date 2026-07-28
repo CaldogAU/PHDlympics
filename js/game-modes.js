@@ -649,7 +649,15 @@
             )
           )
         )
-        .map(result => ({
+        .map(result => {
+          const timeMilliseconds =
+            Math.floor(
+              Number(
+                result.timeMilliseconds
+              ) / 1000
+            ) * 1000;
+
+          return {
           teamId:
             result.teamId,
 
@@ -658,22 +666,17 @@
             "",
 
           timeMilliseconds:
-            Number(
-              result.timeMilliseconds
-            ),
+            timeMilliseconds,
 
           rankValue:
-            Number(
-              result.timeMilliseconds
-            ),
+            timeMilliseconds,
 
           custom: {
             timeMilliseconds:
-              Number(
-                result.timeMilliseconds
-              )
+              timeMilliseconds
           }
-        }))
+          };
+        })
         .sort(
           (
             rankingA,

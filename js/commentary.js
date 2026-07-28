@@ -196,11 +196,10 @@
     const value = Math.max(0, Number(milliseconds) || 0);
     const minutes = Math.floor(value / 60000);
     const seconds = Math.floor((value % 60000) / 1000);
-    const millis = Math.floor(value % 1000);
     if (minutes) {
-      return `${minutes}:${String(seconds).padStart(2, "0")}.${String(millis).padStart(3, "0")}`;
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
     }
-    return `${seconds}.${String(millis).padStart(3, "0")}s`;
+    return `${seconds}s`;
   }
 
   function normaliseName(value, fallback = "Unknown") {
@@ -565,9 +564,12 @@
             )
             .map(result => ({
               ...result,
-              timeMilliseconds: Number(
-                result.timeMilliseconds
-              ),
+              timeMilliseconds:
+                Math.floor(
+                  Number(
+                    result.timeMilliseconds
+                  ) / 1000
+                ) * 1000,
               team:
                 teamNames.get(result.teamId) ||
                 normaliseName(result.teamName)
