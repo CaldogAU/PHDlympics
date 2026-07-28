@@ -203,6 +203,81 @@ function getTeamPageFourPlayerHistory(
   });
 }
 
+function getTeamPageFallGuysHistory(
+  teamId
+) {
+  return (
+    PHDTournament.state.games || []
+  ).flatMap(game => {
+    if (
+      game.mode !==
+        "fall-guys-grand-prix" ||
+      !game.fallGuysGrandPrix ||
+      !Array.isArray(
+        game.fallGuysGrandPrix.heats
+      ) ||
+      !window.PHDFallGuysGrandPrix
+    ) {
+      return [];
+    }
+
+    const tournament =
+      game.fallGuysGrandPrix;
+
+    return tournament.heats.flatMap(
+      heat => {
+        const result = (
+          heat.results || []
+        ).find(
+          entry =>
+            entry.teamId === teamId
+        );
+
+        if (
+          !heat.completed ||
+          !result
+        ) {
+          return [];
+        }
+
+        const score =
+          window
+            .PHDFallGuysGrandPrix
+            .calculateHeatScore(
+              result,
+              tournament.countedResults
+            );
+
+        return [{
+          id:
+            `fall-guys-${game.id}-${heat.id}-${teamId}`,
+          gameId: game.id,
+          completed: true,
+          multiplayer: true,
+          roundNumber:
+            heat.number,
+          roundLabel:
+            `Heat ${heat.number}`,
+          displayScore:
+            `${score} pts`,
+          resultLabel:
+            tournament.closed
+              ? "Final"
+              : "Completed",
+          sortOrder:
+            Date.parse(
+              heat.updatedAt ||
+              heat.createdAt ||
+              ""
+            ) ||
+            Number(heat.number) ||
+            0
+        }];
+      }
+    );
+  });
+}
+
 function getTeamPageHistoryEntries(
   teamId,
   matches = getTeamPageMatches(
@@ -218,6 +293,9 @@ function getTeamPageHistoryEntries(
     })),
     ...getTeamPageEventHistory(teamId),
     ...getTeamPageFourPlayerHistory(
+      teamId
+    ),
+    ...getTeamPageFallGuysHistory(
       teamId
     )
   ];

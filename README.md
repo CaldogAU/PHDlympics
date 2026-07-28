@@ -77,6 +77,7 @@ Display Mode includes:
 - Current round
 - Large digital clock
 - Scrolling recent-results ticker
+- Non-elimination Fall Guys Grand Prix with repeat heats, best-result office scoring, live rankings, and final tournament points
 - Fullscreen request button
 - Escape key exit
 

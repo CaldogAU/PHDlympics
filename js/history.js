@@ -162,6 +162,89 @@ function getMatchHistory() {
 
   (PHDTournament.state.games || []).forEach(game => {
     if (
+      game.mode ===
+        "fall-guys-grand-prix" &&
+      game.fallGuysGrandPrix &&
+      Array.isArray(
+        game.fallGuysGrandPrix.heats
+      )
+    ) {
+      const tournament =
+        game.fallGuysGrandPrix;
+
+      tournament.heats
+        .filter(
+          heat => heat.completed
+        )
+        .forEach(heat => {
+          const rankedResults = [
+            ...(heat.results || [])
+          ]
+            .map(result => ({
+              ...result,
+              score:
+                window
+                  .PHDFallGuysGrandPrix
+                  .calculateHeatScore(
+                    result,
+                    tournament
+                      .countedResults
+                  )
+            }))
+            .sort(
+              (resultA, resultB) =>
+                resultB.score -
+                  resultA.score ||
+                getHistoryTeamName(
+                  resultA.teamId
+                ).localeCompare(
+                  getHistoryTeamName(
+                    resultB.teamId
+                  )
+                )
+            );
+          const detail =
+            rankedResults
+              .map(
+                (result, index) =>
+                  `${formatHistoryPlacement(
+                    index + 1
+                  )} ${getHistoryTeamName(
+                    result.teamId
+                  )} ${result.score} pts`
+              )
+              .join(", ");
+          const leader =
+            rankedResults[0];
+
+          history.push({
+            round: heat.number,
+            type:
+              "Fall Guys Grand Prix",
+            game: getGameLabel(
+              game.id
+            ),
+            teamA: leader
+              ? getHistoryTeamName(
+                  leader.teamId
+                )
+              : "Multiple",
+            teamB: "Multiple",
+            score: detail,
+            detail,
+            status: "Completed",
+            hasResult: true,
+            updatedAt:
+              heat.updatedAt ||
+              heat.createdAt ||
+              ""
+          });
+        });
+
+      return;
+    }
+
+    if (
       game.mode !== "four-player-swiss" ||
       !game.fourPlayerSwiss ||
       !Array.isArray(game.fourPlayerSwiss.rounds)
@@ -230,6 +313,13 @@ function getActivityTickerItemText(item) {
 
   if (item.type === "4 Player Swiss") {
     return `${item.game} Round ${item.round}, Group ${item.groupNumber}: ${item.detail}`;
+  }
+
+  if (
+    item.type ===
+    "Fall Guys Grand Prix"
+  ) {
+    return `${item.game} Heat ${item.round}: ${item.detail}`;
   }
 
   return `Round ${item.round}: ${item.game} — ${item.teamA} ${item.score} ${item.teamB}`;

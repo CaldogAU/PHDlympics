@@ -758,6 +758,78 @@
   });
 
   register({
+    id: "fall-guys-grand-prix",
+
+    name: "Fall Guys Grand Prix",
+
+    icon: "groups",
+
+    version: "1.0.0",
+
+    compatibilityVersion:
+      SDK_VERSION,
+
+    description:
+      "A non-elimination, multi-heat office Grand Prix where the best player results count each heat.",
+
+    tieFields: [
+      "points",
+      "wins",
+      "podiums",
+      "qualifications"
+    ],
+
+    getResultEntryType() {
+      return "fall-guys-heats";
+    },
+
+    calculateRankings(
+      context = {}
+    ) {
+      if (
+        !global
+          .PHDFallGuysGrandPrix
+      ) {
+        return [];
+      }
+
+      return global
+        .PHDFallGuysGrandPrix
+        .calculateStandings(
+          context.teams || [],
+          context.tournament || {}
+        );
+    },
+
+    calculateChampionshipPoints(
+      rankings
+    ) {
+      return awardChampionshipPoints(
+        rankings
+      );
+    },
+
+    areResultsComplete(
+      context = {}
+    ) {
+      return Boolean(
+        context.tournament &&
+        context.tournament.closed &&
+        Array.isArray(
+          context.tournament
+            .finalStandings
+        ) &&
+        context.tournament
+          .finalStandings.length > 0
+      );
+    },
+
+    shouldRevealResults() {
+      return true;
+    }
+  });
+
+  register({
     id: "grand-prix",
 
     name: "Grand Prix",

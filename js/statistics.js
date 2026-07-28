@@ -75,6 +75,41 @@ function getCompletedFourPlayerSwissMatchCount(
   }, 0);
 }
 
+function getCompletedFallGuysHeatCount(
+  teamId = ""
+) {
+  return (
+    PHDTournament.state.games || []
+  ).reduce((total, game) => {
+    if (
+      game.mode !==
+        "fall-guys-grand-prix" ||
+      !game.fallGuysGrandPrix ||
+      !Array.isArray(
+        game.fallGuysGrandPrix.heats
+      )
+    ) {
+      return total;
+    }
+
+    return total +
+      game.fallGuysGrandPrix.heats
+        .filter(
+          heat =>
+            heat.completed &&
+            (
+              !teamId ||
+              (heat.results || []).some(
+                result =>
+                  result.teamId ===
+                  teamId
+              )
+            )
+        )
+        .length;
+  }, 0);
+}
+
 function getCompletedMatchCount(
   teamId = ""
 ) {
@@ -92,6 +127,9 @@ function getCompletedMatchCount(
       teamId
     ) +
     getCompletedFourPlayerSwissMatchCount(
+      teamId
+    ) +
+    getCompletedFallGuysHeatCount(
       teamId
     );
 }

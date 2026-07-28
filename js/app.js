@@ -290,6 +290,13 @@ function renderGameTabs() {
           ? renderFourPlayerSwissManagement(
               game
             )
+          : resultEntryType ===
+              "fall-guys-heats"
+            ? window
+                .PHDFallGuysGrandPrix
+                .renderManagement(
+                  game
+                )
           : isMatchMode
             ? renderSwissGameManagement(
                 game

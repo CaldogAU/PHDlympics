@@ -65,6 +65,13 @@ const ADMIN_DYNAMIC_SELECTORS = [
   ".close-four-player-tournament",
   ".reopen-four-player-tournament",
   "[data-four-player-game-id] select",
+  ".save-fall-guys-settings",
+  ".add-fall-guys-heat",
+  ".save-fall-guys-heat",
+  ".reopen-fall-guys-heat",
+  ".close-fall-guys-tournament",
+  ".reopen-fall-guys-tournament",
+  "[data-fall-guys-game-id] input",
   ".toggle-staff-access",
   ".staff-team-assignment",
   ".match-game-select",
@@ -480,13 +487,13 @@ function applyAdminAccessState() {
       );
     const resultControl = Boolean(
       element.closest(
-        ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card, .generate-four-player-round, .save-four-player-group, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, [data-four-player-game-id]"
+          ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card, .generate-four-player-round, .save-four-player-group, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, [data-four-player-game-id], .save-fall-guys-settings, .add-fall-guys-heat, .save-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament, [data-fall-guys-game-id]"
       )
     );
     const lifecycleControl =
       Boolean(
         element.closest(
-          ".generate-game-round, .create-game-event, .reopen-game-event, .toggle-round, .generate-four-player-round, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, .close-match-game, .reopen-match-game"
+          ".generate-game-round, .create-game-event, .reopen-game-event, .toggle-round, .generate-four-player-round, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, .close-match-game, .reopen-match-game, .add-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament"
         )
       );
     const teamElement =

@@ -112,6 +112,24 @@ function getCompletedGameLeaderboard(game) {
       : null;
   }
 
+  if (
+    (game.mode || "swiss") ===
+    "fall-guys-grand-prix"
+  ) {
+    const tournament =
+      game.fallGuysGrandPrix;
+
+    return tournament &&
+      tournament.closed &&
+      Array.isArray(
+        tournament.finalStandings
+      ) &&
+      tournament.finalStandings
+        .length > 0
+      ? tournament.finalStandings
+      : null;
+  }
+
   const mode =
     window.PHDGameModes
       .getForGame(game);
@@ -131,6 +149,14 @@ function getCompletedGameLeaderboard(game) {
         : [],
     pointsByPosition: []
   };
+
+  if (
+    resultEntryType ===
+    "fall-guys-heats"
+  ) {
+    context.tournament =
+      game.fallGuysGrandPrix || {};
+  }
 
   if (
     resultEntryType ===
