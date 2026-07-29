@@ -88,9 +88,10 @@ body {
 }
 
 .header-logo {
+  position: relative;
   width: min(184px, 100%);
   height: auto;
-  aspect-ratio: 393 / 507;
+  aspect-ratio: 365 / 483;
   border-radius: 0;
   background: #b9a1ce;
   border: 0;
@@ -101,10 +102,13 @@ body {
 }
 
 .header-logo img {
+  position: absolute;
+  top: calc(-100% * 5 / 483);
+  left: calc(-100% * 17 / 365);
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: calc(100% * 393 / 365);
+  height: auto;
+  max-width: none;
 }
 
 .sidebar-status {
