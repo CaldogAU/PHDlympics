@@ -407,9 +407,9 @@ function updateViewOnlyNotice(isAdmin) {
   notice.textContent =
     "View-only mode: sign in as a tournament administrator to make changes.";
 
-  main.parentElement.insertBefore(
-    notice,
-    main
+  main.insertAdjacentElement(
+    "afterend",
+    notice
   );
 }
 
