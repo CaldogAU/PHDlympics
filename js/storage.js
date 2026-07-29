@@ -31,16 +31,16 @@ function mergeTournamentState(sourceState) {
       }
     },
     teams: Array.isArray(source.teams)
-      ? source.teams
+      ? structuredClone(source.teams)
       : [],
     games: Array.isArray(source.games)
-      ? source.games
+      ? structuredClone(source.games)
       : [],
     rounds: Array.isArray(source.rounds)
-      ? source.rounds
+      ? structuredClone(source.rounds)
       : [],
     events: Array.isArray(source.events)
-      ? source.events
+      ? structuredClone(source.events)
       : [],
     access: {
       assignments: {
@@ -53,7 +53,7 @@ function mergeTournamentState(sourceState) {
       ...(source.championship || {})
     },
     archive: Array.isArray(source.archive)
-      ? source.archive
+      ? structuredClone(source.archive)
       : []
   };
 
