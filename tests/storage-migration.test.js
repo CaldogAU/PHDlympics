@@ -133,3 +133,40 @@ test("normalises legacy cloud state at the storage boundary", () => {
       .settings.drawPoints
   );
 });
+
+test("creates independent collections when resetting to defaults", () => {
+  const {
+    defaultState,
+    mergeTournamentState
+  } = loadMergeTournamentState();
+  const resetState =
+    mergeTournamentState(
+      defaultState
+    );
+
+  resetState.teams.push({
+    id: "new-team",
+    name: "New Team"
+  });
+  resetState.games.push({
+    id: "new-game",
+    name: "New Game"
+  });
+
+  assert.equal(
+    defaultState.teams.length,
+    0
+  );
+  assert.equal(
+    defaultState.games.length,
+    0
+  );
+  assert.notStrictEqual(
+    resetState.teams,
+    defaultState.teams
+  );
+  assert.notStrictEqual(
+    resetState.games,
+    defaultState.games
+  );
+});
