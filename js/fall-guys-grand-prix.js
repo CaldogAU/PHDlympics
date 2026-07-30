@@ -2,6 +2,11 @@
   "use strict";
 
   const MODE_ID = "fall-guys-grand-prix";
+  const tournamentState =
+    typeof PHDTournament !==
+      "undefined"
+      ? PHDTournament
+      : global.PHDTournament;
   const DEFAULT_TARGET_HEATS = 10;
   const DEFAULT_COUNTED_RESULTS = 3;
   const OUTCOMES = Object.freeze([
@@ -319,7 +324,7 @@
 
   function getVisibleTeams(tournament) {
     const teams = [
-      ...(global.PHDTournament.state.teams ||
+      ...(tournamentState.state.teams ||
         [])
     ];
 
@@ -351,7 +356,7 @@
 
   function renderStandings(game, tournament) {
     const standings = calculateStandings(
-      global.PHDTournament.state.teams,
+      tournamentState.state.teams,
       tournament
     );
 
@@ -860,7 +865,7 @@
       : submitted;
 
     const teamIds = (
-      global.PHDTournament.state.teams ||
+      tournamentState.state.teams ||
       []
     ).map(team => team.id);
     const validation =
@@ -938,7 +943,7 @@
     }
     const standings =
       calculateStandings(
-        global.PHDTournament.state.teams,
+        tournamentState.state.teams,
         tournament
       );
     tournament.finalStandings =
@@ -1125,7 +1130,7 @@
       renderManagement
     });
 
-  global.PHDTournament.modules.push(
+  tournamentState.modules.push(
     MODE_ID
   );
 })(window);

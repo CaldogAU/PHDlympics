@@ -28,7 +28,6 @@ function clearGameForm() {
 setValue("gameName", "");
 setValue("gamePlatform", "");
 setValue("gameMode", "swiss");
-setValue("gameFormat", "");
 setValue("gameLogoUrl", "");
 
   const saveButton =
@@ -47,7 +46,6 @@ function createGame(values) {
   name: values.name,
   platform: values.platform,
   mode: values.mode,
-  format: values.format,
   logoUrl: values.logoUrl,
   settings: {
     winPoints: legacyScoring.winPoints,
@@ -80,7 +78,6 @@ function getGameChanges(
   "name",
   "platform",
   "mode",
-  "format",
   "logoUrl"
 ].forEach(field => {
     const previousValue =
@@ -112,9 +109,6 @@ async function saveGameFromForm() {
 
   mode:
     getValue("gameMode") || "swiss",
-
-  format:
-    getValue("gameFormat").trim(),
 
   logoUrl:
     getValue("gameLogoUrl").trim()
@@ -174,7 +168,6 @@ async function saveGameFromForm() {
 game.name = values.name;
 game.platform = values.platform;
 game.mode = values.mode;
-game.format = values.format;
 game.logoUrl = values.logoUrl;
 
     auditAction = "game.updated";
@@ -258,11 +251,6 @@ function editGame(gameId) {
 setValue(
   "gameMode",
   game.mode || "swiss"
-);
-
-setValue(
-  "gameFormat",
-  game.format || ""
 );
 
   setValue(
@@ -526,12 +514,6 @@ function renderGames() {
   )}
 </span>
 
-<span>
-  ${escapeHtml(
-    game.format ||
-      "No format listed"
-  )}
-</span>
           </div>
 
           <div class="game-actions">

@@ -26,7 +26,6 @@ const ADMIN_CONTROL_IDS = [
   "clearTeamForm",
   "gameName",
   "gamePlatform",
-  "gameFormat",
   "gameLogoUrl",
   "saveGame",
   "clearGameForm",

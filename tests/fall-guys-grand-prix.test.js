@@ -5,19 +5,20 @@ const test = require("node:test");
 const vm = require("node:vm");
 
 function loadEngine() {
+  const PHDTournament = {
+    modules: [],
+    state: {
+      teams: []
+    }
+  };
   const window = {
-    PHDTournament: {
-      modules: [],
-      state: {
-        teams: []
-      }
-    },
     document: {
       addEventListener() {}
     }
   };
   const context = {
-    window
+    window,
+    PHDTournament
   };
 
   vm.runInNewContext(
