@@ -241,4 +241,16 @@ test("shows a top-level workflow for every game mode", () => {
     app,
     /renderGameModeOverview\(\s*game,\s*mode/
   );
+  assert.match(
+    app,
+    /class="game-mode-example"/
+  );
+  assert.match(
+    app,
+    /overview\.exampleRows/
+  );
+  assert.match(
+    app,
+    /class="game-mode-note"/
+  );
 });

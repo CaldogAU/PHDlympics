@@ -127,71 +127,130 @@ const GAME_MODE_OVERVIEWS = {
     summary:
       "Teams face similarly ranked opponents over a series of rounds.",
     steps: [
-      ["Pair", "Generate matchups"],
-      ["Play", "Enter match scores"],
-      ["Re-rank", "Update the ladder"],
-      ["Repeat", "Award final points"]
-    ]
+      ["Generate round", "Pair teams by current ranking"],
+      ["Play matches", "Each pair completes one match"],
+      ["Enter scores", "Record every result in the round"],
+      ["Re-rank", "Update the ladder and repeat"]
+    ],
+    exampleHeaders: ["Match", "Example result"],
+    exampleRows: [
+      ["Sydney vs Melbourne", "Sydney wins 3–1"],
+      ["Brisbane vs Auckland", "Draw 2–2"]
+    ],
+    note:
+      "The next round uses the updated rankings and avoids rematches where possible."
   },
   "round-robin": {
     summary:
       "Every team plays every other team once.",
     steps: [
-      ["Schedule", "Create all matchups"],
-      ["Play", "Complete each match"],
-      ["Score", "Build the ladder"],
-      ["Finish", "Award final points"]
-    ]
+      ["Create schedule", "Generate every required pairing"],
+      ["Play matches", "Complete the full schedule"],
+      ["Enter scores", "Track wins, draws and losses"],
+      ["Complete", "Use the final ladder for points"]
+    ],
+    exampleHeaders: ["Team", "Scheduled opponents"],
+    exampleRows: [
+      ["Sydney", "Melbourne, Brisbane, Auckland"],
+      ["Melbourne", "Sydney, Brisbane, Auckland"]
+    ],
+    note:
+      "Every team receives the same number of scheduled opponents."
   },
   "single-elimination": {
     summary:
       "Match winners advance through a knockout bracket.",
     steps: [
-      ["Draw", "Create the bracket"],
-      ["Play", "Enter match scores"],
-      ["Advance", "Winners move on"],
-      ["Final", "Crown the winner"]
-    ]
+      ["Create bracket", "Generate opening matchups"],
+      ["Play matches", "Each pair plays a decider"],
+      ["Advance winners", "Winning teams move forward"],
+      ["Play final", "Crown the tournament winner"]
+    ],
+    exampleHeaders: ["Stage", "Example"],
+    exampleRows: [
+      ["Semifinals", "Sydney and Brisbane advance"],
+      ["Final", "Sydney vs Brisbane"]
+    ],
+    note:
+      "Opening-round byes may be used when the entrant count does not fill a complete bracket."
   },
   "four-player-swiss": {
     summary:
       "Teams compete in ranked groups of four without elimination.",
     steps: [
-      ["Group", "Create groups of four"],
-      ["Place", "Enter 1st to 4th"],
-      ["Re-rank", "Update Swiss order"],
-      ["Close", "Award final points"]
-    ]
+      ["Create groups", "Split teams into groups of four"],
+      ["Play round", "All four compete together"],
+      ["Enter places", "Record 1st through 4th"],
+      ["Re-rank", "Build the next ranked groups"]
+    ],
+    exampleHeaders: ["Placement", "Example team"],
+    exampleRows: [
+      ["1st", "Sydney"],
+      ["2nd", "Melbourne"],
+      ["3rd", "Brisbane"],
+      ["4th", "Auckland"]
+    ],
+    note:
+      "Closing the tournament converts the final ranking into tournament points."
   },
   "time-trial": {
     summary:
       "Every team records a time; the fastest completed run ranks first.",
     steps: [
-      ["Attempt", "Each team competes"],
-      ["Record", "Enter minutes and seconds"],
-      ["Rank", "Fastest time leads"],
-      ["Complete", "Award final points"]
-    ]
+      ["Attempt", "Each team completes the challenge"],
+      ["Record time", "Enter minutes and seconds"],
+      ["Rank times", "Fastest valid time leads"],
+      ["Complete", "Lock results and award points"]
+    ],
+    exampleHeaders: ["Rank", "Team", "Time", "Points"],
+    exampleRows: [
+      ["1st", "Sydney", "1:08", "4"],
+      ["2nd", "Melbourne", "1:12", "3"],
+      ["3rd", "Brisbane", "1:17", "2"],
+      ["4th", "Auckland", "1:24", "1"]
+    ],
+    note:
+      "The event completes after every team has a valid whole-second time."
   },
   "grand-prix": {
     summary:
       "All teams compete together and receive a final finishing position.",
     steps: [
-      ["Start", "All teams compete"],
-      ["Finish", "Confirm the order"],
-      ["Rank", "Enter each position"],
-      ["Complete", "Award final points"]
-    ]
+      ["Compete", "All teams play in one event"],
+      ["Record results", "Enter a unique place for each team"],
+      ["Confirm ranking", "Order the table from 1st to last"],
+      ["Complete", "Lock results and award points"]
+    ],
+    exampleHeaders: ["Finish", "Team", "Points"],
+    exampleRows: [
+      ["1st", "Sydney", "4"],
+      ["2nd", "Melbourne", "3"],
+      ["3rd", "Brisbane", "2"],
+      ["4th", "Auckland", "1"]
+    ],
+    note:
+      "Last place receives 1 point, then each higher position receives one more."
   },
   "fall-guys-grand-prix": {
     summary:
       "Offices score across multiple heats, with their best player results counting.",
     steps: [
-      ["Heat", "Everyone keeps playing"],
-      ["Record", "Enter player outcomes"],
-      ["Score", "Count the best results"],
-      ["Close", "Award final points"]
-    ]
+      ["Play heat", "Players from every office compete"],
+      ["Record outcomes", "Enter places and qualifications"],
+      ["Score offices", "Count the best player results"],
+      ["Repeat and close", "Confirm the final office ranking"]
+    ],
+    exampleHeaders: ["Player outcome", "Heat points"],
+    exampleRows: [
+      ["1st", "10"],
+      ["2nd", "8"],
+      ["3rd", "6"],
+      ["4th", "5"],
+      ["Qualified", "3"],
+      ["Participated", "1"]
+    ],
+    note:
+      "Multiple players may enter, but only the configured number of best results count for each office."
   }
 };
 
@@ -244,6 +303,50 @@ function renderGameModeOverview(
           )
           .join("")}
       </ol>
+
+      <div class="game-mode-example">
+        <p class="eyebrow">Example</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                ${overview.exampleHeaders
+                  .map(
+                    header => `
+                      <th>
+                        ${escapeHtml(header)}
+                      </th>
+                    `
+                  )
+                  .join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${overview.exampleRows
+                .map(
+                  row => `
+                    <tr>
+                      ${row
+                        .map(
+                          value => `
+                            <td>
+                              ${escapeHtml(value)}
+                            </td>
+                          `
+                        )
+                        .join("")}
+                    </tr>
+                  `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="game-mode-note">
+        ${escapeHtml(overview.note)}
+      </p>
     </section>
   `;
 }
