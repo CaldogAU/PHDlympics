@@ -258,23 +258,20 @@ const GAME_MODE_DIAGRAMS = {
   swiss: [
     ["Round 1", [["Opening pairings", ["Sydney vs Melbourne", "Brisbane vs Auckland"]]]],
     ["After Round 1", [
-      ["1-0 teams", ["Sydney", "Brisbane"], "advance"],
-      ["0-1 teams", ["Melbourne", "Auckland"], "warning"]
+      ["1-0 teams", ["Winner M1", "Winner M2"], "advance"],
+      ["0-1 teams", ["Other team M1", "Other team M2"], "warning"]
     ]],
-    ["Round 2", [["Ranked pairings", ["Sydney vs Brisbane", "Melbourne vs Auckland"]]]],
+    ["Round 2", [["Ranked pairings", ["1-0 vs 1-0", "0-1 vs 0-1"]]]],
     ["Final ladder", [
-      ["Tournament points", ["1 Sydney - 4 pts", "2 Brisbane - 3 pts"], "advance"],
-      ["Remaining teams", ["3 Melbourne - 2 pts", "4 Auckland - 1 pt"]]
+      ["Tournament points", ["1st - 4 pts", "2nd - 3 pts"], "advance"],
+      ["Remaining teams", ["3rd - 2 pts", "4th - 1 pt"]]
     ]]
   ],
   "round-robin": [
-    ["Schedule", [
-      ["Round 1", ["Sydney vs Melbourne", "Brisbane vs Auckland"]],
-      ["Round 2", ["Sydney vs Brisbane", "Melbourne vs Auckland"]]
-    ]],
-    ["Play all rounds", [["Round 3", ["Sydney vs Auckland", "Melbourne vs Brisbane"]]]],
-    ["Build ladder", [["Match records", ["Sydney 3-0", "Brisbane 2-1", "Melbourne 1-2", "Auckland 0-3"]]]],
-    ["Complete", [["Tournament points", ["Sydney 4 pts", "Brisbane 3 pts", "Melbourne 2 pts", "Auckland 1 pt"], "advance"]]]
+    ["Teams", [["Every team enters", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
+    ["Create schedule", [["All pairings", ["Each team plays every other team once"]]]],
+    ["Build ladder", [["Match records", ["1st: 3-0", "2nd: 2-1", "3rd: 1-2", "4th: 0-3"]]]],
+    ["Complete", [["Tournament points", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"], "advance"]]]
   ],
   "single-elimination": [
     ["Semifinals", [
@@ -282,13 +279,13 @@ const GAME_MODE_DIAGRAMS = {
       ["Match 2", ["Brisbane 2 - 0 Auckland"]]
     ]],
     ["Advance", [
-      ["Winners", ["Sydney", "Brisbane"], "advance"],
-      ["Eliminated", ["Melbourne", "Auckland"], "eliminated"]
+      ["Winners", ["Winner M1", "Winner M2"], "advance"],
+      ["Eliminated", ["Other team M1", "Other team M2"], "eliminated"]
     ]],
-    ["Grand final", [["Championship match", ["Sydney 2 - 1 Brisbane"]]]],
+    ["Grand final", [["Championship match", ["Winner M1 vs Winner M2"]]]],
     ["Champion", [
-      ["Winner", ["Sydney"], "advance"],
-      ["Runner-up", ["Brisbane"]]
+      ["Winner", ["Final winner"], "advance"],
+      ["Runner-up", ["Final runner-up"]]
     ]]
   ],
   "four-player-swiss": [
@@ -297,35 +294,35 @@ const GAME_MODE_DIAGRAMS = {
       ["Group B", ["Perth", "Adelaide", "Canberra", "Hobart"]]
     ]],
     ["Enter placements", [
-      ["Group A result", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"]],
-      ["Group B result", ["1 Perth", "2 Adelaide", "3 Canberra", "4 Hobart"]]
+      ["Group A result", ["1st", "2nd", "3rd", "4th"]],
+      ["Group B result", ["1st", "2nd", "3rd", "4th"]]
     ]],
     ["Re-rank", [
-      ["Top-ranked group", ["Sydney", "Perth", "Melbourne", "Adelaide"], "advance"],
-      ["Next-ranked group", ["Brisbane", "Canberra", "Auckland", "Hobart"]]
+      ["Top-ranked group", ["A1", "B1", "A2", "B2"], "advance"],
+      ["Next-ranked group", ["A3", "B3", "A4", "B4"]]
     ]],
-    ["Close tournament", [["Final points", ["1 Sydney - 8 pts", "2 Perth - 7 pts", "...", "8 Hobart - 1 pt"], "advance"]]]
+    ["Close tournament", [["Final points", ["1st - 8 pts", "2nd - 7 pts", "...", "8th - 1 pt"], "advance"]]]
   ],
   "time-trial": [
     ["Attempts", [["Complete the course", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
-    ["Record times", [["Minutes : seconds", ["Sydney 1:08", "Melbourne 1:12", "Brisbane 1:17", "Auckland 1:24"]]]],
-    ["Live ranking", [["Fastest to slowest", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"], "advance"]]],
-    ["Complete", [["Tournament points", ["Sydney 4 pts", "Melbourne 3 pts", "Brisbane 2 pts", "Auckland 1 pt"], "advance"]]]
+    ["Record times", [["Minutes : seconds", ["Run A 1:08", "Run B 1:12", "Run C 1:17", "Run D 1:24"]]]],
+    ["Live ranking", [["Fastest to slowest", ["1 Run A", "2 Run B", "3 Run C", "4 Run D"], "advance"]]],
+    ["Complete", [["Tournament points", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"], "advance"]]]
   ],
   "grand-prix": [
     ["Starting field", [["All teams compete", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
-    ["Finish order", [["Enter placements", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"]]]],
+    ["Finish order", [["Enter placements", ["1st place", "2nd place", "3rd place", "4th place"]]]],
     ["Points scale", [["Reverse position", ["1st = 4 pts", "2nd = 3 pts", "3rd = 2 pts", "4th = 1 pt"]]]],
-    ["Complete", [["Overall standings update", ["Sydney +4", "Melbourne +3", "Brisbane +2", "Auckland +1"], "advance"]]]
+    ["Complete", [["Overall standings update", ["Winner +4", "Runner-up +3", "3rd +2", "4th +1"], "advance"]]]
   ],
   "fall-guys-grand-prix": [
-    ["Play heat", [["Office players", ["Sydney A", "Sydney B", "Melbourne A", "Melbourne B"]]]],
-    ["Player outcomes", [["Example result", ["Sydney A - 1st", "Melbourne A - 3rd", "Sydney B - qualified", "Melbourne B - played"]]]],
+    ["Play heat", [["Office players", ["Sydney - Players A & B", "Melbourne - Players A & B", "Brisbane - Players A & B", "Auckland - Players A & B"]]]],
+    ["Player outcomes", [["Example result", ["Player A - 1st", "Player B - 3rd", "Player C - qualified", "Player D - played"]]]],
     ["Heat points", [
       ["Scoring", ["1st 10 pts", "3rd 6 pts", "Qualified 3 pts", "Played 1 pt"]],
-      ["Best results count", ["Sydney 13", "Melbourne 7"], "advance"]
+      ["Best results count", ["Office 1 - 13 pts", "Office 2 - 7 pts"], "advance"]
     ]],
-    ["Final office ranking", [["After all heats", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"], "advance"]]]
+    ["Final office ranking", [["After all heats", ["1st office", "2nd office", "3rd office", "4th office"], "advance"]]]
   ]
 };
 
@@ -359,14 +356,19 @@ function personaliseGameModeDiagram(diagram) {
   ];
   const teamNames =
     getCurrentTeamExampleNames();
+  const teamPlaceholderPattern =
+    new RegExp(
+      placeholders.join("|"),
+      "g"
+    );
 
   const replaceTeamNames = value =>
-    placeholders.reduce(
-      (result, placeholder, index) =>
-        result
-          .split(placeholder)
-          .join(teamNames[index]),
-      value
+    value.replace(
+      teamPlaceholderPattern,
+      placeholder =>
+        teamNames[
+          placeholders.indexOf(placeholder)
+        ]
     );
 
   return diagram.map(
