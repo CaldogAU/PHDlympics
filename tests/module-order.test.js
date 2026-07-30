@@ -235,7 +235,7 @@ test("shows a top-level workflow for every game mode", () => {
   });
   assert.match(
     app,
-    /class="game-mode-flow"/
+    /const GAME_MODE_DIAGRAMS/
   );
   assert.match(
     app,
@@ -243,11 +243,15 @@ test("shows a top-level workflow for every game mode", () => {
   );
   assert.match(
     app,
-    /class="game-mode-example"/
+    /class="game-mode-diagram"/
   );
   assert.match(
     app,
-    /overview\.exampleRows/
+    /class="game-mode-stage"/
+  );
+  assert.match(
+    app,
+    /class="game-mode-node/
   );
   assert.match(
     app,

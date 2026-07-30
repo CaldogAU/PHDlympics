@@ -984,6 +984,154 @@ th {
 
 .game-mode-overview {
   overflow: hidden;
+  position: relative;
+  color: #f8fafc;
+  border-color: rgba(109, 93, 252, 0.45);
+  background:
+    radial-gradient(
+      circle at 14% 90%,
+      rgba(44, 118, 180, 0.3),
+      transparent 38%
+    ),
+    linear-gradient(135deg, #071225, #0c2340 62%, #0a192e);
+}
+
+.game-mode-overview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(
+      115deg,
+      transparent 0 48%,
+      rgba(255, 255, 255, 0.06) 49% 50%,
+      transparent 51% 100%
+    );
+  background-size: 120px 120px;
+}
+
+.game-mode-overview > * {
+  position: relative;
+  z-index: 1;
+}
+
+.game-mode-overview .eyebrow {
+  color: #f9c74f;
+}
+
+.game-mode-overview .muted {
+  color: #c7d2e4;
+}
+
+.game-mode-diagram {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 30px;
+  margin-top: 24px;
+}
+
+.game-mode-stage {
+  position: relative;
+  min-width: 0;
+}
+
+.game-mode-stage:not(:last-child)::after {
+  content: "›";
+  position: absolute;
+  top: 52%;
+  right: -23px;
+  transform: translateY(-50%);
+  color: #f9c74f;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.game-mode-stage-heading {
+  min-height: 48px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f8fafc;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.game-mode-stage-heading > span {
+  flex: 0 0 auto;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 7px;
+  display: grid;
+  place-items: center;
+  transform: skew(-8deg);
+  background: #f9c74f;
+  color: #071225;
+  font-weight: 900;
+}
+
+.game-mode-stage-groups {
+  display: grid;
+  gap: 10px;
+}
+
+.game-mode-node {
+  min-width: 0;
+  padding: 12px;
+  border: 2px solid #3b82a0;
+  background: rgba(4, 16, 34, 0.78);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.game-mode-node.is-advance {
+  border-color: #22c98b;
+}
+
+.game-mode-node.is-warning {
+  border-color: #f9c74f;
+}
+
+.game-mode-node.is-eliminated {
+  border-color: #ef4444;
+}
+
+.game-mode-node > strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #f8fafc;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.game-mode-node > span {
+  display: block;
+  padding: 5px 7px;
+  overflow-wrap: anywhere;
+  background: rgba(42, 80, 112, 0.42);
+  color: #dbe7f5;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.game-mode-node > span + span {
+  margin-top: 4px;
+}
+
+.game-mode-node.is-advance > strong {
+  color: #5ee6b4;
+}
+
+.game-mode-node.is-warning > strong {
+  color: #ffd166;
+}
+
+.game-mode-node.is-eliminated > strong {
+  color: #ff7373;
 }
 
 .game-mode-flow {
@@ -1070,15 +1218,10 @@ th {
 .game-mode-note {
   margin: 18px 0 0;
   padding: 13px 15px;
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid #f9c74f;
   border-radius: 0 12px 12px 0;
-  background:
-    color-mix(
-      in srgb,
-      var(--accent) 8%,
-      var(--card-soft)
-    );
-  color: var(--muted);
+  background: rgba(249, 199, 79, 0.1);
+  color: #dbe7f5;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.5;
@@ -1336,6 +1479,14 @@ body.display-active .display-mode {
   .game-mode-flow li:nth-child(2)::after {
     display: none;
   }
+
+  .game-mode-diagram {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-mode-stage:nth-child(2)::after {
+    display: none;
+  }
 }
 
 @media (max-width: 950px) {
@@ -1443,6 +1594,28 @@ body.display-active .display-mode {
 
   .game-mode-flow li::after {
     display: none !important;
+  }
+
+  .game-mode-diagram {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .game-mode-stage:not(:last-child)::after {
+    content: "⌄";
+    top: auto;
+    right: 50%;
+    bottom: -22px;
+    transform: translateX(50%);
+    font-size: 24px;
+  }
+
+  .game-mode-stage:nth-child(2)::after {
+    display: block;
+  }
+
+  .game-mode-stage-heading {
+    min-height: 0;
   }
 
   .app-layout {
