@@ -1053,6 +1053,37 @@ th {
   line-height: 1.4;
 }
 
+.game-mode-example {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+
+.game-mode-example .table-wrap {
+  margin-top: 10px;
+}
+
+.game-mode-example table {
+  min-width: 420px;
+}
+
+.game-mode-note {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 8%,
+      var(--card-soft)
+    );
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .app-footer {
   display: flex;
   justify-content: space-between;
