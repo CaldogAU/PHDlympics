@@ -329,6 +329,60 @@ const GAME_MODE_DIAGRAMS = {
   ]
 };
 
+function getCurrentTeamExampleNames() {
+  const currentNames = (
+    PHDTournament.state.teams || []
+  )
+    .map(team =>
+      String(team.name || "").trim()
+    )
+    .filter(Boolean);
+
+  return Array.from(
+    { length: 8 },
+    (_, index) =>
+      currentNames[index] ||
+      `Team ${index + 1}`
+  );
+}
+
+function personaliseGameModeDiagram(diagram) {
+  const placeholders = [
+    "Sydney",
+    "Melbourne",
+    "Brisbane",
+    "Auckland",
+    "Perth",
+    "Adelaide",
+    "Canberra",
+    "Hobart"
+  ];
+  const teamNames =
+    getCurrentTeamExampleNames();
+
+  const replaceTeamNames = value =>
+    placeholders.reduce(
+      (result, placeholder, index) =>
+        result
+          .split(placeholder)
+          .join(teamNames[index]),
+      value
+    );
+
+  return diagram.map(
+    ([stage, groups]) => [
+      stage,
+      groups.map(
+        ([title, lines, tone]) => [
+          title,
+          lines.map(replaceTeamNames),
+          tone
+        ]
+      )
+    ]
+  );
+}
+
 function renderGameModeOverview(
   game,
   mode
@@ -337,8 +391,10 @@ function renderGameModeOverview(
     GAME_MODE_OVERVIEWS[mode] ||
     GAME_MODE_OVERVIEWS.swiss;
   const diagram =
-    GAME_MODE_DIAGRAMS[mode] ||
-    GAME_MODE_DIAGRAMS.swiss;
+    personaliseGameModeDiagram(
+      GAME_MODE_DIAGRAMS[mode] ||
+      GAME_MODE_DIAGRAMS.swiss
+    );
   const modeName =
     window.PHDGameModes &&
     typeof window.PHDGameModes

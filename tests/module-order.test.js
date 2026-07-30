@@ -255,6 +255,18 @@ test("shows a top-level workflow for every game mode", () => {
   );
   assert.match(
     app,
+    /function getCurrentTeamExampleNames/
+  );
+  assert.match(
+    app,
+    /PHDTournament\.state\.teams/
+  );
+  assert.match(
+    app,
+    /personaliseGameModeDiagram/
+  );
+  assert.match(
+    app,
     /class="game-mode-note"/
   );
 });
