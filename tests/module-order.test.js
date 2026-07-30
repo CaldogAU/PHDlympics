@@ -176,3 +176,69 @@ test("loads staff management after Firebase authentication", () => {
   assert.notEqual(staffIndex, -1);
   assert.ok(authIndex < staffIndex);
 });
+
+test("does not expose the legacy game format field", () => {
+  const html = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "index.html"
+    ),
+    "utf8"
+  );
+  const games = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "js",
+      "games.js"
+    ),
+    "utf8"
+  );
+
+  assert.doesNotMatch(
+    html,
+    /id="gameFormat"/
+  );
+  assert.doesNotMatch(
+    games,
+    /getValue\("gameFormat"\)/
+  );
+});
+
+test("shows a top-level workflow for every game mode", () => {
+  const app = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "js",
+      "app.js"
+    ),
+    "utf8"
+  );
+
+  [
+    "swiss",
+    "round-robin",
+    "single-elimination",
+    "four-player-swiss",
+    "time-trial",
+    "grand-prix",
+    "fall-guys-grand-prix"
+  ].forEach(mode => {
+    assert.match(
+      app,
+      new RegExp(
+        `"${mode}"|${mode}:`
+      )
+    );
+  });
+  assert.match(
+    app,
+    /class="game-mode-flow"/
+  );
+  assert.match(
+    app,
+    /renderGameModeOverview\(\s*game,\s*mode/
+  );
+});

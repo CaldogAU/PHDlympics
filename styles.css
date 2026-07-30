@@ -982,6 +982,77 @@ th {
   text-align: right;
 }
 
+.game-mode-overview {
+  overflow: hidden;
+}
+
+.game-mode-flow {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0 0;
+  padding: 0;
+  counter-reset: mode-step;
+}
+
+.game-mode-flow li {
+  position: relative;
+  min-height: 132px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--accent) 10%, var(--card)),
+      var(--card-soft)
+    );
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.game-mode-flow li:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: -19px;
+  width: 24px;
+  height: 24px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.game-mode-step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.game-mode-flow strong {
+  font-size: 17px;
+}
+
+.game-mode-flow li > span:last-child {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .app-footer {
   display: flex;
   justify-content: space-between;
@@ -1226,6 +1297,14 @@ body.display-active .display-mode {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .game-mode-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-mode-flow li:nth-child(2)::after {
+    display: none;
+  }
 }
 
 @media (max-width: 950px) {
@@ -1321,6 +1400,18 @@ body.display-active .display-mode {
     margin: 16px 0 0;
     border-right-width: 16px;
     border-left-width: 16px;
+  }
+
+  .game-mode-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .game-mode-flow li {
+    min-height: 0;
+  }
+
+  .game-mode-flow li::after {
+    display: none !important;
   }
 
   .app-layout {

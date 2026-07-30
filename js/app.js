@@ -122,6 +122,132 @@ function getGameTabName(game) {
   return `game-${game.id}`;
 }
 
+const GAME_MODE_OVERVIEWS = {
+  swiss: {
+    summary:
+      "Teams face similarly ranked opponents over a series of rounds.",
+    steps: [
+      ["Pair", "Generate matchups"],
+      ["Play", "Enter match scores"],
+      ["Re-rank", "Update the ladder"],
+      ["Repeat", "Award final points"]
+    ]
+  },
+  "round-robin": {
+    summary:
+      "Every team plays every other team once.",
+    steps: [
+      ["Schedule", "Create all matchups"],
+      ["Play", "Complete each match"],
+      ["Score", "Build the ladder"],
+      ["Finish", "Award final points"]
+    ]
+  },
+  "single-elimination": {
+    summary:
+      "Match winners advance through a knockout bracket.",
+    steps: [
+      ["Draw", "Create the bracket"],
+      ["Play", "Enter match scores"],
+      ["Advance", "Winners move on"],
+      ["Final", "Crown the winner"]
+    ]
+  },
+  "four-player-swiss": {
+    summary:
+      "Teams compete in ranked groups of four without elimination.",
+    steps: [
+      ["Group", "Create groups of four"],
+      ["Place", "Enter 1st to 4th"],
+      ["Re-rank", "Update Swiss order"],
+      ["Close", "Award final points"]
+    ]
+  },
+  "time-trial": {
+    summary:
+      "Every team records a time; the fastest completed run ranks first.",
+    steps: [
+      ["Attempt", "Each team competes"],
+      ["Record", "Enter minutes and seconds"],
+      ["Rank", "Fastest time leads"],
+      ["Complete", "Award final points"]
+    ]
+  },
+  "grand-prix": {
+    summary:
+      "All teams compete together and receive a final finishing position.",
+    steps: [
+      ["Start", "All teams compete"],
+      ["Finish", "Confirm the order"],
+      ["Rank", "Enter each position"],
+      ["Complete", "Award final points"]
+    ]
+  },
+  "fall-guys-grand-prix": {
+    summary:
+      "Offices score across multiple heats, with their best player results counting.",
+    steps: [
+      ["Heat", "Everyone keeps playing"],
+      ["Record", "Enter player outcomes"],
+      ["Score", "Count the best results"],
+      ["Close", "Award final points"]
+    ]
+  }
+};
+
+function renderGameModeOverview(
+  game,
+  mode
+) {
+  const overview =
+    GAME_MODE_OVERVIEWS[mode] ||
+    GAME_MODE_OVERVIEWS.swiss;
+  const modeName =
+    window.PHDGameModes &&
+    typeof window.PHDGameModes
+      .getForGame === "function"
+      ? window.PHDGameModes
+          .getForGame(game)
+          .displayName
+      : "Game mode";
+
+  return `
+    <section class="card wide game-mode-overview">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">How it works</p>
+          <h2>
+            ${escapeHtml(modeName)} at a glance
+          </h2>
+          <p class="muted">
+            ${escapeHtml(overview.summary)}
+          </p>
+        </div>
+      </div>
+
+      <ol class="game-mode-flow">
+        ${overview.steps
+          .map(
+            ([title, detail], index) => `
+              <li>
+                <span class="game-mode-step-number">
+                  ${index + 1}
+                </span>
+                <strong>
+                  ${escapeHtml(title)}
+                </strong>
+                <span>
+                  ${escapeHtml(detail)}
+                </span>
+              </li>
+            `
+          )
+          .join("")}
+      </ol>
+    </section>
+  `;
+}
+
 function getMatchesForGame(gameId) {
   return PHDTournament.state.rounds.flatMap(
     round =>
@@ -271,34 +397,55 @@ function renderGameTabs() {
             </div>
           `;
 
-      const gameModeDefinition =
-        window.PHDGameModes.get(mode);
-      const resultEntryType =
-        gameModeDefinition
-          .getResultEntryType();
+      let resultEntryType = "";
+      let managementHtml = "";
+
+      try {
+        const gameModeDefinition =
+          window.PHDGameModes.get(mode);
+        resultEntryType =
+          gameModeDefinition
+            .getResultEntryType();
+
+        managementHtml =
+          resultEntryType ===
+          "group-placements"
+            ? renderFourPlayerSwissManagement(
+                game
+              )
+            : resultEntryType ===
+                "fall-guys-heats"
+              ? window
+                  .PHDFallGuysGrandPrix
+                  .renderManagement(
+                    game
+                  )
+              : resultEntryType ===
+                  "match-score"
+                ? renderSwissGameManagement(
+                    game
+                  )
+                : renderEventGameManagement(
+                    game
+                  );
+      } catch (error) {
+        console.error(
+          `Game page "${game.name}" could not be rendered.`,
+          error
+        );
+        managementHtml = `
+          <section class="card wide">
+            <div class="empty-state">
+              This game's management panel could not be loaded.
+              Refresh the page or contact the tournament administrator.
+            </div>
+          </section>
+        `;
+      }
+
       const isMatchMode =
         resultEntryType ===
         "match-score";
-      const managementHtml =
-        resultEntryType ===
-        "group-placements"
-          ? renderFourPlayerSwissManagement(
-              game
-            )
-          : resultEntryType ===
-              "fall-guys-heats"
-            ? window
-                .PHDFallGuysGrandPrix
-                .renderManagement(
-                  game
-                )
-          : isMatchMode
-            ? renderSwissGameManagement(
-                game
-              )
-            : renderEventGameManagement(
-                game
-              );
 
       return `
         <section
@@ -322,13 +469,6 @@ function renderGameTabs() {
                       game.platform ||
                         "No platform listed"
                     )}
-                    ${
-                      game.format
-                        ? ` · ${escapeHtml(
-                            game.format
-                          )}`
-                        : ""
-                    }
                   </p>
                 </div>
 
@@ -397,6 +537,11 @@ function renderGameTabs() {
                 `
                 : ""
             }
+
+            ${renderGameModeOverview(
+              game,
+              mode
+            )}
           </div>
         </section>
       `;
