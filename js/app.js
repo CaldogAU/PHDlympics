@@ -138,7 +138,7 @@ const GAME_MODE_OVERVIEWS = {
       ["Brisbane vs Auckland", "Draw 2–2"]
     ],
     note:
-      "The next round uses the updated rankings and avoids rematches where possible."
+      "After each round, teams with similar records are paired together. No team is eliminated; the final ladder awards tournament points."
   },
   "round-robin": {
     summary:
@@ -155,7 +155,7 @@ const GAME_MODE_OVERVIEWS = {
       ["Melbourne", "Sydney, Brisbane, Auckland"]
     ],
     note:
-      "Every team receives the same number of scheduled opponents."
+      "Every team plays every other team once. The completed win-loss ladder determines the final tournament points."
   },
   "single-elimination": {
     summary:
@@ -191,7 +191,7 @@ const GAME_MODE_OVERVIEWS = {
       ["4th", "Auckland"]
     ],
     note:
-      "Closing the tournament converts the final ranking into tournament points."
+      "Every team plays in each round. New groups use the updated rankings, then closing the tournament converts the final order into points."
   },
   "time-trial": {
     summary:
@@ -229,7 +229,7 @@ const GAME_MODE_OVERVIEWS = {
       ["4th", "Auckland", "1"]
     ],
     note:
-      "Last place receives 1 point, then each higher position receives one more."
+      "Last place receives 1 point and each higher position receives one more. Points are added only when the game is completed."
   },
   "fall-guys-grand-prix": {
     summary:
@@ -254,6 +254,81 @@ const GAME_MODE_OVERVIEWS = {
   }
 };
 
+const GAME_MODE_DIAGRAMS = {
+  swiss: [
+    ["Round 1", [["Opening pairings", ["Sydney vs Melbourne", "Brisbane vs Auckland"]]]],
+    ["After Round 1", [
+      ["1-0 teams", ["Sydney", "Brisbane"], "advance"],
+      ["0-1 teams", ["Melbourne", "Auckland"], "warning"]
+    ]],
+    ["Round 2", [["Ranked pairings", ["Sydney vs Brisbane", "Melbourne vs Auckland"]]]],
+    ["Final ladder", [
+      ["Tournament points", ["1 Sydney - 4 pts", "2 Brisbane - 3 pts"], "advance"],
+      ["Remaining teams", ["3 Melbourne - 2 pts", "4 Auckland - 1 pt"]]
+    ]]
+  ],
+  "round-robin": [
+    ["Schedule", [
+      ["Round 1", ["Sydney vs Melbourne", "Brisbane vs Auckland"]],
+      ["Round 2", ["Sydney vs Brisbane", "Melbourne vs Auckland"]]
+    ]],
+    ["Play all rounds", [["Round 3", ["Sydney vs Auckland", "Melbourne vs Brisbane"]]]],
+    ["Build ladder", [["Match records", ["Sydney 3-0", "Brisbane 2-1", "Melbourne 1-2", "Auckland 0-3"]]]],
+    ["Complete", [["Tournament points", ["Sydney 4 pts", "Brisbane 3 pts", "Melbourne 2 pts", "Auckland 1 pt"], "advance"]]]
+  ],
+  "single-elimination": [
+    ["Semifinals", [
+      ["Match 1", ["Sydney 3 - 1 Melbourne"]],
+      ["Match 2", ["Brisbane 2 - 0 Auckland"]]
+    ]],
+    ["Advance", [
+      ["Winners", ["Sydney", "Brisbane"], "advance"],
+      ["Eliminated", ["Melbourne", "Auckland"], "eliminated"]
+    ]],
+    ["Grand final", [["Championship match", ["Sydney 2 - 1 Brisbane"]]]],
+    ["Champion", [
+      ["Winner", ["Sydney"], "advance"],
+      ["Runner-up", ["Brisbane"]]
+    ]]
+  ],
+  "four-player-swiss": [
+    ["Round 1 groups", [
+      ["Group A", ["Sydney", "Melbourne", "Brisbane", "Auckland"]],
+      ["Group B", ["Perth", "Adelaide", "Canberra", "Hobart"]]
+    ]],
+    ["Enter placements", [
+      ["Group A result", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"]],
+      ["Group B result", ["1 Perth", "2 Adelaide", "3 Canberra", "4 Hobart"]]
+    ]],
+    ["Re-rank", [
+      ["Top-ranked group", ["Sydney", "Perth", "Melbourne", "Adelaide"], "advance"],
+      ["Next-ranked group", ["Brisbane", "Canberra", "Auckland", "Hobart"]]
+    ]],
+    ["Close tournament", [["Final points", ["1 Sydney - 8 pts", "2 Perth - 7 pts", "...", "8 Hobart - 1 pt"], "advance"]]]
+  ],
+  "time-trial": [
+    ["Attempts", [["Complete the course", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
+    ["Record times", [["Minutes : seconds", ["Sydney 1:08", "Melbourne 1:12", "Brisbane 1:17", "Auckland 1:24"]]]],
+    ["Live ranking", [["Fastest to slowest", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"], "advance"]]],
+    ["Complete", [["Tournament points", ["Sydney 4 pts", "Melbourne 3 pts", "Brisbane 2 pts", "Auckland 1 pt"], "advance"]]]
+  ],
+  "grand-prix": [
+    ["Starting field", [["All teams compete", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
+    ["Finish order", [["Enter placements", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"]]]],
+    ["Points scale", [["Reverse position", ["1st = 4 pts", "2nd = 3 pts", "3rd = 2 pts", "4th = 1 pt"]]]],
+    ["Complete", [["Overall standings update", ["Sydney +4", "Melbourne +3", "Brisbane +2", "Auckland +1"], "advance"]]]
+  ],
+  "fall-guys-grand-prix": [
+    ["Play heat", [["Office players", ["Sydney A", "Sydney B", "Melbourne A", "Melbourne B"]]]],
+    ["Player outcomes", [["Example result", ["Sydney A - 1st", "Melbourne A - 3rd", "Sydney B - qualified", "Melbourne B - played"]]]],
+    ["Heat points", [
+      ["Scoring", ["1st 10 pts", "3rd 6 pts", "Qualified 3 pts", "Played 1 pt"]],
+      ["Best results count", ["Sydney 13", "Melbourne 7"], "advance"]
+    ]],
+    ["Final office ranking", [["After all heats", ["1 Sydney", "2 Melbourne", "3 Brisbane", "4 Auckland"], "advance"]]]
+  ]
+};
+
 function renderGameModeOverview(
   game,
   mode
@@ -261,6 +336,9 @@ function renderGameModeOverview(
   const overview =
     GAME_MODE_OVERVIEWS[mode] ||
     GAME_MODE_OVERVIEWS.swiss;
+  const diagram =
+    GAME_MODE_DIAGRAMS[mode] ||
+    GAME_MODE_DIAGRAMS.swiss;
   const modeName =
     window.PHDGameModes &&
     typeof window.PHDGameModes
@@ -284,64 +362,51 @@ function renderGameModeOverview(
         </div>
       </div>
 
-      <ol class="game-mode-flow">
-        ${overview.steps
+      <div
+        class="game-mode-diagram"
+        role="img"
+        aria-label="${escapeHtml(
+          `${modeName} example flow from start to final result`
+        )}"
+      >
+        ${diagram
           .map(
-            ([title, detail], index) => `
-              <li>
-                <span class="game-mode-step-number">
-                  ${index + 1}
-                </span>
-                <strong>
-                  ${escapeHtml(title)}
-                </strong>
-                <span>
-                  ${escapeHtml(detail)}
-                </span>
-              </li>
+            ([stage, groups], index) => `
+              <section class="game-mode-stage">
+                <div class="game-mode-stage-heading">
+                  <span>${index + 1}</span>
+                  <strong>${escapeHtml(stage)}</strong>
+                </div>
+                <div class="game-mode-stage-groups">
+                  ${groups
+                    .map(
+                      ([title, lines, tone]) => `
+                        <div class="game-mode-node${
+                          tone
+                            ? ` is-${escapeHtml(tone)}`
+                            : ""
+                        }">
+                          <strong>
+                            ${escapeHtml(title)}
+                          </strong>
+                          ${lines
+                            .map(
+                              line => `
+                                <span>
+                                  ${escapeHtml(line)}
+                                </span>
+                              `
+                            )
+                            .join("")}
+                        </div>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </section>
             `
           )
           .join("")}
-      </ol>
-
-      <div class="game-mode-example">
-        <p class="eyebrow">Example</p>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                ${overview.exampleHeaders
-                  .map(
-                    header => `
-                      <th>
-                        ${escapeHtml(header)}
-                      </th>
-                    `
-                  )
-                  .join("")}
-              </tr>
-            </thead>
-            <tbody>
-              ${overview.exampleRows
-                .map(
-                  row => `
-                    <tr>
-                      ${row
-                        .map(
-                          value => `
-                            <td>
-                              ${escapeHtml(value)}
-                            </td>
-                          `
-                        )
-                        .join("")}
-                    </tr>
-                  `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       <p class="game-mode-note">
