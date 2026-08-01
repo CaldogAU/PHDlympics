@@ -474,6 +474,77 @@ function renderGameModeOverview(
   `;
 }
 
+const collapsedGameFeatures = new Set();
+
+function enhanceCollapsibleGameFeatures() {
+  document
+    .querySelectorAll(
+      '.tab-panel[id^="game-"] > .app-layout > .card'
+    )
+    .forEach((card, index) => {
+      if (
+        card.querySelector(
+          ":scope > .game-tab-header"
+        )
+      ) {
+        return;
+      }
+
+      const tab = card.closest(
+        '.tab-panel[id^="game-"]'
+      );
+      const heading = card.querySelector(
+        "h2, h3, h4"
+      );
+      const featureKey = `${
+        tab ? tab.id : "game"
+      }:${index}:${
+        heading
+          ? heading.textContent.trim()
+          : "feature"
+      }`;
+      const collapsed =
+        collapsedGameFeatures.has(
+          featureKey
+        );
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      card.classList.add(
+        "collapsible-game-feature"
+      );
+      card.classList.toggle(
+        "is-collapsed",
+        collapsed
+      );
+      card.dataset.featureKey =
+        featureKey;
+      button.type = "button";
+      button.className =
+        "feature-collapse-button secondary";
+      button.dataset.featureCollapse =
+        "true";
+      button.setAttribute(
+        "aria-expanded",
+        String(!collapsed)
+      );
+      button.setAttribute(
+        "aria-label",
+        `${collapsed ? "Expand" : "Collapse"} ${
+          heading
+            ? heading.textContent.trim()
+            : "section"
+        }`
+      );
+      button.textContent = collapsed
+        ? "Expand"
+        : "Collapse";
+      card.appendChild(button);
+    });
+}
+
 function getMatchesForGame(gameId) {
   return PHDTournament.state.rounds.flatMap(
     round =>
@@ -957,6 +1028,11 @@ function renderGameTabs() {
               </div>
             </section>
 
+            ${renderGameModeOverview(
+              game,
+              mode
+            )}
+
             ${renderGameCapacityManagement(game)}
 
             ${managementHtml}
@@ -998,10 +1074,6 @@ function renderGameTabs() {
                 : ""
             }
 
-            ${renderGameModeOverview(
-              game,
-              mode
-            )}
           </div>
         </section>
       `;
@@ -1089,6 +1161,8 @@ renderStandings();
   ) {
     applyAdminAccessState();
   }
+
+  enhanceCollapsibleGameFeatures();
 
   restoreValidActiveTab();
 }
@@ -1600,6 +1674,57 @@ function bindGameEvents() {
         button.closest(
           ".game-capacity-management"
         )
+      );
+    }
+  );
+
+  document.addEventListener(
+    "click",
+    event => {
+      const button = event.target.closest(
+        "[data-feature-collapse]"
+      );
+      if (!button) return;
+
+      const card = button.closest(
+        ".collapsible-game-feature"
+      );
+      if (!card) return;
+
+      const collapsed =
+        !card.classList.contains(
+          "is-collapsed"
+        );
+      card.classList.toggle(
+        "is-collapsed",
+        collapsed
+      );
+      if (collapsed) {
+        collapsedGameFeatures.add(
+          card.dataset.featureKey
+        );
+      } else {
+        collapsedGameFeatures.delete(
+          card.dataset.featureKey
+        );
+      }
+      button.textContent = collapsed
+        ? "Expand"
+        : "Collapse";
+      button.setAttribute(
+        "aria-expanded",
+        String(!collapsed)
+      );
+      const heading = card.querySelector(
+        "h2, h3, h4"
+      );
+      button.setAttribute(
+        "aria-label",
+        `${collapsed ? "Expand" : "Collapse"} ${
+          heading
+            ? heading.textContent.trim()
+            : "section"
+        }`
       );
     }
   );

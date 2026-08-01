@@ -47,7 +47,11 @@ function getEventHistorySummary(
       if (isGrandPrix) {
         return `${formatHistoryPlacement(
           result.finishPosition
-        )} ${teamName}`;
+        )} ${teamName}${
+          result.playerLabel
+            ? ` - ${result.playerLabel}`
+            : ""
+        }`;
       }
 
       return `${formatHistoryPlacement(
@@ -76,7 +80,11 @@ function getGroupHistorySummary(group) {
           competitor.placement
         )} ${getHistoryTeamName(
           competitor.teamId
-        )}`
+        )}${
+          competitor.playerLabel
+            ? ` - ${competitor.playerLabel}`
+            : ""
+        }`
     )
     .join(", ");
 }

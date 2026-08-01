@@ -279,6 +279,18 @@ test("shows a top-level workflow for every game mode", () => {
     app,
     /PHDTournament\.state\.teams/
   );
+  assert.ok(
+    app.indexOf("${renderGameModeOverview(") <
+      app.indexOf("${renderGameCapacityManagement(game)}")
+  );
+  assert.match(
+    app,
+    /function enhanceCollapsibleGameFeatures/
+  );
+  assert.match(
+    app,
+    /data-feature-collapse/
+  );
   assert.match(
     app,
     /personaliseGameModeDiagram/

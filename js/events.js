@@ -36,6 +36,115 @@ function getEventResultForTeam(
   );
 }
 
+function getEventResultForParticipant(event, participantId) {
+  if (!event || !Array.isArray(event.results)) return null;
+  return event.results.find(result =>
+    (result.participantId || result.teamId) === participantId
+  ) || null;
+}
+
+function getGrandPrixParticipants(event, includeAll = false) {
+  const game = event && typeof getGameById === "function"
+    ? getGameById(event.gameId)
+    : null;
+  if (!game || !window.PHDGameCapacity) return [];
+
+  const allTeams = window.PHDGameCapacity.getEligibleTeams(
+    game,
+    PHDTournament.state.teams || []
+  );
+  let participants = [];
+
+  if (!game.capacity || game.capacity.configured === false) {
+    participants = allTeams.map(team => ({
+      participantId: team.id,
+      teamId: team.id,
+      playerIndex: 0,
+      playerLabel: "Player A",
+      displayName: team.name,
+      lobbyId: "lobby-1",
+      lobbyName: "Lobby 1",
+      lobbySize: allTeams.length
+    }));
+  } else {
+    const allocation = window.PHDGameCapacity.allocateLobbies({
+      entries: window.PHDGameCapacity.getActiveEntries(
+        game,
+        PHDTournament.state.teams || []
+      ),
+      maxPlayersPerLobby: game.capacity.maxPlayersPerLobby
+    });
+    if (!allocation.valid) return [];
+
+    participants = allocation.lobbies.flatMap(lobby =>
+      lobby.entries.flatMap(entry => {
+        const team = getTeamById(entry.officeId);
+        return Array.from(
+          { length: entry.competitorCount },
+          (_, playerIndex) => {
+            const playerLetter = String.fromCharCode(65 + playerIndex);
+            return {
+              participantId: `${entry.officeId}:player-${playerIndex + 1}`,
+              teamId: entry.officeId,
+              playerIndex,
+              playerLabel: `Player ${playerLetter}`,
+              displayName: `${team ? team.name : entry.officeName} - Player ${playerLetter}`,
+              lobbyId: lobby.id,
+              lobbyName: lobby.name,
+              lobbySize: lobby.competitorTotal
+            };
+          }
+        );
+      })
+    );
+  }
+
+  if (
+    !includeAll &&
+    !event.completed &&
+    typeof isTeamScopedStaff === "function" &&
+    isTeamScopedStaff()
+  ) {
+    const teamId = getAssignedStaffTeamId();
+    return participants.filter(item => item.teamId === teamId);
+  }
+  return participants;
+}
+
+function getGrandPrixTeamRankings(event) {
+  const participants = getGrandPrixParticipants(event, true);
+  const byTeam = new Map();
+
+  participants.forEach(participant => {
+    if (!byTeam.has(participant.teamId)) {
+      const team = getTeamById(participant.teamId);
+      byTeam.set(participant.teamId, {
+        teamId: participant.teamId,
+        teamName: team ? team.name : "",
+        score: 0,
+        bestFinish: Number.MAX_SAFE_INTEGER
+      });
+    }
+    const result = getEventResultForParticipant(
+      event,
+      participant.participantId
+    );
+    const position = Number(result && result.finishPosition);
+    if (!Number.isInteger(position)) return;
+    const ranking = byTeam.get(participant.teamId);
+    ranking.score += participant.lobbySize - position + 1;
+    ranking.bestFinish = Math.min(ranking.bestFinish, position);
+  });
+
+  return [...byTeam.values()]
+    .sort((teamA, teamB) =>
+      teamB.score - teamA.score ||
+      teamA.bestFinish - teamB.bestFinish ||
+      teamA.teamName.localeCompare(teamB.teamName)
+    )
+    .map((ranking, index) => ({ ...ranking, position: index + 1 }));
+}
+
 function getVisibleEventTeams(event) {
   const game = event &&
     typeof getGameById === "function"
@@ -66,6 +175,22 @@ function getVisibleEventTeams(event) {
 
   if (!event.completed) {
     return teams;
+  }
+
+  if (
+    event.mode === "grand-prix" &&
+    Array.isArray(event.results) &&
+    event.results.some(result => result.participantId)
+  ) {
+    const rankByTeamId = new Map(
+      getGrandPrixTeamRankings(event).map(
+        ranking => [ranking.teamId, ranking.position]
+      )
+    );
+    return teams.sort((teamA, teamB) =>
+      (rankByTeamId.get(teamA.id) || Number.MAX_SAFE_INTEGER) -
+      (rankByTeamId.get(teamB.id) || Number.MAX_SAFE_INTEGER)
+    );
   }
 
   return teams.sort((teamA, teamB) => {
@@ -188,15 +313,14 @@ function renderEventGameOptions() {
 function renderTimeTrialEntries(
   event
 ) {
-  const teams =
-    getVisibleEventTeams(event);
-  const participantCount =
-    getVisibleEventTeams({
-      ...event,
-      completed: true
-    }).length;
+  const participants = getGrandPrixParticipants(event);
+  const allParticipants = getGrandPrixParticipants(event, true);
+  const rankings = getGrandPrixTeamRankings(event);
+  const officeCount = new Set(
+    allParticipants.map(item => item.teamId)
+  ).size;
 
-  if (teams.length === 0) {
+  if (participants.length === 0) {
     return `
       <div class="empty-state">
         Add teams before entering Time Trial results.
@@ -377,44 +501,59 @@ function renderGrandPrixEntries(
         <thead>
           <tr>
             <th>Rank</th>
-            <th>Team</th>
+            <th>Competitor</th>
+            <th>Lobby</th>
             <th>Finishing Position</th>
+            <th>Lobby Points</th>
             <th>Tournament Points</th>
           </tr>
         </thead>
         <tbody>
-          ${teams.map(team => {
-            const result =
-              getEventResultForTeam(
-                event,
-                team.id
-              );
-            const position =
-              getEventResultPosition(
-                event,
-                team.id
-              );
+          ${participants.map(participant => {
+            const result = getEventResultForParticipant(
+              event,
+              participant.participantId
+            );
+            const ranking = rankings.find(
+              item => item.teamId === participant.teamId
+            );
+            const finishPosition = Number(
+              result && result.finishPosition
+            );
+            const position = (
+              event.completed ||
+              canRevealDraftEventRankings()
+            ) && ranking &&
+              Number.isInteger(finishPosition)
+              ? ranking.position
+              : null;
 
             return `
               <tr
                 class="animated-ranking-row"
                 data-event-id="${event.id}"
-                data-team-id="${team.id}"
+                data-team-id="${participant.teamId}"
+                data-participant-id="${participant.participantId}"
+                data-player-index="${participant.playerIndex}"
+                data-player-label="${participant.playerLabel}"
+                data-lobby-id="${participant.lobbyId}"
+                data-lobby-size="${participant.lobbySize}"
               >
                 <td class="rank-cell">
                   ${position || "—"}
                 </td>
                 <td>
                   <strong>
-                    ${escapeHtml(team.name)}
+                    ${escapeHtml(participant.displayName)}
                   </strong>
                 </td>
+                <td>${escapeHtml(participant.lobbyName)}</td>
                 <td>
                   <input
                     class="finish-position"
                     type="number"
                     min="1"
-                    max="${participantCount}"
+                    max="${participant.lobbySize}"
                     step="1"
                     value="${
                       result
@@ -428,26 +567,13 @@ function renderGrandPrixEntries(
                     }
                   />
                 </td>
+                <td class="grand-prix-lobby-points">
+                  ${Number.isInteger(finishPosition)
+                    ? participant.lobbySize - finishPosition + 1
+                    : "—"}
+                </td>
                 <td class="event-tournament-points">
-                  ${
-                      position
-                        ? participantCount -
-                          position +
-                          1
-                        : canRevealDraftEventRankings() &&
-                            result &&
-                          Number.isInteger(
-                            Number(
-                              result.finishPosition
-                            )
-                          )
-                        ? participantCount -
-                          Number(
-                            result.finishPosition
-                          ) +
-                          1
-                        : "—"
-                  }
+                  ${position ? officeCount - position + 1 : "—"}
                 </td>
               </tr>
             `;
@@ -819,34 +945,46 @@ function hasCompleteGrandPrixResults(
   results,
   event
 ) {
-  const teamIds =
-    getVisibleEventTeams({
+  const participants = getGrandPrixParticipants(event, true);
+  if (!participants.length) {
+    const teamIds = getVisibleEventTeams({
       ...event,
       completed: true
-    }).map(
-      team => team.id
-    );
-  const positions = teamIds.map(
-    teamId => {
-      const result = results.find(
-        item =>
-          item.teamId === teamId
-      );
-      return Number(
-        result &&
-          result.finishPosition
-      );
-    }
-  );
+    }).map(team => team.id);
+    const positions = teamIds.map(teamId => {
+      const result = results.find(item => item.teamId === teamId);
+      return Number(result && result.finishPosition);
+    });
+    return teamIds.length > 0 &&
+      positions.every(position =>
+        Number.isInteger(position) &&
+        position >= 1 &&
+        position <= teamIds.length
+      ) &&
+      new Set(positions).size === teamIds.length;
+  }
+  const positionsByLobby = new Map();
 
-  return teamIds.length > 0 &&
-    positions.every(position =>
-      Number.isInteger(position) &&
-      position >= 1 &&
-      position <= teamIds.length
-    ) &&
-    new Set(positions).size ===
-      teamIds.length;
+  for (const participant of participants) {
+    const result = results.find(item =>
+      (item.participantId || item.teamId) === participant.participantId
+    );
+    const position = Number(result && result.finishPosition);
+    if (
+      !Number.isInteger(position) ||
+      position < 1 ||
+      position > participant.lobbySize
+    ) {
+      return false;
+    }
+    if (!positionsByLobby.has(participant.lobbyId)) {
+      positionsByLobby.set(participant.lobbyId, new Set());
+    }
+    const used = positionsByLobby.get(participant.lobbyId);
+    if (used.has(position)) return false;
+    used.add(position);
+  }
+  return true;
 }
 
 async function saveTimeTrialResults(
@@ -949,7 +1087,12 @@ async function saveGrandPrixResults(
     )
   ];
   const results = rows.map(row => ({
+    participantId: row.dataset.participantId || row.dataset.teamId,
     teamId: row.dataset.teamId,
+    playerIndex: Number(row.dataset.playerIndex || 0),
+    playerLabel: row.dataset.playerLabel || "Player A",
+    lobbyId: row.dataset.lobbyId || "lobby-1",
+    lobbySize: Number(row.dataset.lobbySize || 1),
     finishPosition: Number(
       row.querySelector(
         ".finish-position"
@@ -962,38 +1105,43 @@ async function saveGrandPrixResults(
     isTeamScopedStaff();
   const nextResults =
     isScopedStaff
-      ? mergeEventResult(
-          event,
-          results[0]
-        )
+      ? [
+          ...(event.results || []).filter(
+            existing =>
+              existing.teamId !== getAssignedStaffTeamId()
+          ),
+          ...results
+        ]
       : results;
-  const positions = nextResults.map(
-    result => result.finishPosition
+  const participantById = new Map(
+    getGrandPrixParticipants(event, true).map(item => [
+      item.participantId,
+      item
+    ])
   );
-  const participantCount =
-    getVisibleEventTeams({
-      ...event,
-      completed: true
-    }).length;
-  const validPositions =
-    (
-      isScopedStaff ||
-      positions.every(
-      position =>
-        Number.isInteger(position) &&
-        position >= 1 &&
-        position <= participantCount
-      )
-    ) &&
-    (
-      isScopedStaff ||
-      new Set(positions).size ===
-        rows.length
-    );
+  const usedPositions = new Set();
+  const validPositions = nextResults.every(result => {
+    const participantId = result.participantId || result.teamId;
+    const participant = participantById.get(participantId);
+    const key = participant
+      ? `${participant.lobbyId}:${result.finishPosition}`
+      : "invalid";
+    if (
+      !participant ||
+      !Number.isInteger(result.finishPosition) ||
+      result.finishPosition < 1 ||
+      result.finishPosition > participant.lobbySize ||
+      usedPositions.has(key)
+    ) {
+      return false;
+    }
+    usedPositions.add(key);
+    return true;
+  });
 
   if (!validPositions) {
     alert(
-      "Assign every team a unique finishing position."
+      "Assign every player a valid finishing position that is unique within their lobby."
     );
     return;
   }
@@ -1104,33 +1252,77 @@ function animateEventRanking(
       "tr[data-team-id]"
     )
   ];
+  const playerGrandPrix =
+    mode === "grand-prix" &&
+    rows.some(row =>
+      row.dataset.participantId
+    );
+  const rowKey = row =>
+    row.dataset.participantId ||
+    row.dataset.teamId;
   const before = new Map(
     rows.map(row => [
-      row.dataset.teamId,
+      rowKey(row),
       row.getBoundingClientRect()
     ])
   );
   const sorted = [...rows].sort(
-    (rowA, rowB) =>
-      getDraftRowRankValue(
-        rowA,
-        mode
-      ) -
-        getDraftRowRankValue(
-          rowB,
-          mode
-        ) ||
-      rowA.dataset.teamId.localeCompare(
-        rowB.dataset.teamId
-      )
+    (rowA, rowB) => {
+      if (playerGrandPrix) {
+        const lobbyDifference =
+          String(rowA.dataset.lobbyId)
+            .localeCompare(
+              String(rowB.dataset.lobbyId),
+              undefined,
+              { numeric: true }
+            );
+        if (lobbyDifference) {
+          return lobbyDifference;
+        }
+      }
+      return getDraftRowRankValue(rowA, mode) -
+          getDraftRowRankValue(rowB, mode) ||
+        rowKey(rowA).localeCompare(rowKey(rowB));
+    }
   );
 
   sorted.forEach(row =>
     body.appendChild(row)
   );
 
-  const participantCount =
-    PHDTournament.state.teams.length;
+  const participantCount = new Set(
+    rows.map(row => row.dataset.teamId)
+  ).size;
+  const officeRanks = new Map();
+  if (playerGrandPrix) {
+    const officeScores = new Map();
+    rows.forEach(row => {
+      const finishPosition = getDraftRowRankValue(row, mode);
+      if (!Number.isFinite(finishPosition)) return;
+      const current = officeScores.get(row.dataset.teamId) || {
+        score: 0,
+        bestFinish: Number.MAX_SAFE_INTEGER
+      };
+      current.score +=
+        Number(row.dataset.lobbySize) -
+        finishPosition +
+        1;
+      current.bestFinish = Math.min(
+        current.bestFinish,
+        finishPosition
+      );
+      officeScores.set(row.dataset.teamId, current);
+    });
+    [...officeScores.entries()]
+      .sort((entryA, entryB) =>
+        entryB[1].score - entryA[1].score ||
+        entryA[1].bestFinish - entryB[1].bestFinish ||
+        entryA[0].localeCompare(entryB[0])
+      )
+      .forEach(([teamId], index) =>
+        officeRanks.set(teamId, index + 1)
+      );
+  }
 
   sorted.forEach((row, index) => {
     const value =
@@ -1140,7 +1332,11 @@ function animateEventRanking(
       );
     const provisionalPosition =
       Number.isFinite(value)
-        ? mode === "grand-prix"
+        ? playerGrandPrix
+          ? officeRanks.get(
+              row.dataset.teamId
+            ) || null
+          : mode === "grand-prix"
           ? value
           : index + 1
         : null;
@@ -1151,6 +1347,10 @@ function animateEventRanking(
     const pointsCell =
       row.querySelector(
         ".event-tournament-points"
+      );
+    const lobbyPointsCell =
+      row.querySelector(
+        ".grand-prix-lobby-points"
       );
 
     if (rankCell) {
@@ -1168,9 +1368,17 @@ function animateEventRanking(
             )
           : "—";
     }
+    if (lobbyPointsCell) {
+      lobbyPointsCell.textContent =
+        Number.isFinite(value)
+          ? Number(row.dataset.lobbySize) -
+            value +
+            1
+          : "—";
+    }
 
     const previous =
-      before.get(row.dataset.teamId);
+      before.get(rowKey(row));
     const current =
       row.getBoundingClientRect();
     const deltaY =

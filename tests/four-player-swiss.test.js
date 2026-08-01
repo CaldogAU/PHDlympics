@@ -221,3 +221,63 @@ test("requires the current round to be completed", () => {
     /Complete the current/
   );
 });
+
+test("creates player-level placements while keeping office console groups together", () => {
+  const engine = loadEngine();
+  const teams = createTeams(3);
+  const round = engine.createRound({
+    teams,
+    lobbyEntries: [[
+      {
+        officeId: "team-1",
+        competitorCount: 2
+      },
+      {
+        officeId: "team-2",
+        competitorCount: 1
+      },
+      {
+        officeId: "team-3",
+        competitorCount: 1
+      }
+    ]],
+    createId: createIds(),
+    now: () => ""
+  });
+
+  assert.deepEqual(
+    round.groups[0].competitors.map(item => [
+      item.teamId,
+      item.playerLabel
+    ]),
+    [
+      ["team-1", "Player A"],
+      ["team-1", "Player B"],
+      ["team-2", "Player A"],
+      ["team-3", "Player A"]
+    ]
+  );
+
+  completeRound(round, [[1, 4, 2, 3]]);
+  const standings = engine.calculateStandings(teams, [round]);
+  assert.equal(
+    standings.find(item => item.teamId === "team-1").points,
+    5
+  );
+});
+
+test("rejects player-level Swiss lobbies that are not exactly four players", () => {
+  const engine = loadEngine();
+  assert.throws(
+    () => engine.createRound({
+      teams: createTeams(2),
+      lobbyEntries: [[
+        { officeId: "team-1", competitorCount: 2 },
+        { officeId: "team-2", competitorCount: 1 }
+      ]],
+      createId: createIds(),
+      now: () => ""
+    }),
+    /exactly four players/
+  );
+});

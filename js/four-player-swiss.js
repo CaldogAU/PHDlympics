@@ -134,10 +134,24 @@
     teams,
     rounds = [],
     gameId = "",
+    lobbyEntries = null,
     createId,
     now
   } = {}) {
-    validateTeams(teams);
+    if (Array.isArray(lobbyEntries)) {
+      const ids = (teams || []).map(team => team && team.id);
+      if (
+        ids.length === 0 ||
+        ids.some(id => !id) ||
+        new Set(ids).size !== ids.length
+      ) {
+        throw new Error(
+          "4 Player Swiss requires participating offices with unique identifiers."
+        );
+      }
+    } else {
+      validateTeams(teams);
+    }
     if (typeof createId !== "function" || typeof now !== "function") {
       throw new Error(
         "4 Player Swiss round generation requires ID and time providers."
@@ -158,17 +172,52 @@
           String(a.name || "").localeCompare(String(b.name || ""))
         );
     const groups = [];
+    const participantGroups = Array.isArray(lobbyEntries)
+      ? lobbyEntries.map(entries => {
+          const participants = entries.flatMap(entry => {
+            const team = teams.find(item => item.id === entry.officeId);
+            if (!team) {
+              throw new Error("A 4 Player Swiss lobby contains an unknown office.");
+            }
+            return Array.from(
+              { length: Number(entry.competitorCount) },
+              (_, playerIndex) => ({
+                participantId: `${team.id}:player-${playerIndex + 1}`,
+                teamId: team.id,
+                playerIndex,
+                playerLabel: `Player ${String.fromCharCode(65 + playerIndex)}`,
+                placement: null
+              })
+            );
+          });
+          if (participants.length !== 4) {
+            throw new Error(
+              "Every 4 Player Swiss lobby must contain exactly four players. Adjust the office entries so the console groups can be packed into groups of four."
+            );
+          }
+          return participants;
+        })
+      : Array.from(
+          { length: orderedTeams.length / 4 },
+          (_, groupIndex) =>
+            orderedTeams
+              .slice(groupIndex * 4, groupIndex * 4 + 4)
+              .map(team => ({
+                participantId: team.id,
+                teamId: team.id,
+                playerIndex: 0,
+                playerLabel: "Player A",
+                placement: null
+              }))
+        );
 
-    for (let index = 0; index < orderedTeams.length; index += 4) {
+    for (const participants of participantGroups) {
       groups.push({
         id: createId(),
         number: groups.length + 1,
         completed: false,
         updatedAt: null,
-        competitors: orderedTeams.slice(index, index + 4).map(team => ({
-          teamId: team.id,
-          placement: null
-        }))
+        competitors: participants
       });
     }
 
@@ -250,7 +299,7 @@ function renderFourPlayerSwissStandings(standings, closed) {
     <div class="table-wrap">
       <table class="four-player-standings">
         <thead><tr>
-          <th>Rank</th><th>Competitor</th><th>Swiss Points</th>
+          <th>Rank</th><th>Office</th><th>Swiss Points</th>
           <th>1st</th><th>2nd</th><th>3rd</th><th>4th</th>
           <th>Opponent Score</th>
           ${closed ? "<th>Tournament Points</th>" : ""}
@@ -324,12 +373,21 @@ function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
       <div class="four-player-competitors">
         ${visibleCompetitors.map(competitor => {
           const team = getTeamById(competitor.teamId);
+          const competitorName = competitor.playerLabel
+            ? `${team ? team.name : "Unknown"} - ${competitor.playerLabel}`
+            : team
+              ? team.name
+              : "Unknown";
           return `
             <label class="four-player-competitor">
-              <span class="team-cell">${renderMatchTeam(team)}</span>
+              <span class="team-cell">
+                <strong>${escapeHtml(competitorName)}</strong>
+              </span>
               <span>Placement
                 <select class="four-player-placement"
-                  data-team-id="${competitor.teamId}" ${locked ? "disabled" : ""}>
+                  data-team-id="${competitor.teamId}"
+                  data-participant-id="${competitor.participantId || competitor.teamId}"
+                  ${locked ? "disabled" : ""}>
                   <option value="">Select</option>
                   ${[1, 2, 3, 4].map(placement => `
                     <option value="${placement}"
@@ -463,21 +521,6 @@ async function generateFourPlayerSwissRound(gameId) {
   try {
     const entrantTeams =
       getFourPlayerSwissTeams(game);
-    const incompatibleEntry =
-      window.PHDGameCapacity &&
-      window.PHDGameCapacity
-        .getActiveEntries(
-          game,
-          PHDTournament.state.teams
-        )
-        .find(entry =>
-          entry.competitorCount !== 1
-        );
-    if (incompatibleEntry) {
-      throw new Error(
-        "4 Player Swiss currently requires exactly one competitor per participating team."
-      );
-    }
     if (
       game.capacity &&
       Number(game.capacity.maxPlayersPerLobby) < 4
@@ -486,10 +529,76 @@ async function generateFourPlayerSwissRound(gameId) {
         "4 Player Swiss requires a lobby capacity of at least four competitors."
       );
     }
+    const activeEntries =
+      game.capacity &&
+      game.capacity.configured === false
+        ? entrantTeams.map(team => ({
+            officeId: team.id,
+            officeName: team.name,
+            competitorCount: 1
+          }))
+        : window.PHDGameCapacity
+            .getActiveEntries(
+              game,
+              PHDTournament.state.teams
+            );
+    const totalCompetitors =
+      activeEntries.reduce(
+        (total, entry) =>
+          total + entry.competitorCount,
+        0
+      );
+    if (
+      totalCompetitors < 4 ||
+      totalCompetitors % 4 !== 0
+    ) {
+      throw new Error(
+        "4 Player Swiss requires the entered player count to be a multiple of four."
+      );
+    }
+    const standings =
+      window.PHDFourPlayerSwiss
+        .calculateStandings(
+          entrantTeams,
+          tournament.rounds
+        );
+    const rankByTeamId = new Map(
+      standings.map((standing, index) => [
+        standing.teamId,
+        index
+      ])
+    );
+    const allocation =
+      window.PHDGameCapacity
+        .allocateLobbies({
+          entries: activeEntries.map(entry => ({
+            ...entry,
+            rankIndex:
+              rankByTeamId.has(entry.officeId)
+                ? rankByTeamId.get(entry.officeId)
+                : Number.MAX_SAFE_INTEGER
+          })),
+          maxPlayersPerLobby: 4
+        });
+    if (!allocation.valid) {
+      throw new Error(allocation.error);
+    }
+    if (
+      allocation.lobbies.some(
+        lobby => lobby.competitorTotal !== 4
+      )
+    ) {
+      throw new Error(
+        "These office console groups cannot be arranged into complete four-player lobbies. Adjust the player entries and try again."
+      );
+    }
     const round = window.PHDFourPlayerSwiss.createRound({
       teams: entrantTeams,
       rounds: tournament.rounds,
       gameId,
+      lobbyEntries: allocation.lobbies.map(
+        lobby => lobby.entries
+      ),
       createId: () => crypto.randomUUID(),
       now: () => new Date().toISOString()
     });
@@ -521,7 +630,11 @@ async function saveFourPlayerSwissGroup(gameId, roundId, groupId, groupElement) 
   if (!result.round || !result.group || result.tournament.closed) return;
 
   const placements = [...groupElement.querySelectorAll(".four-player-placement")]
-    .map(select => ({ teamId: select.dataset.teamId, placement: Number(select.value) }));
+    .map(select => ({
+      participantId: select.dataset.participantId || select.dataset.teamId,
+      teamId: select.dataset.teamId,
+      placement: Number(select.value)
+    }));
   const scopedStaff =
     typeof isTeamScopedStaff ===
       "function" &&
@@ -530,36 +643,55 @@ async function saveFourPlayerSwissGroup(gameId, roundId, groupId, groupElement) 
   if (scopedStaff) {
     const assignedTeamId =
       getAssignedStaffTeamId();
-    const submitted =
-      placements.find(
-        item =>
-          item.teamId ===
-          assignedTeamId
-      );
+    const submitted = placements.filter(
+      item => item.teamId === assignedTeamId
+    );
 
     if (
-      !submitted ||
-      !Number.isInteger(
-        submitted.placement
-      ) ||
-      submitted.placement < 1 ||
-      submitted.placement > 4
+      submitted.length === 0 ||
+      submitted.some(item =>
+        !Number.isInteger(item.placement) ||
+        item.placement < 1 ||
+        item.placement > 4
+      )
     ) {
-      alert("Select your team placement.");
+      alert("Select a placement for every player from your office.");
+      return;
+    }
+
+    const proposedPlacements = result.group.competitors
+      .map(competitor => {
+        const saved = submitted.find(
+          item => item.participantId ===
+            (competitor.participantId || competitor.teamId)
+        );
+        return saved
+          ? saved.placement
+          : Number(competitor.placement);
+      })
+      .filter(Number.isInteger);
+    if (
+      new Set(proposedPlacements).size !==
+      proposedPlacements.length
+    ) {
+      alert("Each placement can only be used once within the four-player lobby.");
       return;
     }
 
     result.group.competitors =
       result.group.competitors.map(
-        competitor =>
-          competitor.teamId ===
-            assignedTeamId
+        competitor => {
+          const saved = submitted.find(
+            item => item.participantId ===
+              (competitor.participantId || competitor.teamId)
+          );
+          return saved
             ? {
                 ...competitor,
-                placement:
-                  submitted.placement
+                placement: saved.placement
               }
-            : competitor
+            : competitor;
+        }
       );
     const savedPlacements =
       result.group.competitors.map(
@@ -602,7 +734,10 @@ async function saveFourPlayerSwissGroup(gameId, roundId, groupId, groupElement) 
 
   result.group.competitors = result.group.competitors.map(competitor => ({
     ...competitor,
-    placement: placements.find(item => item.teamId === competitor.teamId).placement
+    placement: placements.find(item =>
+      item.participantId ===
+        (competitor.participantId || competitor.teamId)
+    ).placement
   }));
   result.group.completed = true;
   result.group.updatedAt = new Date().toISOString();

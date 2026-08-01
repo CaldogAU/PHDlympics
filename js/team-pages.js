@@ -85,11 +85,11 @@ function getTeamPageEventHistory(
   return (
     PHDTournament.state.events || []
   ).flatMap(event => {
-    const result =
-      (event.results || []).find(
-        item =>
-          item.teamId === teamId
+    const teamResults =
+      (event.results || []).filter(
+        item => item.teamId === teamId
       );
+    const result = teamResults[0];
 
     if (!result) return [];
 
@@ -97,9 +97,17 @@ function getTeamPageEventHistory(
       event.mode === "grand-prix";
     const displayScore =
       isGrandPrix
-        ? getPlacementLabel(
-            result.finishPosition
-          )
+        ? teamResults
+            .map(item =>
+              item.playerLabel
+                ? `${item.playerLabel}: ${getPlacementLabel(
+                    item.finishPosition
+                  )}`
+                : getPlacementLabel(
+                    item.finishPosition
+                  )
+            )
+            .join(", ")
         : formatTeamPageTime(
             result.timeMilliseconds
           );

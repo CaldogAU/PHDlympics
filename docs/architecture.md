@@ -88,9 +88,17 @@ games require positive whole-number capacities and begin with zero entries.
 
 Swiss lobbies are rebuilt for every round from the current ranking, so membership
 is not permanent. Round Robin, Single Elimination, and Time Trial honour the
-entry list without inventing leagues. Four Player Swiss uses groups of four and
-currently requires one competitor per office. Grand Prix and Fall Guys display
-balanced lobby plans while retaining their existing overall-result workflows.
+entry list without inventing leagues. Four Player Swiss expands each office's
+indivisible console entry into labelled players inside complete four-player
+lobbies, records placement per player, and aggregates Swiss points by office.
+Grand Prix likewise records a finishing position for each labelled player,
+requires positions to be unique only within that player's lobby, and ranks
+offices by their combined lobby points. Fall Guys continues to display the
+balanced lobby plan while retaining its existing overall-result workflow.
+
+Every feature card on a game page is collapsible. The explanatory mode diagram
+is deliberately the first card below the game header so operators can review the
+format before configuring participation or entering results.
 
 ## Incremental migration
 
