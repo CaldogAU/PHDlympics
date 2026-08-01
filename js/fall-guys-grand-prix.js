@@ -208,6 +208,11 @@
     teams = [],
     tournament = {}
   ) {
+    const completedHeats = (
+      tournament.heats || []
+    ).filter(heat => heat.completed);
+    const hasCompletedHeat =
+      completedHeats.length > 0;
     const countedResults = Math.max(
       1,
       toNonNegativeInteger(
@@ -232,9 +237,7 @@
       ])
     );
 
-    (tournament.heats || [])
-      .filter(heat => heat.completed)
-      .forEach(heat => {
+    completedHeats.forEach(heat => {
         (heat.results || []).forEach(rawResult => {
           const result =
             normaliseResult(rawResult);
@@ -264,7 +267,8 @@
         });
       });
 
-    return [...standings.values()]
+    const sortedStandings =
+      [...standings.values()]
       .map(standing => ({
         ...standing,
         rankValue: standing.points,
@@ -292,34 +296,38 @@
           standingA.teamName.localeCompare(
             standingB.teamName
           )
-      )
-      .map(
-        (
-          standing,
-          index,
-          allStandings
-        ) => {
-          const previous =
-            allStandings[index - 1];
-          const tied =
-            previous &&
-            previous.points ===
-              standing.points &&
-            previous.wins ===
-              standing.wins &&
-            previous.podiums ===
-              standing.podiums &&
-            previous.qualifications ===
-              standing.qualifications;
-
-          return {
-            ...standing,
-            position: tied
-              ? previous.position
-              : index + 1
-          };
-        }
       );
+
+    let previousStanding = null;
+    let previousPosition = null;
+
+    return sortedStandings.map(
+      (standing, index) => {
+        const tied =
+          previousStanding &&
+          previousStanding.points ===
+            standing.points &&
+          previousStanding.wins ===
+            standing.wins &&
+          previousStanding.podiums ===
+            standing.podiums &&
+          previousStanding.qualifications ===
+            standing.qualifications;
+        const position = !hasCompletedHeat
+          ? null
+          : tied
+            ? previousPosition
+            : index + 1;
+
+        previousStanding = standing;
+        previousPosition = position;
+
+        return {
+          ...standing,
+          position
+        };
+      }
+    );
   }
 
   function getVisibleTeams(tournament) {
@@ -389,7 +397,10 @@
                   );
                 return `
                   <tr class="animated-ranking-row">
-                    <td>${standing.position}</td>
+                    <td>${
+                      standing.position ||
+                      "Pending"
+                    }</td>
                     <td><strong>${global.escapeHtml(
                       standing.teamName
                     )}</strong></td>
