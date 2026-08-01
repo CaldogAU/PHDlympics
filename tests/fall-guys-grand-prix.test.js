@@ -170,6 +170,75 @@ test("ranks offices across completed heats without eliminating anyone", () => {
   );
 });
 
+test("keeps every office pending until the first heat is completed", () => {
+  const engine = loadEngine();
+  const standings =
+    engine.calculateStandings(
+      [
+        { id: "china", name: "China" },
+        { id: "sydney", name: "Sydney" },
+        { id: "london", name: "London" }
+      ],
+      {
+        heats: [
+          {
+            completed: false,
+            results: []
+          }
+        ]
+      }
+    );
+
+  assert.deepEqual(
+    Array.from(
+      standings,
+      standing => standing.position
+    ),
+    [null, null, null]
+  );
+});
+
+test("gives tied offices a defined shared rank after a completed heat", () => {
+  const engine = loadEngine();
+  const standings =
+    engine.calculateStandings(
+      [
+        { id: "alpha", name: "Alpha" },
+        { id: "bravo", name: "Bravo" },
+        { id: "charlie", name: "Charlie" }
+      ],
+      {
+        countedResults: 3,
+        heats: [
+          {
+            completed: true,
+            results: [
+              {
+                teamId: "alpha",
+                participated: 1
+              },
+              {
+                teamId: "bravo",
+                participated: 1
+              },
+              {
+                teamId: "charlie"
+              }
+            ]
+          }
+        ]
+      }
+    );
+
+  assert.deepEqual(
+    Array.from(
+      standings,
+      standing => standing.position
+    ),
+    [1, 1, 3]
+  );
+});
+
 test("adds completed heats to individual team history", () => {
   const engine = loadEngine();
   const state = {
