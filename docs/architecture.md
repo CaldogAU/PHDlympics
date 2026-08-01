@@ -51,6 +51,11 @@ UI / workflows
 Tournament engines must not call the DOM, Firebase, alerts, or shared mutable
 state directly.
 
+`js/capacity.js` is the shared pure capacity engine. It validates capacity,
+normalises per-game office entries, and allocates indivisible office console
+groups into the minimum number of valid lobbies. It then optimises competitor
+balance, office-count balance, Swiss rank proximity, and deterministic ordering.
+
 ## Game-centric operator workflow
 
 Each configured game receives its own navigation page. Mode-specific management
@@ -63,6 +68,29 @@ is rendered on that page:
 
 There are no separate global Schedule or Events workspaces. Shared standings,
 reports, and displays remain core-platform views.
+
+## Game capacity and participation
+
+Games store `capacity.maxPlayersPerConsole`, `capacity.maxPlayersPerLobby`, and
+a `competitorEntries` map keyed by team ID. Each office has one console during a
+simultaneous round, so its entry limit equals `maxPlayersPerConsole`. A separate
+`maxEntriesPerOffice` field is deliberately not stored because it would duplicate
+the same rule.
+
+An office entry is an indivisible console group. Allocation never splits it,
+never exceeds lobby capacity, uses the minimum feasible lobby count, and balances
+actual competitors before office counts.
+
+Schema version 3 adds these fields. Legacy games receive a conservative
+1-per-console and 1-per-lobby fallback marked `configured: false`; they continue
+using all teams until an administrator explicitly confirms participation. New
+games require positive whole-number capacities and begin with zero entries.
+
+Swiss lobbies are rebuilt for every round from the current ranking, so membership
+is not permanent. Round Robin, Single Elimination, and Time Trial honour the
+entry list without inventing leagues. Four Player Swiss uses groups of four and
+currently requires one competitor per office. Grand Prix and Fall Guys display
+balanced lobby plans while retaining their existing overall-result workflows.
 
 ## Incremental migration
 

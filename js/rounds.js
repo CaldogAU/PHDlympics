@@ -4,9 +4,19 @@ function createSwissPairings(
   const state =
     context.state ||
     PHDTournament.state;
-  const teams = state.teams;
   const gameId =
     context.gameId || "";
+  const game = gameId
+    ? getGameById(gameId)
+    : null;
+  const teams = game &&
+    window.PHDGameCapacity
+      ? window.PHDGameCapacity
+          .getEligibleTeams(
+            game,
+            state.teams
+          )
+      : state.teams;
   const rounds = gameId
     ? getRoundsForGame(gameId)
     : state.rounds;
@@ -19,14 +29,67 @@ function createSwissPairings(
     return null;
   }
 
+  const allStandings =
+    context.standings ||
+    getStandings(gameId);
+  const eligibleTeamIds = new Set(
+    teams.map(team => team.id)
+  );
+  const standings = allStandings.filter(
+    standing => eligibleTeamIds.has(standing.id)
+  );
+  let lobbyTeamIds = [];
+
+  if (
+    game &&
+    game.capacity &&
+    game.capacity.configured !== false &&
+    window.PHDGameCapacity
+      .modeUsesLobbyAllocation(game.mode)
+  ) {
+    const rankByTeamId = new Map(
+      standings.map((standing, index) => [
+        standing.id,
+        index
+      ])
+    );
+    const entries =
+      window.PHDGameCapacity
+        .getActiveEntries(game, state.teams)
+        .map(entry => ({
+          ...entry,
+          rankIndex:
+            rankByTeamId.has(entry.officeId)
+              ? rankByTeamId.get(entry.officeId)
+              : Number.MAX_SAFE_INTEGER
+        }));
+    const allocation =
+      window.PHDGameCapacity
+        .allocateLobbies({
+          entries,
+          maxPlayersPerLobby:
+            game.capacity.maxPlayersPerLobby
+        });
+
+    if (!allocation.valid) {
+      alert(allocation.error);
+      return null;
+    }
+
+    lobbyTeamIds = allocation.lobbies.map(
+      lobby => lobby.entries.map(
+        entry => entry.officeId
+      )
+    );
+  }
+
   return window.PHDSwissEngine
     .createRound({
       teams,
-      standings:
-        context.standings ||
-        getStandings(gameId),
+      standings,
       rounds,
       gameId,
+      lobbyTeamIds,
       createId: () =>
         crypto.randomUUID(),
       now: () =>
@@ -919,6 +982,14 @@ function renderRounds(gameId) {
 
                 <div class="match-middle">
                   <span class="match-game-label">
+                    ${
+                      match.lobbyId
+                        ? `${escapeHtml(
+                            match.lobbyId
+                              .replace("lobby-", "Lobby ")
+                          )} - `
+                        : ""
+                    }
                     ${escapeHtml(
                       getGameLabel(
                         gameId

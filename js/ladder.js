@@ -133,13 +133,21 @@ function getCompletedGameLeaderboard(game) {
   const mode =
     window.PHDGameModes
       .getForGame(game);
+  const eligibleTeams =
+    window.PHDGameCapacity
+      ? window.PHDGameCapacity
+          .getEligibleTeams(
+            game,
+            PHDTournament.state.teams
+          )
+      : PHDTournament.state.teams;
   const resultEntryType =
     mode.getResultEntryType();
   const context = {
     state: PHDTournament.state,
-    teams: PHDTournament.state.teams,
+    teams: eligibleTeams,
     teamIds:
-      PHDTournament.state.teams.map(
+      eligibleTeams.map(
         team => team.id
       ),
     gameId: game.id,

@@ -26,6 +26,9 @@ const ADMIN_CONTROL_IDS = [
   "clearTeamForm",
   "gameName",
   "gamePlatform",
+  "gameMode",
+  "gameMaxPlayersPerConsole",
+  "gameMaxPlayersPerLobby",
   "gameLogoUrl",
   "saveGame",
   "clearGameForm",
@@ -53,6 +56,8 @@ const ADMIN_DYNAMIC_SELECTORS = [
   ".close-match-game",
   ".reopen-match-game",
   ".game-scoring-form input",
+  ".save-game-entries",
+  ".game-capacity-management select",
   ".create-game-event",
   ".save-time-trial-results",
   ".save-grand-prix-results",
@@ -486,7 +491,7 @@ function applyAdminAccessState() {
       );
     const resultControl = Boolean(
       element.closest(
-          ".save-match, .clear-match, .toggle-round, .generate-game-round, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card, .generate-four-player-round, .save-four-player-group, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, [data-four-player-game-id], .save-fall-guys-settings, .add-fall-guys-heat, .save-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament, [data-fall-guys-game-id]"
+          ".save-match, .clear-match, .toggle-round, .generate-game-round, .save-game-entries, .game-capacity-management, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card, .generate-four-player-round, .save-four-player-group, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, [data-four-player-game-id], .save-fall-guys-settings, .add-fall-guys-heat, .save-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament, [data-fall-guys-game-id]"
       )
     );
     const lifecycleControl =

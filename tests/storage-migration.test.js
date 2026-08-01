@@ -24,6 +24,16 @@ function loadMergeTournamentState() {
       ),
       "utf8"
     );
+  const capacitySource =
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "js",
+        "capacity.js"
+      ),
+      "utf8"
+    );
   const storageSource =
     fs.readFileSync(
       path.join(
@@ -31,6 +41,16 @@ function loadMergeTournamentState() {
         "..",
         "js",
         "storage.js"
+      ),
+      "utf8"
+    );
+  const exportSource =
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "js",
+        "export.js"
       ),
       "utf8"
     );
@@ -49,11 +69,19 @@ function loadMergeTournamentState() {
       context
     );
   vm.runInNewContext(
+    capacitySource,
+    context
+  );
+  vm.runInNewContext(
     gameModesSource,
     context
   );
   vm.runInNewContext(
     storageSource,
+    context
+  );
+  vm.runInNewContext(
+    exportSource,
     context
   );
 
@@ -62,7 +90,9 @@ function loadMergeTournamentState() {
       context.PHDTournament
         .defaultState,
     mergeTournamentState:
-      context.mergeTournamentState
+      context.mergeTournamentState,
+    normaliseImportedState:
+      context.normaliseImportedState
   };
 }
 
@@ -132,6 +162,16 @@ test("normalises legacy cloud state at the storage boundary", () => {
     defaultState.tournament
       .settings.drawPoints
   );
+  assert.equal(
+    merged.games[0].capacity
+      .configured,
+    false
+  );
+  assert.equal(
+    merged.games[0].capacity
+      .maxPlayersPerConsole,
+    1
+  );
 });
 
 test("creates independent collections when resetting to defaults", () => {
@@ -168,5 +208,94 @@ test("creates independent collections when resetting to defaults", () => {
   assert.notStrictEqual(
     resetState.games,
     defaultState.games
+  );
+});
+
+test("preserves game capacity and competitor entries through state normalisation", () => {
+  const { mergeTournamentState } =
+    loadMergeTournamentState();
+  const merged = mergeTournamentState({
+    teams: [
+      { id: "alpha", name: "Alpha" },
+      { id: "bravo", name: "Bravo" }
+    ],
+    games: [
+      {
+        id: "kart",
+        name: "Mario Kart",
+        mode: "grand-prix",
+        capacity: {
+          maxPlayersPerConsole: 2,
+          maxPlayersPerLobby: 12,
+          configured: true
+        },
+        competitorEntries: {
+          alpha: 2,
+          bravo: 1
+        }
+      }
+    ],
+    rounds: [],
+    events: []
+  });
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(merged.games[0].capacity)),
+    {
+      maxPlayersPerConsole: 2,
+      maxPlayersPerLobby: 12,
+      configured: true
+    }
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(merged.games[0].competitorEntries)),
+    { alpha: 2, bravo: 1 }
+  );
+});
+
+test("preserves capacity and entries through a JSON export and import round trip", () => {
+  const { normaliseImportedState } =
+    loadMergeTournamentState();
+  const exported = JSON.stringify({
+    app: "PHDlympics",
+    data: {
+      teams: [
+        { id: "alpha", name: "Alpha" }
+      ],
+      games: [
+        {
+          id: "kart",
+          name: "Mario Kart",
+          mode: "grand-prix",
+          capacity: {
+            maxPlayersPerConsole: 2,
+            maxPlayersPerLobby: 12,
+            configured: true
+          },
+          competitorEntries: {
+            alpha: 2
+          }
+        }
+      ],
+      rounds: [],
+      events: []
+    }
+  });
+  const imported =
+    normaliseImportedState(
+      JSON.parse(exported)
+    );
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(imported.games[0].capacity)),
+    {
+      maxPlayersPerConsole: 2,
+      maxPlayersPerLobby: 12,
+      configured: true
+    }
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(imported.games[0].competitorEntries)),
+    { alpha: 2 }
   );
 });

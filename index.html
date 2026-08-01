@@ -412,6 +412,26 @@
   </select>
 
   <input
+    id="gameMaxPlayersPerConsole"
+    type="number"
+    min="1"
+    step="1"
+    value="1"
+    aria-label="Maximum players per console"
+    placeholder="Players per console"
+  />
+
+  <input
+    id="gameMaxPlayersPerLobby"
+    type="number"
+    min="1"
+    step="1"
+    value="8"
+    aria-label="Maximum players per lobby"
+    placeholder="Players per lobby"
+  />
+
+  <input
     id="gameLogoUrl"
     type="url"
     placeholder="Cover/logo URL optional"
@@ -609,6 +629,7 @@
   <script src="js/auth.js"></script>
 
   <script src="js/state.js"></script>
+  <script src="js/capacity.js"></script>
   <script src="js/audit.js"></script>
   <script src="js/audit-ui.js"></script>
   <script src="js/storage.js"></script>

@@ -16,6 +16,7 @@ Every mode declares:
 - `compatibilityVersion`: PHDlympics GameMode SDK version the mode targets
 - `description`: concise operator-facing explanation
 - `icon`: stable icon identifier for UI surfaces
+- `usesLobbyAllocation`: optional marker for simultaneous shared-lobby workflows
 
 Registration rejects duplicate IDs and incompatible SDK versions. Unknown IDs
 must not silently dispatch tournament actions. Legacy game records can be
@@ -67,12 +68,24 @@ PHDGameModes.createNextRound(modeId, context)
 The registry reports a clear error when the selected mode does not support
 round generation.
 
+Capacity and entry data are provided through the shared game/state context.
+Use `PHDGameCapacity.getEligibleTeams(game, teams)` to resolve participation and
+`PHDGameCapacity.allocateLobbies()` only when the mode genuinely uses shared
+simultaneous lobbies. Each office entry is an indivisible console group. Pure
+engines must not read Firebase or the DOM.
+
+Modes without shared lobbies still honour zero entries but must not invent a
+league abstraction. A mode must return a clear validation error when its result
+model cannot safely represent the selected capacity or competitor counts.
+
 ## Built-in modes
 
 - `swiss`: round generation and match-score standings
 - `time-trial`: completion-time entry; results remain hidden until complete
 - `grand-prix`: administrator-entered finishing order; results remain hidden
   until complete
+- `four-player-swiss`: ranked groups of four; currently one competitor per office
+- `fall-guys-grand-prix`: repeated heats and office-level scoring
 
 ## Extension rules
 

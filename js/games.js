@@ -28,6 +28,8 @@ function clearGameForm() {
 setValue("gameName", "");
 setValue("gamePlatform", "");
 setValue("gameMode", "swiss");
+setValue("gameMaxPlayersPerConsole", "1");
+setValue("gameMaxPlayersPerLobby", "8");
 setValue("gameLogoUrl", "");
 
   const saveButton =
@@ -47,6 +49,14 @@ function createGame(values) {
   platform: values.platform,
   mode: values.mode,
   logoUrl: values.logoUrl,
+  capacity: {
+    maxPlayersPerConsole:
+      values.maxPlayersPerConsole,
+    maxPlayersPerLobby:
+      values.maxPlayersPerLobby,
+    configured: true
+  },
+  competitorEntries: {},
   settings: {
     winPoints: legacyScoring.winPoints,
     drawPoints: legacyScoring.drawPoints,
@@ -64,6 +74,14 @@ function getGameAuditDetails(game) {
     mode: game.mode || "swiss",
     format: game.format || "",
     logoUrl: game.logoUrl || "",
+    capacity:
+      structuredClone(
+        game.capacity || {}
+      ),
+    competitorEntries:
+      structuredClone(
+        game.competitorEntries || {}
+      ),
     createdAt: game.createdAt || ""
   };
 }
@@ -96,6 +114,16 @@ function getGameChanges(
     }
   });
 
+  if (
+    JSON.stringify(previousGame.capacity || {}) !==
+    JSON.stringify(updatedGame.capacity || {})
+  ) {
+    changes.capacity = {
+      from: previousGame.capacity || {},
+      to: updatedGame.capacity || {}
+    };
+  }
+
   return changes;
 }
 
@@ -111,8 +139,33 @@ async function saveGameFromForm() {
     getValue("gameMode") || "swiss",
 
   logoUrl:
-    getValue("gameLogoUrl").trim()
+    getValue("gameLogoUrl").trim(),
+
+  maxPlayersPerConsole:
+    Number(
+      getValue("gameMaxPlayersPerConsole")
+    ),
+
+  maxPlayersPerLobby:
+    Number(
+      getValue("gameMaxPlayersPerLobby")
+    )
 };
+
+  const capacityValidation =
+    window.PHDGameCapacity
+      .validateCapacity({
+        maxPlayersPerConsole:
+          values.maxPlayersPerConsole,
+        maxPlayersPerLobby:
+          values.maxPlayersPerLobby,
+        configured: true
+      });
+
+  if (!capacityValidation.valid) {
+    alert(capacityValidation.error);
+    return;
+  }
 
   if (isBlank(values.name)) {
     alert("Enter a game name.");
@@ -165,10 +218,60 @@ async function saveGameFromForm() {
     const previousGame =
       structuredClone(game);
 
+    const existingEntryValidation =
+      window.PHDGameCapacity
+        .getEntryValidation(
+          {
+            ...game,
+            capacity:
+              capacityValidation.value
+          },
+          PHDTournament.state.teams
+        );
+
+    if (!existingEntryValidation.valid) {
+      alert(
+        existingEntryValidation.errors.join("\n")
+      );
+      return;
+    }
+
+    const capacityChanged =
+      JSON.stringify(game.capacity || {}) !==
+      JSON.stringify(capacityValidation.value);
+    const hasGeneratedData =
+      PHDTournament.state.rounds.some(
+        round =>
+          round.gameId === game.id ||
+          (round.matches || []).some(
+            match => match.gameId === game.id
+          )
+      ) ||
+      PHDTournament.state.events.some(
+        event => event.gameId === game.id
+      ) ||
+      Boolean(
+        game.fourPlayerSwiss &&
+        (game.fourPlayerSwiss.rounds || []).length
+      ) ||
+      Boolean(
+        game.fallGuysGrandPrix &&
+        (game.fallGuysGrandPrix.heats || []).length
+      );
+
+    if (capacityChanged && hasGeneratedData) {
+      alert(
+        "Capacity cannot be changed after rounds or results have been generated. Reopen or clear the game data first."
+      );
+      return;
+    }
+
 game.name = values.name;
 game.platform = values.platform;
 game.mode = values.mode;
 game.logoUrl = values.logoUrl;
+game.capacity =
+  capacityValidation.value;
 
     auditAction = "game.updated";
     auditSummary =
@@ -252,6 +355,22 @@ setValue(
   "gameMode",
   game.mode || "swiss"
 );
+
+  const capacity =
+    window.PHDGameCapacity
+      .normaliseCapacity(
+        game.capacity
+      );
+
+  setValue(
+    "gameMaxPlayersPerConsole",
+    capacity.maxPlayersPerConsole
+  );
+
+  setValue(
+    "gameMaxPlayersPerLobby",
+    capacity.maxPlayersPerLobby
+  );
 
   setValue(
     "gameLogoUrl",
@@ -512,6 +631,20 @@ function renderGames() {
   Mode: ${escapeHtml(
     getGameModeLabel(game)
   )}
+</span>
+
+<span>
+  Capacity: ${escapeHtml(
+    String(
+      (game.capacity || {})
+        .maxPlayersPerConsole || 1
+    )
+  )} per console / ${escapeHtml(
+    String(
+      (game.capacity || {})
+        .maxPlayersPerLobby || 1
+    )
+  )} per lobby
 </span>
 
           </div>
