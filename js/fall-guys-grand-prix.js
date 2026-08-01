@@ -330,11 +330,14 @@
     );
   }
 
-  function getVisibleTeams(tournament) {
-    const teams = [
-      ...(tournamentState.state.teams ||
-        [])
-    ];
+  function getVisibleTeams(tournament, game) {
+    const teams = game && global.PHDGameCapacity
+      ? global.PHDGameCapacity
+          .getEligibleTeams(
+            game,
+            tournamentState.state.teams || []
+          )
+      : [...(tournamentState.state.teams || [])];
 
     if (
       typeof global.isTeamScopedStaff ===
@@ -363,8 +366,13 @@
   }
 
   function renderStandings(game, tournament) {
+    const eligibleTeams =
+      getVisibleTeams(
+        { ...tournament, closed: true },
+        game
+      );
     const standings = calculateStandings(
-      tournamentState.state.teams,
+      eligibleTeams,
       tournament
     );
 
@@ -432,7 +440,7 @@
     heat
   ) {
     const teams =
-      getVisibleTeams(tournament);
+      getVisibleTeams(tournament, game);
 
     return `
       <article
@@ -789,6 +797,20 @@
     if (!game) return;
     const tournament =
       ensureTournament(game);
+    const eligibleTeams =
+      global.PHDGameCapacity
+        ? global.PHDGameCapacity
+            .getEligibleTeams(
+              game,
+              tournamentState.state.teams || []
+            )
+        : [...(tournamentState.state.teams || [])];
+    if (eligibleTeams.length === 0) {
+      global.alert(
+        "Enter at least one participating office before adding a heat."
+      );
+      return;
+    }
     if (
       tournament.closed ||
       tournament.heats.length >=
@@ -875,9 +897,9 @@
         ]
       : submitted;
 
-    const teamIds = (
-      tournamentState.state.teams ||
-      []
+    const teamIds = getVisibleTeams(
+      { ...tournament, closed: true },
+      game
     ).map(team => team.id);
     const validation =
       validateHeatResults(
@@ -954,7 +976,10 @@
     }
     const standings =
       calculateStandings(
-        tournamentState.state.teams,
+        getVisibleTeams(
+          { ...tournament, closed: true },
+          game
+        ),
         tournament
       );
     tournament.finalStandings =

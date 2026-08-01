@@ -219,7 +219,13 @@ function getFourPlayerSwissTeams(game) {
     ensureFourPlayerSwissState(game);
 
   if (!tournament.entrantIds.length) {
-    return PHDTournament.state.teams;
+    return window.PHDGameCapacity
+      ? window.PHDGameCapacity
+          .getEligibleTeams(
+            game,
+            PHDTournament.state.teams
+          )
+      : PHDTournament.state.teams;
   }
 
   return tournament.entrantIds
@@ -457,6 +463,29 @@ async function generateFourPlayerSwissRound(gameId) {
   try {
     const entrantTeams =
       getFourPlayerSwissTeams(game);
+    const incompatibleEntry =
+      window.PHDGameCapacity &&
+      window.PHDGameCapacity
+        .getActiveEntries(
+          game,
+          PHDTournament.state.teams
+        )
+        .find(entry =>
+          entry.competitorCount !== 1
+        );
+    if (incompatibleEntry) {
+      throw new Error(
+        "4 Player Swiss currently requires exactly one competitor per participating team."
+      );
+    }
+    if (
+      game.capacity &&
+      Number(game.capacity.maxPlayersPerLobby) < 4
+    ) {
+      throw new Error(
+        "4 Player Swiss requires a lobby capacity of at least four competitors."
+      );
+    }
     const round = window.PHDFourPlayerSwiss.createRound({
       teams: entrantTeams,
       rounds: tournament.rounds,

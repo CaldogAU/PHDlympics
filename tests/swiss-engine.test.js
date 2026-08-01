@@ -254,3 +254,61 @@ test("requires complete standings and deterministic adapters", () => {
     /requires createId and now/
   );
 });
+
+test("creates round-specific Swiss lobbies without permanent membership", () => {
+  const engine = loadSwissEngine();
+  const teams = "abcdefgh".split("").map((id, index) =>
+    createTeam(id, 8 - index)
+  );
+  const firstRound = engine.createRound({
+    teams,
+    standings: teams,
+    rounds: [],
+    gameId: "swiss-game",
+    lobbyTeamIds: [
+      ["a", "b", "c", "d"],
+      ["e", "f", "g", "h"]
+    ],
+    ...createRoundFactory()
+  });
+
+  assert.equal(firstRound.lobbies.length, 2);
+  assert.ok(firstRound.matches.every(match => match.lobbyId));
+
+  const secondRound = engine.createRound({
+    teams,
+    standings: teams,
+    rounds: [firstRound],
+    gameId: "swiss-game",
+    lobbyTeamIds: [
+      ["a", "b", "e", "f"],
+      ["c", "d", "g", "h"]
+    ],
+    ...createRoundFactory()
+  });
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(secondRound.lobbies[0].teamIds)),
+    ["a", "b", "e", "f"]
+  );
+});
+
+test("rejects a Swiss lobby containing fewer than two offices", () => {
+  const engine = loadSwissEngine();
+  const teams = [
+    createTeam("a"),
+    createTeam("b"),
+    createTeam("c")
+  ];
+
+  assert.throws(
+    () => engine.createRound({
+      teams,
+      standings: teams,
+      rounds: [],
+      lobbyTeamIds: [["a", "b"], ["c"]],
+      ...createRoundFactory()
+    }),
+    /requires at least two offices/
+  );
+});

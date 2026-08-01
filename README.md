@@ -13,6 +13,9 @@ and cloud restore points.
 - Tournament setup
 - Team management
 - Team colours and logo URLs
+- Per-game console and lobby capacity
+- Per-game office competitor entries
+- Balanced indivisible console-group lobby allocation
 - Tournament logo, banner and accent colour branding
 - Swiss-style round generation
 - Automatic byes
@@ -50,8 +53,8 @@ must sign in before changing shared data.
 
 1. Add tournament details.
 2. Add teams.
-3. Add up to five games and select a GameMode for each.
-4. Open the new game page in the sidebar.
+3. Add up to five games, select a GameMode, and configure its capacities.
+4. Open the game page, enter each team's competitor count, and review its lobby plan.
 5. Generate Swiss rounds or create and manage the Time Trial/Grand Prix event
    directly on that game page.
 6. Enter and complete results there.

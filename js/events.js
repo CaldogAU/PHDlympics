@@ -37,9 +37,17 @@ function getEventResultForTeam(
 }
 
 function getVisibleEventTeams(event) {
-  const teams = [
-    ...(PHDTournament.state.teams || [])
-  ];
+  const game = event &&
+    typeof getGameById === "function"
+    ? getGameById(event.gameId)
+    : null;
+  const teams = game && window.PHDGameCapacity
+    ? window.PHDGameCapacity
+        .getEligibleTeams(
+          game,
+          PHDTournament.state.teams || []
+        )
+    : [...(PHDTournament.state.teams || [])];
 
   if (
     typeof isTeamScopedStaff ===
@@ -183,7 +191,10 @@ function renderTimeTrialEntries(
   const teams =
     getVisibleEventTeams(event);
   const participantCount =
-    PHDTournament.state.teams.length;
+    getVisibleEventTeams({
+      ...event,
+      completed: true
+    }).length;
 
   if (teams.length === 0) {
     return `
@@ -347,7 +358,10 @@ function renderGrandPrixEntries(
   const teams =
     getVisibleEventTeams(event);
   const participantCount =
-    PHDTournament.state.teams.length;
+    getVisibleEventTeams({
+      ...event,
+      completed: true
+    }).length;
 
   if (teams.length === 0) {
     return `
@@ -622,6 +636,23 @@ async function createEvent(gameId) {
     return;
   }
 
+  const eligibleTeams =
+    window.PHDGameCapacity
+      ? window.PHDGameCapacity
+          .getEligibleTeams(
+            game,
+            PHDTournament.state.teams || []
+          )
+      : [...(PHDTournament.state.teams || [])];
+
+  if (eligibleTeams.length === 0) {
+    alert(
+      "Enter at least one participating office before creating this event."
+    );
+
+    return;
+  }
+
   const event = {
     id: crypto.randomUUID(),
     gameId,
@@ -757,10 +788,14 @@ function mergeEventResult(
 }
 
 function hasCompleteTimeTrialResults(
-  results
+  results,
+  event
 ) {
   const teamIds =
-    PHDTournament.state.teams.map(
+    getVisibleEventTeams({
+      ...event,
+      completed: true
+    }).map(
       team => team.id
     );
   const resultMap = new Map(
@@ -781,10 +816,14 @@ function hasCompleteTimeTrialResults(
 }
 
 function hasCompleteGrandPrixResults(
-  results
+  results,
+  event
 ) {
   const teamIds =
-    PHDTournament.state.teams.map(
+    getVisibleEventTeams({
+      ...event,
+      completed: true
+    }).map(
       team => team.id
     );
   const positions = teamIds.map(
@@ -876,7 +915,8 @@ async function saveTimeTrialResults(
       : results;
   const complete =
     hasCompleteTimeTrialResults(
-      nextResults
+      nextResults,
+      event
     );
 
   await persistEventResults(
@@ -930,6 +970,11 @@ async function saveGrandPrixResults(
   const positions = nextResults.map(
     result => result.finishPosition
   );
+  const participantCount =
+    getVisibleEventTeams({
+      ...event,
+      completed: true
+    }).length;
   const validPositions =
     (
       isScopedStaff ||
@@ -937,9 +982,7 @@ async function saveGrandPrixResults(
       position =>
         Number.isInteger(position) &&
         position >= 1 &&
-        position <=
-          PHDTournament.state.teams
-            .length
+        position <= participantCount
       )
     ) &&
     (
@@ -959,12 +1002,14 @@ async function saveGrandPrixResults(
     event,
     nextResults,
     hasCompleteGrandPrixResults(
-      nextResults
+      nextResults,
+      event
     )
       ? "Completed Grand Prix results."
       : "Saved a Grand Prix result.",
     hasCompleteGrandPrixResults(
-      nextResults
+      nextResults,
+      event
     )
   );
 }

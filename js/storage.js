@@ -79,6 +79,17 @@ function mergeTournamentState(sourceState) {
     );
   }
 
+  if (
+    window.PHDGameCapacity &&
+    typeof window.PHDGameCapacity
+      .normaliseGame === "function"
+  ) {
+    mergedState.games.forEach(game => {
+      window.PHDGameCapacity
+        .normaliseGame(game);
+    });
+  }
+
   mergedState.schemaVersion =
     PHDTournament.defaultState
       .schemaVersion;

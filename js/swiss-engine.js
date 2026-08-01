@@ -261,6 +261,11 @@
       now
     } = options || {};
 
+    const lobbyTeamIds =
+      Array.isArray(options && options.lobbyTeamIds)
+        ? options.lobbyTeamIds
+        : [];
+
     if (
       !Array.isArray(teams) ||
       teams.length < 2
@@ -288,6 +293,55 @@
       throw new Error(
         "Swiss round creation requires createId and now functions."
       );
+    }
+
+    if (lobbyTeamIds.length > 1) {
+      const matches = [];
+      const lobbies = [];
+
+      lobbyTeamIds.forEach((teamIds, lobbyIndex) => {
+        const teamIdSet = new Set(teamIds);
+        const lobbyTeams = teams.filter(team =>
+          teamIdSet.has(team.id)
+        );
+        const lobbyStandings = standings.filter(team =>
+          teamIdSet.has(team.id)
+        );
+
+        if (lobbyTeams.length < 2) {
+          throw new Error(
+            `Lobby ${lobbyIndex + 1} requires at least two offices for Swiss play.`
+          );
+        }
+
+        const lobbyRound = createRound({
+          ...options,
+          teams: lobbyTeams,
+          standings: lobbyStandings,
+          lobbyTeamIds: []
+        });
+        const lobbyId = `lobby-${lobbyIndex + 1}`;
+        lobbyRound.matches.forEach(match => {
+          matches.push({
+            ...match,
+            lobbyId
+          });
+        });
+        lobbies.push({
+          id: lobbyId,
+          teamIds: [...teamIds]
+        });
+      });
+
+      return {
+        id: createId(),
+        number: roundNumber,
+        gameId,
+        completed: false,
+        createdAt: now(),
+        lobbies,
+        matches
+      };
     }
 
     const playedPairs =

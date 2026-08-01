@@ -369,6 +369,8 @@
   register({
     id: "swiss",
 
+    usesLobbyAllocation: true,
+
     name: "Swiss",
 
     icon: "trophy",
@@ -422,6 +424,12 @@
       return global
         .getStandings(
           context.gameId || ""
+        )
+        .filter(team =>
+          !Array.isArray(context.teams) ||
+          context.teams.some(
+            eligible => eligible.id === team.id
+          )
         )
         .map(team => ({
           teamId: team.id,
@@ -509,6 +517,8 @@
 
   register({
     id: "four-player-swiss",
+
+    usesLobbyAllocation: true,
 
     name: "4 Player Swiss Rounds",
 
@@ -763,6 +773,8 @@
   register({
     id: "fall-guys-grand-prix",
 
+    usesLobbyAllocation: true,
+
     name: "Fall Guys Grand Prix",
 
     icon: "groups",
@@ -834,6 +846,8 @@
 
   register({
     id: "grand-prix",
+
+    usesLobbyAllocation: true,
 
     name: "Grand Prix",
 
@@ -997,8 +1011,17 @@
       createNextRound(context = {}) {
         const state = context.state || {};
         const existing = Array.isArray(context.rounds) ? context.rounds : [];
+        const game = (state.games || []).find(
+          item => item.id === context.gameId
+        );
+        const eligibleTeams = game && global.PHDGameCapacity
+          ? global.PHDGameCapacity.getEligibleTeams(
+              game,
+              state.teams || []
+            )
+          : state.teams || [];
         let entrantIds =
-          (state.teams || []).map(team => team.id);
+          eligibleTeams.map(team => team.id);
         if (
           modeId === "single-elimination" &&
           existing.length
@@ -1037,6 +1060,11 @@
         return typeof global.getStandings === "function"
           ? global.getStandings(
               context.gameId || ""
+            ).filter(team =>
+              !Array.isArray(context.teams) ||
+              context.teams.some(
+                eligible => eligible.id === team.id
+              )
             ).map(team => ({
               teamId: team.id,
               teamName: team.name,

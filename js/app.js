@@ -501,6 +501,238 @@ function getStaticTabs() {
   ];
 }
 
+function gameHasGeneratedData(game) {
+  if (!game) return false;
+
+  return PHDTournament.state.rounds.some(
+    round =>
+      round.gameId === game.id ||
+      (round.matches || []).some(
+        match => match.gameId === game.id
+      )
+  ) ||
+    PHDTournament.state.events.some(
+      event => event.gameId === game.id
+    ) ||
+    Boolean(
+      game.fourPlayerSwiss &&
+      (game.fourPlayerSwiss.rounds || []).length
+    ) ||
+    Boolean(
+      game.fallGuysGrandPrix &&
+      (game.fallGuysGrandPrix.heats || []).length
+    );
+}
+
+function canEditGameEntry(teamId, locked) {
+  if (locked) return false;
+  if (
+    typeof isTournamentAdmin === "function" &&
+    isTournamentAdmin()
+  ) {
+    return true;
+  }
+
+  return typeof canManageTeamResult === "function" &&
+    canManageTeamResult(teamId);
+}
+
+function getGameLobbyAllocation(game) {
+  const validation =
+    window.PHDGameCapacity
+      .getEntryValidation(
+        game,
+        PHDTournament.state.teams
+      );
+
+  if (!validation.valid) {
+    return {
+      valid: false,
+      error: validation.errors.join(" "),
+      lobbies: []
+    };
+  }
+
+  return window.PHDGameCapacity
+    .allocateLobbies({
+      entries:
+        window.PHDGameCapacity
+          .getActiveEntries(
+            game,
+            PHDTournament.state.teams
+          ),
+      maxPlayersPerLobby:
+        game.mode === "four-player-swiss"
+          ? Math.min(
+              4,
+              validation.capacity
+                .maxPlayersPerLobby
+            )
+          : validation.capacity
+              .maxPlayersPerLobby
+    });
+}
+
+function renderGameCapacityManagement(game) {
+  const capacity =
+    window.PHDGameCapacity
+      .normaliseCapacity(game.capacity);
+  const entries =
+    window.PHDGameCapacity
+      .normaliseCompetitorEntries(
+        game.competitorEntries
+      );
+  const locked =
+    gameHasGeneratedData(game) ||
+    Boolean(game.completed);
+  const allocation =
+    getGameLobbyAllocation(game);
+  const usesLobbies =
+    window.PHDGameCapacity
+      .modeUsesLobbyAllocation(
+        game.mode
+      );
+  const lobbyHtml = !allocation.valid
+    ? `<div class="capacity-warning">${escapeHtml(allocation.error)}</div>`
+    : allocation.empty
+      ? `<div class="empty-state">No competitors entered. Lobby allocation is pending.</div>`
+      : usesLobbies
+        ? `<div class="lobby-preview-grid">
+            ${allocation.lobbies.map(lobby => `
+              <article class="lobby-preview-card">
+                <strong>${escapeHtml(lobby.name)} - ${lobby.competitorTotal} competitors</strong>
+                <span>${lobby.entries.map(entry =>
+                  `${escapeHtml(entry.officeName)} (${entry.competitorCount})`
+                ).join(", ")}</span>
+              </article>
+            `).join("")}
+          </div>`
+        : `<div class="empty-state">
+            ${escapeHtml(getGameModeLabel(game))} records office entries but does not use shared simultaneous lobbies.
+          </div>`;
+
+  return `
+    <section class="card wide game-capacity-management" data-capacity-game-id="${game.id}">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Participation & Capacity</p>
+          <h2>Console Entries and Lobbies</h2>
+          <p class="muted">
+            ${capacity.maxPlayersPerConsole} per console / ${capacity.maxPlayersPerLobby} per lobby
+          </p>
+        </div>
+        <div>
+          <strong class="big-number">${allocation.totalCompetitors || 0}</strong>
+          <span class="muted">entered competitors</span>
+        </div>
+      </div>
+
+      ${!capacity.configured ? `
+        <div class="capacity-warning">
+          This legacy game uses conservative fallback capacity. An administrator should confirm its capacity on the Games page before generating results.
+        </div>
+      ` : ""}
+
+      ${locked ? `
+        <div class="capacity-warning">
+          Entries are locked because rounds or results already exist. Clear the generated game data before changing participation.
+        </div>
+      ` : ""}
+
+      <div class="table-wrap">
+        <table class="game-entry-table">
+          <thead>
+            <tr><th>Team</th><th>Competitors</th></tr>
+          </thead>
+          <tbody>
+            ${PHDTournament.state.teams.map(team => {
+              const value = Number(entries[team.id]) || 0;
+              const editable = canEditGameEntry(team.id, locked);
+              return `
+                <tr data-team-id="${team.id}">
+                  <td><strong>${escapeHtml(team.name)}</strong></td>
+                  <td>
+                    ${editable ? `
+                      <select data-competitor-team-id="${team.id}">
+                        ${Array.from(
+                          { length: capacity.maxPlayersPerConsole + 1 },
+                          (_, count) => `<option value="${count}" ${count === value ? "selected" : ""}>${count}</option>`
+                        ).join("")}
+                      </select>
+                    ` : `<span>${value}</span>`}
+                  </td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      ${!locked && PHDTournament.state.teams.some(team => canEditGameEntry(team.id, false)) ? `
+        <button class="save-game-entries" type="button" data-game-id="${game.id}">
+          Save Competitor Entries
+        </button>
+      ` : ""}
+
+      <div class="game-capacity-grid">
+        <div><strong>${allocation.lobbyCount || 0}</strong><span class="muted"> required lobbies</span></div>
+      </div>
+      ${lobbyHtml}
+    </section>
+  `;
+}
+
+async function saveGameCompetitorEntries(gameId, section) {
+  const game = getGameById(gameId);
+  if (!game || !section || gameHasGeneratedData(game)) {
+    alert("Competitor entries cannot be changed after rounds or results have been generated.");
+    return;
+  }
+
+  const previous = structuredClone(
+    game.competitorEntries || {}
+  );
+  const next = {
+    ...previous
+  };
+
+  section.querySelectorAll("[data-competitor-team-id]").forEach(select => {
+    const teamId = select.dataset.competitorTeamId;
+    if (!canEditGameEntry(teamId, false)) return;
+    next[teamId] = Number(select.value);
+  });
+
+  game.competitorEntries = next;
+  const validation =
+    window.PHDGameCapacity
+      .getEntryValidation(
+        game,
+        PHDTournament.state.teams
+      );
+  if (!validation.valid) {
+    game.competitorEntries = previous;
+    alert(validation.errors.join("\n"));
+    return;
+  }
+
+  await saveState();
+
+  if (typeof recordAuditEntry === "function") {
+    await recordAuditEntry(
+      "game.competitor-entries.updated",
+      `Updated competitor entries for ${game.name}.`,
+      {
+        gameId,
+        previous,
+        current: structuredClone(next),
+        allocation: getGameLobbyAllocation(game)
+      }
+    );
+  }
+
+  render();
+}
+
 function renderGameTabs() {
   const buttonContainer =
     getElement("gameTabButtons");
@@ -724,6 +956,8 @@ function renderGameTabs() {
                 }
               </div>
             </section>
+
+            ${renderGameCapacityManagement(game)}
 
             ${managementHtml}
 
@@ -1352,6 +1586,23 @@ function bindGameEvents() {
       }
     );
   }
+
+  document.addEventListener(
+    "click",
+    event => {
+      const button = event.target.closest(
+        ".save-game-entries"
+      );
+      if (!button) return;
+
+      saveGameCompetitorEntries(
+        button.dataset.gameId,
+        button.closest(
+          ".game-capacity-management"
+        )
+      );
+    }
+  );
 }
 
 function bindTeamEvents() {

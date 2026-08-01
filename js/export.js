@@ -77,7 +77,7 @@ function normaliseImportedState(
     );
   }
 
-  return {
+  const normalised = {
     ...structuredClone(
       PHDTournament.defaultState
     ),
@@ -110,6 +110,23 @@ function normaliseImportedState(
         ? incoming.rounds
         : []
   };
+
+  if (
+    window.PHDGameCapacity &&
+    typeof window.PHDGameCapacity
+      .normaliseGame === "function"
+  ) {
+    normalised.games.forEach(game => {
+      window.PHDGameCapacity
+        .normaliseGame(game);
+    });
+  }
+
+  normalised.schemaVersion =
+    PHDTournament.defaultState
+      .schemaVersion;
+
+  return normalised;
 }
 
 function getImportStateSummary(

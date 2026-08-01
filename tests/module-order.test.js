@@ -16,9 +16,17 @@ test("loads tournament engines before their workflow adapters", () => {
     html.indexOf(
       'src="js/swiss-engine.js"'
     );
+  const capacityIndex =
+    html.indexOf(
+      'src="js/capacity.js"'
+    );
   const gameModesIndex =
     html.indexOf(
       'src="js/game-modes.js"'
+    );
+  const storageIndex =
+    html.indexOf(
+      'src="js/storage.js"'
     );
   const fourPlayerSwissIndex =
     html.indexOf(
@@ -38,6 +46,10 @@ test("loads tournament engines before their workflow adapters", () => {
     -1
   );
   assert.notEqual(
+    capacityIndex,
+    -1
+  );
+  assert.notEqual(
     gameModesIndex,
     -1
   );
@@ -52,6 +64,12 @@ test("loads tournament engines before their workflow adapters", () => {
   assert.notEqual(
     fallGuysIndex,
     -1
+  );
+  assert.ok(
+    capacityIndex < gameModesIndex
+  );
+  assert.ok(
+    capacityIndex < storageIndex
   );
   assert.ok(
     swissEngineIndex <
