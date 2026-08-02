@@ -53,7 +53,7 @@ must sign in before changing shared data.
 
 1. Add tournament details.
 2. Add teams.
-3. Add up to five games, select a GameMode, and configure its capacities.
+3. Add the required games, select a GameMode for each, and configure their capacities.
 4. Open the game page, enter each team's competitor count, and review its lobby plan.
 5. Generate Swiss rounds or create and manage the Time Trial/Grand Prix event
    directly on that game page.

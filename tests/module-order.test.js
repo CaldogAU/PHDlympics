@@ -224,6 +224,30 @@ test("does not expose the legacy game format field", () => {
   );
 });
 
+test("allows an unlimited number of configured games", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "..", "index.html"),
+    "utf8"
+  );
+  const games = fs.readFileSync(
+    path.join(__dirname, "..", "js", "games.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(
+    games,
+    /games\.length\s*>=\s*5|supports up to 5 games|\/ 5 games added/
+  );
+  assert.doesNotMatch(
+    html,
+    /\/ 5 games added/
+  );
+  assert.match(
+    games,
+    /games\.length === 1\s*\? "game"\s*:\s*"games"/
+  );
+});
+
 test("shows a top-level workflow for every game mode", () => {
   const app = fs.readFileSync(
     path.join(

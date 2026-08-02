@@ -190,16 +190,6 @@ async function saveGameFromForm() {
     return;
   }
 
-  if (
-    !PHDTournament.editingGameId &&
-    games.length >= 5
-  ) {
-    alert(
-      "This tournament supports up to 5 games."
-    );
-    return;
-  }
-
   const editingGameId =
     PHDTournament.editingGameId;
 
@@ -594,13 +584,17 @@ function renderGames() {
 
   if (count) {
     count.textContent =
-      `${games.length} / 5 games added`;
+      `${games.length} ${
+        games.length === 1
+          ? "game"
+          : "games"
+      } added`;
   }
 
   if (games.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
-        Add up to 5 video games for this tournament.
+        Add video games for this tournament.
       </div>
     `;
 
