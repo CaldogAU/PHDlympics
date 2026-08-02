@@ -169,7 +169,25 @@ test("marks Admin and Games navigation as administrator-only", () => {
   assert.match(html, /data-tab="admin" hidden/);
   assert.match(html, /data-tab="games" hidden/);
   assert.match(app, /\["admin", "games"\]/);
-  assert.match(auth, /\.admin-only-tab, #adminTab, #gamesTab/);
+  assert.match(
+    auth,
+    /\.admin-only-tab,[^']*#adminTab, #gamesTab/
+  );
+});
+
+test("shows report data tools only to administrators", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
+
+  assert.match(
+    html,
+    /id="reportDataTools"[\s\S]*?class="card wide admin-only-content"[\s\S]*?hidden/
+  );
+  assert.match(
+    auth,
+    /\.admin-only-tab, \.admin-only-content, #adminTab, #gamesTab/
+  );
 });
 
 test("loads staff management after Firebase authentication", () => {

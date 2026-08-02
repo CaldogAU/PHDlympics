@@ -442,7 +442,7 @@ function applyAdminAccessState() {
 
   document
     .querySelectorAll(
-      '.admin-only-tab, #adminTab, #gamesTab'
+      '.admin-only-tab, .admin-only-content, #adminTab, #gamesTab'
     )
     .forEach(element => {
       element.hidden =
