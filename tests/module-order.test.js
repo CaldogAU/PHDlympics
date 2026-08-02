@@ -343,6 +343,22 @@ test("shows a top-level workflow for every game mode", () => {
   );
 });
 
+test("labels the four-player Swiss scoring outcome clearly", () => {
+  const app = fs.readFileSync(
+    path.join(__dirname, "..", "js", "app.js"),
+    "utf8"
+  );
+
+  assert.match(
+    app,
+    /"Overall Tournament Points Allocated"/
+  );
+  assert.doesNotMatch(
+    app,
+    /\["Close tournament", \[\["Final points"/
+  );
+});
+
 test("uses a reduced-motion-safe ambient background animation", () => {
   const styles = fs.readFileSync(
     path.join(

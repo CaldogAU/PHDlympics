@@ -301,7 +301,7 @@ const GAME_MODE_DIAGRAMS = {
       ["Top-ranked group", ["A1", "B1", "A2", "B2"], "advance"],
       ["Next-ranked group", ["A3", "B3", "A4", "B4"]]
     ]],
-    ["Close tournament", [["Final points", ["1st - 8 pts", "2nd - 7 pts", "...", "8th - 1 pt"], "advance"]]]
+    ["Overall Tournament Points Allocated", [["Final points", ["1st - 8 pts", "2nd - 7 pts", "...", "8th - 1 pt"], "advance"]]]
   ],
   "time-trial": [
     ["Attempts", [["Complete the course", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
