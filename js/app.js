@@ -2001,7 +2001,7 @@ function bindDataToolEvents() {
   );
 }
 
-async function resetTournamentWithAudit() {
+async function fullResetTournamentWithAudit() {
   if (
     typeof canTournament !==
       "function" ||
@@ -2016,7 +2016,7 @@ async function resetTournamentWithAudit() {
   }
 
   const confirmed = confirm(
-    "Reset this tournament for every viewer? This cannot be undone unless a cloud restore point exists."
+    "FULL RESET: Remove all teams, games, scores, results and tournament settings for every viewer? This cannot be undone unless a cloud restore point exists."
   );
 
   if (!confirmed) {
@@ -2047,8 +2047,9 @@ async function resetTournamentWithAudit() {
     ) {
       await recordAuditEntry(
         "tournament.reset",
-        "Reset the tournament to its default state.",
+        "Performed a full reset of the tournament and its configuration.",
         {
+          resetType: "full",
           previousSummary: {
             tournament:
               getTournamentAuditDetails(
@@ -2089,6 +2090,9 @@ async function resetTournamentWithAudit() {
       );
     }
   } catch (error) {
+    PHDTournament.state =
+      previousState;
+    render();
     console.error(
       "The tournament could not be reset.",
       error
@@ -2098,6 +2102,76 @@ async function resetTournamentWithAudit() {
       error && error.message
         ? error.message
         : "The tournament could not be reset."
+    );
+  }
+}
+
+async function resetTournamentProgressWithAudit() {
+  if (
+    typeof canTournament !== "function" ||
+    !canTournament("tournament.reset")
+  ) {
+    alert(
+      "Only the primary administrator can reset tournament progress."
+    );
+    return;
+  }
+
+  const confirmed = confirm(
+    "TOURNAMENT RESET: Keep all teams and video games, but clear every score, round, event and game result for the current tournament?"
+  );
+  if (!confirmed) return;
+
+  const previousState = structuredClone(
+    PHDTournament.state
+  );
+  PHDTournament.state =
+    mergeTournamentState(
+      createTournamentProgressResetState(
+        PHDTournament.state
+      )
+    );
+
+  clearGameForm();
+  clearTeamForm();
+  render();
+  switchTab("home");
+
+  try {
+    await saveState();
+
+    if (
+      typeof recordAuditEntry ===
+        "function"
+    ) {
+      await recordAuditEntry(
+        "tournament.progress-reset",
+        "Reset tournament progress while retaining teams and video games.",
+        {
+          resetType: "progress-only",
+          preservedTeamCount:
+            PHDTournament.state.teams.length,
+          preservedGameCount:
+            PHDTournament.state.games.length,
+          clearedRoundCount:
+            previousState.rounds.length,
+          clearedEventCount:
+            previousState.events.length
+        }
+      );
+    }
+  } catch (error) {
+    PHDTournament.state =
+      previousState;
+    render();
+    console.error(
+      "Tournament progress could not be reset.",
+      error
+    );
+    alert(
+      error && error.message
+        ? error.message
+        : "Tournament progress could not be reset."
     );
   }
 }
@@ -2133,8 +2207,12 @@ function bindAppEvents() {
   );
 
   bindClick(
-    "resetTournament",
-    resetTournamentWithAudit
+    "fullResetTournament",
+    fullResetTournamentWithAudit
+  );
+  bindClick(
+    "resetTournamentProgress",
+    resetTournamentProgressWithAudit
   );
 }
 

@@ -18,7 +18,8 @@ function getAuditActionLabel(action) {
   const labels = {
     "tournament.created": "Tournament created",
     "tournament.updated": "Tournament updated",
-    "tournament.reset": "Tournament reset",
+    "tournament.reset": "Full reset",
+    "tournament.progress-reset": "Tournament progress reset",
     "tournament.imported": "Tournament imported",
     "team.created": "Team added",
     "team.updated": "Team updated",

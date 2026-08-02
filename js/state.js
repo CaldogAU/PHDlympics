@@ -37,4 +37,44 @@ events: []
 
 PHDTournament.state = structuredClone(PHDTournament.defaultState);
 
+function createTournamentProgressResetState(sourceState) {
+  const source = sourceState || PHDTournament.defaultState;
+  const reset = structuredClone(source);
+
+  reset.rounds = [];
+  reset.events = [];
+  reset.games = (reset.games || []).map(game => {
+    const cleanGame = {
+      ...game,
+      completed: false,
+      completedAt: ""
+    };
+
+    if (cleanGame.fourPlayerSwiss) {
+      cleanGame.fourPlayerSwiss = {
+        ...cleanGame.fourPlayerSwiss,
+        closed: false,
+        closedAt: "",
+        entrantIds: [],
+        rounds: [],
+        finalStandings: []
+      };
+    }
+
+    if (cleanGame.fallGuysGrandPrix) {
+      cleanGame.fallGuysGrandPrix = {
+        ...cleanGame.fallGuysGrandPrix,
+        closed: false,
+        closedAt: "",
+        heats: [],
+        finalStandings: []
+      };
+    }
+
+    return cleanGame;
+  });
+
+  return reset;
+}
+
 PHDTournament.modules.push("state");

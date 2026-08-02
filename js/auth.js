@@ -40,7 +40,8 @@ const ADMIN_CONTROL_IDS = [
   "staffPassword",
   "staffTeam",
   "createStaffAccount",
-  "resetTournament"
+  "resetTournamentProgress",
+  "fullResetTournament"
 ];
 
 const ADMIN_DYNAMIC_SELECTORS = [
@@ -470,10 +471,12 @@ function applyAdminAccessState() {
   getAdminControlledElements().forEach(element => {
     const resetControl =
       element.id ===
-        "resetTournament" ||
+        "resetTournamentProgress" ||
+      element.id ===
+        "fullResetTournament" ||
       Boolean(
         element.closest(
-          "#resetTournament"
+          "#resetTournamentProgress, #fullResetTournament"
         )
       );
     const staffControl =

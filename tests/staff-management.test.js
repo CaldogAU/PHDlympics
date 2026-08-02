@@ -87,12 +87,29 @@ test("resolves managed staff from Firestore", () => {
 
 test("limits tournament reset to its dedicated capability", () => {
   const app = read("js/app.js");
+  const html = read("index.html");
   const storage =
     read("js/storage.js");
 
   assert.match(
     app,
     /canTournament\(\s*"tournament\.reset"/
+  );
+  assert.match(
+    html,
+    /id="resetTournamentProgress"/
+  );
+  assert.match(
+    html,
+    /id="fullResetTournament"/
+  );
+  assert.doesNotMatch(
+    html.match(/<header class="app-header">[\s\S]*?<\/header>/)[0],
+    /resetTournament|Full Reset|Tournament Reset/
+  );
+  assert.ok(
+    html.indexOf('id="fullResetTournament"') <
+      html.indexOf('id="resetTournamentProgress"')
   );
   assert.match(
     storage,
