@@ -398,3 +398,31 @@ test("uses a reduced-motion-safe ambient background animation", () => {
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*body::before[\s\S]*animation: none/
   );
 });
+
+test("display mode shows every team below the faster ticker", () => {
+  const root = path.join(__dirname, "..");
+  const display = fs.readFileSync(
+    path.join(root, "js", "display.js"),
+    "utf8"
+  );
+  const styles = fs.readFileSync(
+    path.join(root, "styles.css"),
+    "utf8"
+  );
+  const tickerIndex = display.indexOf(
+    '<section class="display-ticker">'
+  );
+  const standingsIndex = display.indexOf(
+    '<section class="display-grid">'
+  );
+
+  assert.match(display, /const standings = getStandings\(\);/);
+  assert.doesNotMatch(display, /getStandings\(\)\.slice\(0, 8\)/);
+  assert.equal(display.includes("Current Round"), false);
+  assert.ok(tickerIndex >= 0 && tickerIndex < standingsIndex);
+  assert.match(display, /--standings-columns:/);
+  assert.match(display, /--standings-font-size:/);
+  assert.match(styles, /animation: tickerScroll 52s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 56s linear infinite/);
+  assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
+});
