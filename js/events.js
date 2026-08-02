@@ -313,14 +313,15 @@ function renderEventGameOptions() {
 function renderTimeTrialEntries(
   event
 ) {
-  const participants = getGrandPrixParticipants(event);
-  const allParticipants = getGrandPrixParticipants(event, true);
-  const rankings = getGrandPrixTeamRankings(event);
-  const officeCount = new Set(
-    allParticipants.map(item => item.teamId)
-  ).size;
+  const teams =
+    getVisibleEventTeams(event);
+  const participantCount =
+    getVisibleEventTeams({
+      ...event,
+      completed: true
+    }).length;
 
-  if (participants.length === 0) {
+  if (teams.length === 0) {
     return `
       <div class="empty-state">
         Add teams before entering Time Trial results.
@@ -479,15 +480,14 @@ function renderTimeTrialEntries(
 function renderGrandPrixEntries(
   event
 ) {
-  const teams =
-    getVisibleEventTeams(event);
-  const participantCount =
-    getVisibleEventTeams({
-      ...event,
-      completed: true
-    }).length;
+  const participants = getGrandPrixParticipants(event);
+  const allParticipants = getGrandPrixParticipants(event, true);
+  const rankings = getGrandPrixTeamRankings(event);
+  const officeCount = new Set(
+    allParticipants.map(item => item.teamId)
+  ).size;
 
-  if (teams.length === 0) {
+  if (participants.length === 0) {
     return `
       <div class="empty-state">
         Add teams before entering Grand Prix results.
