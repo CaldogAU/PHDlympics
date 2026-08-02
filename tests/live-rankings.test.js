@@ -105,6 +105,33 @@ test("Grand Prix and Time Trial render ranks and tournament points", () => {
   );
 });
 
+test("Grand Prix and Time Trial renderers declare their own result collections", () => {
+  const events = read("js/events.js");
+  const timeTrialRenderer = events.match(
+    /function renderTimeTrialEntries[\s\S]*?function renderGrandPrixEntries/
+  )[0];
+  const grandPrixRenderer = events.match(
+    /function renderGrandPrixEntries[\s\S]*?function renderEventGameManagement/
+  )[0];
+
+  assert.match(
+    timeTrialRenderer,
+    /const teams\s*=\s*getVisibleEventTeams\(event\)/
+  );
+  assert.doesNotMatch(
+    timeTrialRenderer,
+    /getGrandPrixParticipants/
+  );
+  assert.match(
+    grandPrixRenderer,
+    /const participants\s*=\s*getGrandPrixParticipants\(event\)/
+  );
+  assert.match(
+    grandPrixRenderer,
+    /const rankings\s*=\s*getGrandPrixTeamRankings\(event\)/
+  );
+});
+
 test("event rows animate into provisional ranking order", () => {
   const events = read("js/events.js");
   const styles = read("styles.css");
