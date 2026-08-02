@@ -300,3 +300,27 @@ test("shows a top-level workflow for every game mode", () => {
     /class="game-mode-note"/
   );
 });
+
+test("uses a reduced-motion-safe ambient background animation", () => {
+  const styles = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "styles.css"
+    ),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /@keyframes ambientBackgroundBreath/
+  );
+  assert.match(
+    styles,
+    /body::before[\s\S]*ambientBackgroundBreath/
+  );
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*body::before[\s\S]*animation: none/
+  );
+});

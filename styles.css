@@ -40,19 +40,78 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: Arial, sans-serif;
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  inset: -18%;
+  pointer-events: none;
   background:
     radial-gradient(
-      circle at 82% 8%,
-      rgba(44, 118, 180, 0.15),
-      transparent 30%
+      circle at 76% 14%,
+      rgba(44, 118, 180, 0.22),
+      transparent 31%
     ),
     radial-gradient(
-      circle at 18% 72%,
-      rgba(109, 93, 252, 0.1),
-      transparent 34%
+      circle at 22% 74%,
+      rgba(109, 93, 252, 0.17),
+      transparent 35%
     ),
-    var(--bg);
-  color: var(--text);
+    radial-gradient(
+      circle at 52% 48%,
+      rgba(34, 201, 139, 0.055),
+      transparent 42%
+    );
+  opacity: 0.72;
+  transform: scale(1);
+  transform-origin: center;
+  animation:
+    ambientBackgroundBreath
+    28s
+    ease-in-out
+    infinite;
+  will-change: transform, opacity, filter;
+}
+
+.desktop-app-shell,
+.display-mode {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes ambientBackgroundBreath {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform:
+      translate3d(-1.2%, -0.8%, 0)
+      scale(1);
+    filter: saturate(0.94) hue-rotate(-2deg);
+  }
+
+  50% {
+    opacity: 0.82;
+    transform:
+      translate3d(1.2%, 0.8%, 0)
+      scale(1.055);
+    filter: saturate(1.08) hue-rotate(3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+    opacity: 0.68;
+    transform: none;
+    filter: none;
+  }
 }
 
 .desktop-app-shell {
