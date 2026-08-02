@@ -485,6 +485,43 @@ test("ranks Grand Prix results by finishing position", () => {
   );
 });
 
+test("aggregates player results and permits matching positions in different Grand Prix lobbies", () => {
+  const gameModes = loadGameModes();
+  const result = gameModes.buildResult(
+    gameModes.get("grand-prix"),
+    {
+      teams: [
+        { id: "a", name: "Alpha" },
+        { id: "b", name: "Bravo" },
+        { id: "c", name: "Charlie" }
+      ],
+      teamIds: ["a", "b", "c"],
+      results: [
+        { participantId: "a:player-1", teamId: "a", lobbyId: "lobby-1", lobbySize: 2, finishPosition: 1 },
+        { participantId: "b:player-1", teamId: "b", lobbyId: "lobby-1", lobbySize: 2, finishPosition: 2 },
+        { participantId: "c:player-1", teamId: "c", lobbyId: "lobby-2", lobbySize: 2, finishPosition: 1 },
+        { participantId: "a:player-2", teamId: "a", lobbyId: "lobby-2", lobbySize: 2, finishPosition: 2 }
+      ]
+    }
+  );
+
+  assert.equal(result.complete, true);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(
+      result.leaderboard.map(item => [
+        item.teamId,
+        item.custom.lobbyPoints,
+        item.position
+      ])
+    )),
+    [
+      ["a", 3, 1],
+      ["c", 2, 2],
+      ["b", 1, 3]
+    ]
+  );
+});
+
 test("assigns reverse-position tournament points to final four-player Swiss rankings", () => {
   const rankings = [
     {

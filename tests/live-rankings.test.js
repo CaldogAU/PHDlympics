@@ -24,6 +24,8 @@ function loadEventHelpers({
     events: []
   };
   const context = {
+    window: {},
+    structuredClone,
     PHDTournament: {
       state,
       modules: []
@@ -36,8 +38,23 @@ function loadEventHelpers({
     },
     getAssignedStaffTeamId() {
       return assignedTeamId;
+    },
+    getGameById(gameId) {
+      return state.games.find(
+        game => game.id === gameId
+      ) || null;
+    },
+    getTeamById(teamId) {
+      return state.teams.find(
+        team => team.id === teamId
+      ) || null;
     }
   };
+
+  vm.runInNewContext(
+    read("js/capacity.js"),
+    context
+  );
 
   vm.runInNewContext(
     read("js/events.js"),
@@ -60,10 +77,11 @@ function loadEventHelpers({
         context
       );
     },
-    grandPrixComplete(results) {
+    grandPrixComplete(results, event) {
       context.results = results;
+      context.event = event;
       return vm.runInNewContext(
-        "hasCompleteGrandPrixResults(results)",
+        "hasCompleteGrandPrixResults(results, event)",
         context
       );
     }
@@ -218,6 +236,49 @@ test("partial event results finalize only when every team is ranked", () => {
         finishPosition: 2
       }
     ]),
+    true
+  );
+});
+
+test("Grand Prix permits duplicate finishing positions across separate lobbies", () => {
+  const helpers = loadEventHelpers();
+  helpers.state.games.push({
+    id: "kart",
+    mode: "grand-prix",
+    capacity: {
+      maxPlayersPerConsole: 2,
+      maxPlayersPerLobby: 2,
+      configured: true
+    },
+    competitorEntries: {
+      a: 2,
+      b: 2
+    }
+  });
+  const event = {
+    gameId: "kart",
+    mode: "grand-prix",
+    completed: false,
+    results: []
+  };
+
+  assert.equal(
+    helpers.grandPrixComplete([
+      { participantId: "a:player-1", teamId: "a", finishPosition: 1 },
+      { participantId: "a:player-2", teamId: "a", finishPosition: 1 },
+      { participantId: "b:player-1", teamId: "b", finishPosition: 1 },
+      { participantId: "b:player-2", teamId: "b", finishPosition: 2 }
+    ], event),
+    false
+  );
+
+  assert.equal(
+    helpers.grandPrixComplete([
+      { participantId: "a:player-1", teamId: "a", finishPosition: 1 },
+      { participantId: "a:player-2", teamId: "a", finishPosition: 2 },
+      { participantId: "b:player-1", teamId: "b", finishPosition: 1 },
+      { participantId: "b:player-2", teamId: "b", finishPosition: 2 }
+    ], event),
     true
   );
 });

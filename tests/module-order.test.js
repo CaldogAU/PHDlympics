@@ -279,6 +279,18 @@ test("shows a top-level workflow for every game mode", () => {
     app,
     /PHDTournament\.state\.teams/
   );
+  assert.ok(
+    app.indexOf("${renderGameModeOverview(") <
+      app.indexOf("${renderGameCapacityManagement(game)}")
+  );
+  assert.match(
+    app,
+    /function enhanceCollapsibleGameFeatures/
+  );
+  assert.match(
+    app,
+    /data-feature-collapse/
+  );
   assert.match(
     app,
     /personaliseGameModeDiagram/
@@ -286,5 +298,29 @@ test("shows a top-level workflow for every game mode", () => {
   assert.match(
     app,
     /class="game-mode-note"/
+  );
+});
+
+test("uses a reduced-motion-safe ambient background animation", () => {
+  const styles = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "styles.css"
+    ),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /@keyframes ambientBackgroundBreath/
+  );
+  assert.match(
+    styles,
+    /body::before[\s\S]*ambientBackgroundBreath/
+  );
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*body::before[\s\S]*animation: none/
   );
 });

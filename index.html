@@ -97,7 +97,6 @@
           <span id="headerAuthStatus">View-only mode</span>
           <button id="themeToggle" type="button">Toggle Theme</button>
           <button id="displayModeToggle" type="button">Launch Display</button>
-          <button id="resetTournament" class="danger" type="button">Reset</button>
         </div>
       </header>
 
@@ -365,6 +364,29 @@
               </div>
 
               <ul id="teamList" class="team-list"></ul>
+            </section>
+
+            <section class="card wide tournament-reset-card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Destructive actions</p>
+                  <h2>Reset Tournament Data</h2>
+                  <p class="muted">
+                    Tournament Reset keeps teams and configured video games but
+                    clears current scores, rounds, events and game progress. Full
+                    Reset removes the entire tournament configuration and all data.
+                  </p>
+                </div>
+              </div>
+
+              <div class="button-row">
+                <button id="fullResetTournament" class="danger" type="button">
+                  Full reset
+                </button>
+                <button id="resetTournamentProgress" class="danger" type="button">
+                  Tournament Reset
+                </button>
+              </div>
             </section>
           </div>
         </section>

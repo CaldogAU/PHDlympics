@@ -880,6 +880,62 @@
           ? context.results
           : [];
 
+      if (
+        results.some(result =>
+          result.participantId
+        )
+      ) {
+        const teams = new Map();
+        results
+          .filter(result =>
+            Number.isInteger(
+              Number(result.finishPosition)
+            )
+          )
+          .forEach(result => {
+            if (!teams.has(result.teamId)) {
+              const team = context &&
+                Array.isArray(context.teams)
+                ? context.teams.find(
+                    item => item.id === result.teamId
+                  )
+                : null;
+              teams.set(result.teamId, {
+                teamId: result.teamId,
+                teamName: result.teamName ||
+                  (team ? team.name : ""),
+                lobbyPoints: 0,
+                bestFinish: Number.MAX_SAFE_INTEGER
+              });
+            }
+            const ranking = teams.get(result.teamId);
+            const finishPosition = Number(result.finishPosition);
+            const lobbySize = Number(result.lobbySize) || 1;
+            ranking.lobbyPoints +=
+              lobbySize - finishPosition + 1;
+            ranking.bestFinish = Math.min(
+              ranking.bestFinish,
+              finishPosition
+            );
+          });
+
+        return [...teams.values()]
+          .sort((rankingA, rankingB) =>
+            rankingB.lobbyPoints - rankingA.lobbyPoints ||
+            rankingA.bestFinish - rankingB.bestFinish ||
+            rankingA.teamName.localeCompare(rankingB.teamName)
+          )
+          .map((ranking, index) => ({
+            ...ranking,
+            finishPosition: index + 1,
+            rankValue: index + 1,
+            custom: {
+              lobbyPoints: ranking.lobbyPoints,
+              bestFinish: ranking.bestFinish
+            }
+          }));
+      }
+
       return results
         .filter(result =>
           Number.isInteger(

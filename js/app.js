@@ -474,6 +474,77 @@ function renderGameModeOverview(
   `;
 }
 
+const collapsedGameFeatures = new Set();
+
+function enhanceCollapsibleGameFeatures() {
+  document
+    .querySelectorAll(
+      '.tab-panel[id^="game-"] > .app-layout > .card'
+    )
+    .forEach((card, index) => {
+      if (
+        card.querySelector(
+          ":scope > .game-tab-header"
+        )
+      ) {
+        return;
+      }
+
+      const tab = card.closest(
+        '.tab-panel[id^="game-"]'
+      );
+      const heading = card.querySelector(
+        "h2, h3, h4"
+      );
+      const featureKey = `${
+        tab ? tab.id : "game"
+      }:${index}:${
+        heading
+          ? heading.textContent.trim()
+          : "feature"
+      }`;
+      const collapsed =
+        collapsedGameFeatures.has(
+          featureKey
+        );
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      card.classList.add(
+        "collapsible-game-feature"
+      );
+      card.classList.toggle(
+        "is-collapsed",
+        collapsed
+      );
+      card.dataset.featureKey =
+        featureKey;
+      button.type = "button";
+      button.className =
+        "feature-collapse-button secondary";
+      button.dataset.featureCollapse =
+        "true";
+      button.setAttribute(
+        "aria-expanded",
+        String(!collapsed)
+      );
+      button.setAttribute(
+        "aria-label",
+        `${collapsed ? "Expand" : "Collapse"} ${
+          heading
+            ? heading.textContent.trim()
+            : "section"
+        }`
+      );
+      button.textContent = collapsed
+        ? "Expand"
+        : "Collapse";
+      card.appendChild(button);
+    });
+}
+
 function getMatchesForGame(gameId) {
   return PHDTournament.state.rounds.flatMap(
     round =>
@@ -957,6 +1028,11 @@ function renderGameTabs() {
               </div>
             </section>
 
+            ${renderGameModeOverview(
+              game,
+              mode
+            )}
+
             ${renderGameCapacityManagement(game)}
 
             ${managementHtml}
@@ -998,10 +1074,6 @@ function renderGameTabs() {
                 : ""
             }
 
-            ${renderGameModeOverview(
-              game,
-              mode
-            )}
           </div>
         </section>
       `;
@@ -1089,6 +1161,8 @@ renderStandings();
   ) {
     applyAdminAccessState();
   }
+
+  enhanceCollapsibleGameFeatures();
 
   restoreValidActiveTab();
 }
@@ -1603,6 +1677,57 @@ function bindGameEvents() {
       );
     }
   );
+
+  document.addEventListener(
+    "click",
+    event => {
+      const button = event.target.closest(
+        "[data-feature-collapse]"
+      );
+      if (!button) return;
+
+      const card = button.closest(
+        ".collapsible-game-feature"
+      );
+      if (!card) return;
+
+      const collapsed =
+        !card.classList.contains(
+          "is-collapsed"
+        );
+      card.classList.toggle(
+        "is-collapsed",
+        collapsed
+      );
+      if (collapsed) {
+        collapsedGameFeatures.add(
+          card.dataset.featureKey
+        );
+      } else {
+        collapsedGameFeatures.delete(
+          card.dataset.featureKey
+        );
+      }
+      button.textContent = collapsed
+        ? "Expand"
+        : "Collapse";
+      button.setAttribute(
+        "aria-expanded",
+        String(!collapsed)
+      );
+      const heading = card.querySelector(
+        "h2, h3, h4"
+      );
+      button.setAttribute(
+        "aria-label",
+        `${collapsed ? "Expand" : "Collapse"} ${
+          heading
+            ? heading.textContent.trim()
+            : "section"
+        }`
+      );
+    }
+  );
 }
 
 function bindTeamEvents() {
@@ -1876,7 +2001,7 @@ function bindDataToolEvents() {
   );
 }
 
-async function resetTournamentWithAudit() {
+async function fullResetTournamentWithAudit() {
   if (
     typeof canTournament !==
       "function" ||
@@ -1891,7 +2016,7 @@ async function resetTournamentWithAudit() {
   }
 
   const confirmed = confirm(
-    "Reset this tournament for every viewer? This cannot be undone unless a cloud restore point exists."
+    "FULL RESET: Remove all teams, games, scores, results and tournament settings for every viewer? This cannot be undone unless a cloud restore point exists."
   );
 
   if (!confirmed) {
@@ -1922,8 +2047,9 @@ async function resetTournamentWithAudit() {
     ) {
       await recordAuditEntry(
         "tournament.reset",
-        "Reset the tournament to its default state.",
+        "Performed a full reset of the tournament and its configuration.",
         {
+          resetType: "full",
           previousSummary: {
             tournament:
               getTournamentAuditDetails(
@@ -1964,6 +2090,9 @@ async function resetTournamentWithAudit() {
       );
     }
   } catch (error) {
+    PHDTournament.state =
+      previousState;
+    render();
     console.error(
       "The tournament could not be reset.",
       error
@@ -1973,6 +2102,76 @@ async function resetTournamentWithAudit() {
       error && error.message
         ? error.message
         : "The tournament could not be reset."
+    );
+  }
+}
+
+async function resetTournamentProgressWithAudit() {
+  if (
+    typeof canTournament !== "function" ||
+    !canTournament("tournament.reset")
+  ) {
+    alert(
+      "Only the primary administrator can reset tournament progress."
+    );
+    return;
+  }
+
+  const confirmed = confirm(
+    "TOURNAMENT RESET: Keep all teams and video games, but clear every score, round, event and game result for the current tournament?"
+  );
+  if (!confirmed) return;
+
+  const previousState = structuredClone(
+    PHDTournament.state
+  );
+  PHDTournament.state =
+    mergeTournamentState(
+      createTournamentProgressResetState(
+        PHDTournament.state
+      )
+    );
+
+  clearGameForm();
+  clearTeamForm();
+  render();
+  switchTab("home");
+
+  try {
+    await saveState();
+
+    if (
+      typeof recordAuditEntry ===
+        "function"
+    ) {
+      await recordAuditEntry(
+        "tournament.progress-reset",
+        "Reset tournament progress while retaining teams and video games.",
+        {
+          resetType: "progress-only",
+          preservedTeamCount:
+            PHDTournament.state.teams.length,
+          preservedGameCount:
+            PHDTournament.state.games.length,
+          clearedRoundCount:
+            previousState.rounds.length,
+          clearedEventCount:
+            previousState.events.length
+        }
+      );
+    }
+  } catch (error) {
+    PHDTournament.state =
+      previousState;
+    render();
+    console.error(
+      "Tournament progress could not be reset.",
+      error
+    );
+    alert(
+      error && error.message
+        ? error.message
+        : "Tournament progress could not be reset."
     );
   }
 }
@@ -2008,8 +2207,12 @@ function bindAppEvents() {
   );
 
   bindClick(
-    "resetTournament",
-    resetTournamentWithAudit
+    "fullResetTournament",
+    fullResetTournamentWithAudit
+  );
+  bindClick(
+    "resetTournamentProgress",
+    resetTournamentProgressWithAudit
   );
 }
 

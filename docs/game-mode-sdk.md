@@ -84,7 +84,8 @@ model cannot safely represent the selected capacity or competitor counts.
 - `time-trial`: completion-time entry; results remain hidden until complete
 - `grand-prix`: administrator-entered finishing order; results remain hidden
   until complete
-- `four-player-swiss`: ranked groups of four; currently one competitor per office
+- `four-player-swiss`: complete four-player lobbies with player-level placements;
+  office console groups remain together and player points aggregate to the office
 - `fall-guys-grand-prix`: repeated heats and office-level scoring
 
 ## Extension rules
