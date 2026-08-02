@@ -45,6 +45,8 @@ body {
   overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
+  animation:
+    ambientPageBase 20s ease-in-out infinite;
 }
 
 body::before {
@@ -56,25 +58,25 @@ body::before {
   background:
     radial-gradient(
       circle at 76% 14%,
-      rgba(44, 118, 180, 0.22),
-      transparent 31%
+      rgba(44, 118, 180, 0.42),
+      transparent 34%
     ),
     radial-gradient(
       circle at 22% 74%,
-      rgba(109, 93, 252, 0.17),
-      transparent 35%
+      rgba(109, 93, 252, 0.34),
+      transparent 38%
     ),
     radial-gradient(
       circle at 52% 48%,
-      rgba(34, 201, 139, 0.055),
-      transparent 42%
+      rgba(34, 201, 139, 0.16),
+      transparent 45%
     );
   opacity: 0.72;
   transform: scale(1);
   transform-origin: center;
   animation:
     ambientBackgroundBreath
-    28s
+    20s
     ease-in-out
     infinite;
   will-change: transform, opacity, filter;
@@ -89,23 +91,38 @@ body::before {
 @keyframes ambientBackgroundBreath {
   0%,
   100% {
-    opacity: 0.62;
+    opacity: 0.52;
     transform:
-      translate3d(-1.2%, -0.8%, 0)
-      scale(1);
-    filter: saturate(0.94) hue-rotate(-2deg);
+      translate3d(-3.5%, -2.5%, 0)
+      scale(0.98);
+    filter: saturate(0.88) hue-rotate(-6deg);
   }
 
   50% {
-    opacity: 0.82;
+    opacity: 1;
     transform:
-      translate3d(1.2%, 0.8%, 0)
-      scale(1.055);
-    filter: saturate(1.08) hue-rotate(3deg);
+      translate3d(3.5%, 2.5%, 0)
+      scale(1.12);
+    filter: saturate(1.28) hue-rotate(8deg);
+  }
+}
+
+@keyframes ambientPageBase {
+  0%,
+  100% {
+    background-color: #050b14;
+  }
+
+  50% {
+    background-color: #0a1024;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+
   body::before {
     animation: none;
     opacity: 0.68;

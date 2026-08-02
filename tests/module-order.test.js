@@ -397,6 +397,18 @@ test("uses a reduced-motion-safe ambient background animation", () => {
     styles,
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*body::before[\s\S]*animation: none/
   );
+  assert.match(
+    styles,
+    /@keyframes ambientPageBase/
+  );
+  assert.match(
+    styles,
+    /opacity: 1;[\s\S]*scale\(1\.12\)[\s\S]*saturate\(1\.28\)/
+  );
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*body \{[\s\S]*animation: none/
+  );
 });
 
 test("display mode shows every team below the faster ticker", () => {
