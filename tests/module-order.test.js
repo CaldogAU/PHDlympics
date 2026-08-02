@@ -343,19 +343,35 @@ test("shows a top-level workflow for every game mode", () => {
   );
 });
 
-test("labels the four-player Swiss scoring outcome clearly", () => {
+test("labels tournament-point outcomes clearly in multiplayer diagrams", () => {
   const app = fs.readFileSync(
     path.join(__dirname, "..", "js", "app.js"),
     "utf8"
   );
 
-  assert.match(
-    app,
-    /"Overall Tournament Points Allocated"/
+  assert.equal(
+    (
+      app.match(
+        /"Overall Tournament Points Allocated"/g
+      ) || []
+    ).length,
+    4
   );
   assert.doesNotMatch(
     app,
     /\["Close tournament", \[\["Final points"/
+  );
+  assert.match(
+    app,
+    /\["Live ranking"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Tournament points"/
+  );
+  assert.match(
+    app,
+    /\["Points scale"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Overall standings update"/
+  );
+  assert.match(
+    app,
+    /\["Heat points"[\s\S]*?\["Overall Tournament Points Allocated", \[\["After all heats"/
   );
 });
 

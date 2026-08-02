@@ -307,13 +307,13 @@ const GAME_MODE_DIAGRAMS = {
     ["Attempts", [["Complete the course", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
     ["Record times", [["Minutes : seconds", ["Run A 1:08", "Run B 1:12", "Run C 1:17", "Run D 1:24"]]]],
     ["Live ranking", [["Fastest to slowest", ["1 Run A", "2 Run B", "3 Run C", "4 Run D"], "advance"]]],
-    ["Complete", [["Tournament points", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"], "advance"]]]
+    ["Overall Tournament Points Allocated", [["Tournament points", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"], "advance"]]]
   ],
   "grand-prix": [
     ["Starting field", [["All teams compete", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
     ["Finish order", [["Enter placements", ["1st place", "2nd place", "3rd place", "4th place"]]]],
     ["Points scale", [["Reverse position", ["1st = 4 pts", "2nd = 3 pts", "3rd = 2 pts", "4th = 1 pt"]]]],
-    ["Complete", [["Overall standings update", ["Winner +4", "Runner-up +3", "3rd +2", "4th +1"], "advance"]]]
+    ["Overall Tournament Points Allocated", [["Overall standings update", ["Winner +4", "Runner-up +3", "3rd +2", "4th +1"], "advance"]]]
   ],
   "fall-guys-grand-prix": [
     ["Play heat", [["Office players", ["Sydney - Players A & B", "Melbourne - Players A & B", "Brisbane - Players A & B", "Auckland - Players A & B"]]]],
@@ -322,7 +322,7 @@ const GAME_MODE_DIAGRAMS = {
       ["Scoring", ["1st 10 pts", "3rd 6 pts", "Qualified 3 pts", "Played 1 pt"]],
       ["Best results count", ["Office 1 - 13 pts", "Office 2 - 7 pts"], "advance"]
     ]],
-    ["Final office ranking", [["After all heats", ["1st office", "2nd office", "3rd office", "4th office"], "advance"]]]
+    ["Overall Tournament Points Allocated", [["After all heats", ["1st office", "2nd office", "3rd office", "4th office"], "advance"]]]
   ]
 };
 
