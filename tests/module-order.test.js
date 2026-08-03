@@ -228,6 +228,10 @@ test("scopes staff competitor counts to their assigned team", () => {
     auth,
     /const competitorEntryControl/
   );
+  assert.match(
+    app,
+    /subscribeToAuth\(\(\) => \{[\s\S]*?render\(\);[\s\S]*?applyAdminAccessState\(\)/
+  );
 });
 
 test("shows report data tools only to administrators", () => {

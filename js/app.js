@@ -2283,6 +2283,10 @@ function subscribeToCloudAndAuthUi() {
     "function"
   ) {
     subscribeToAuth(() => {
+      // Staff roles and assigned teams are resolved asynchronously. Rebuild
+      // the page so team-scoped controls are created once that data arrives.
+      render();
+
       if (
         typeof applyAdminAccessState ===
         "function"
