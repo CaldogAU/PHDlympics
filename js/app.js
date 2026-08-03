@@ -1216,6 +1216,34 @@ function requireAdminForAction() {
   return false;
 }
 
+function requireTeamManagementForAction() {
+  if (
+    typeof canTournament ===
+      "function" &&
+    (
+      canTournament(
+        "tournament.manage"
+      ) ||
+      canTournament(
+        "results.manage"
+      )
+    )
+  ) {
+    return true;
+  }
+
+  const authStatus =
+    getElement("authStatus");
+
+  if (authStatus) {
+    authStatus.textContent =
+      "Staff access is required to manage teams.";
+    authStatus.classList.add("error");
+  }
+
+  return false;
+}
+
 function getTournamentAuditDetails(
   tournament
 ) {
@@ -1766,7 +1794,7 @@ function bindGameEvents() {
 
 function bindTeamEvents() {
   bindClick("saveTeam", () => {
-    if (!requireAdminForAction()) {
+    if (!requireTeamManagementForAction()) {
       return;
     }
 
@@ -1776,7 +1804,7 @@ function bindTeamEvents() {
   bindClick(
     "clearTeamForm",
     () => {
-      if (!requireAdminForAction()) {
+      if (!requireTeamManagementForAction()) {
         return;
       }
 
@@ -1793,7 +1821,7 @@ function bindTeamEvents() {
       event => {
         if (
           event.key !== "Enter" ||
-          !requireAdminForAction()
+          !requireTeamManagementForAction()
         ) {
           return;
         }
@@ -1821,7 +1849,7 @@ function bindTeamEvents() {
           )
         ) {
           if (
-            !requireAdminForAction()
+            !requireTeamManagementForAction()
           ) {
             return;
           }
@@ -1837,7 +1865,7 @@ function bindTeamEvents() {
           )
         ) {
           if (
-            !requireAdminForAction()
+            !requireTeamManagementForAction()
           ) {
             return;
           }

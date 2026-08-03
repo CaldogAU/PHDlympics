@@ -188,6 +188,33 @@ test("allows staff into the Admin and Games management pages", () => {
   );
 });
 
+test("allows staff to use team Edit and Delete controls", () => {
+  const root = path.join(__dirname, "..");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
+
+  assert.match(
+    auth,
+    /const teamManagementControl =[\s\S]*?"edit-team"[\s\S]*?"delete-team"/
+  );
+  assert.match(
+    auth,
+    /teamManagementControl[\s\S]*?\? canAccessAdmin/
+  );
+  assert.match(
+    app,
+    /function requireTeamManagementForAction\(\)[\s\S]*?"results\.manage"/
+  );
+  assert.match(
+    app,
+    /classList\.contains\(\s*"edit-team"[\s\S]*?requireTeamManagementForAction\(\)/
+  );
+  assert.match(
+    app,
+    /classList\.contains\(\s*"delete-team"[\s\S]*?requireTeamManagementForAction\(\)/
+  );
+});
+
 test("shows report data tools only to administrators", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
