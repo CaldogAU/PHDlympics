@@ -85,7 +85,7 @@ test("resolves managed staff from Firestore", () => {
   );
 });
 
-test("limits tournament reset to its dedicated capability", () => {
+test("limits tournament reset to Callum's destructive-action access", () => {
   const app = read("js/app.js");
   const html = read("index.html");
   const storage =
@@ -93,7 +93,7 @@ test("limits tournament reset to its dedicated capability", () => {
 
   assert.match(
     app,
-    /canTournament\(\s*"tournament\.reset"/
+    /canAccessDestructiveActions\(\)/
   );
   assert.match(
     html,

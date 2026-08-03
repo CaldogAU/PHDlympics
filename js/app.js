@@ -475,13 +475,22 @@ function renderGameModeOverview(
 }
 
 const collapsedGameFeatures = new Set();
+const initialisedAdminFeatures = new Set();
 
 function enhanceCollapsibleGameFeatures() {
   document
     .querySelectorAll(
-      '.tab-panel[id^="game-"] > .app-layout > .card'
+      '.tab-panel[id^="game-"] > .app-layout > .card, #adminTab > .app-layout > .card'
     )
     .forEach((card, index) => {
+      if (
+        card.querySelector(
+          ":scope > .feature-collapse-button"
+        )
+      ) {
+        return;
+      }
+
       if (
         card.querySelector(
           ":scope > .game-tab-header"
@@ -491,7 +500,7 @@ function enhanceCollapsibleGameFeatures() {
       }
 
       const tab = card.closest(
-        '.tab-panel[id^="game-"]'
+        ".tab-panel"
       );
       const heading = card.querySelector(
         "h2, h3, h4"
@@ -503,6 +512,24 @@ function enhanceCollapsibleGameFeatures() {
           ? heading.textContent.trim()
           : "feature"
       }`;
+      const isAdminFeature =
+        Boolean(
+          card.closest("#adminTab")
+        );
+
+      if (
+        isAdminFeature &&
+        !initialisedAdminFeatures.has(
+          featureKey
+        )
+      ) {
+        initialisedAdminFeatures.add(
+          featureKey
+        );
+        collapsedGameFeatures.add(
+          featureKey
+        );
+      }
       const collapsed =
         collapsedGameFeatures.has(
           featureKey
@@ -1422,9 +1449,16 @@ function getValidTabName(tabName) {
       tabName
     ) &&
     (
-      typeof isTournamentAdmin !==
+      typeof canTournament !==
         "function" ||
-      !isTournamentAdmin()
+      !(
+        canTournament(
+          "tournament.manage"
+        ) ||
+        canTournament(
+          "results.manage"
+        )
+      )
     )
   ) {
     return "home";
@@ -2003,11 +2037,9 @@ function bindDataToolEvents() {
 
 async function fullResetTournamentWithAudit() {
   if (
-    typeof canTournament !==
+    typeof canAccessDestructiveActions !==
       "function" ||
-    !canTournament(
-      "tournament.reset"
-    )
+    !canAccessDestructiveActions()
   ) {
     alert(
       "Only the primary administrator can reset the tournament."
@@ -2108,8 +2140,9 @@ async function fullResetTournamentWithAudit() {
 
 async function resetTournamentProgressWithAudit() {
   if (
-    typeof canTournament !== "function" ||
-    !canTournament("tournament.reset")
+    typeof canAccessDestructiveActions !==
+      "function" ||
+    !canAccessDestructiveActions()
   ) {
     alert(
       "Only the primary administrator can reset tournament progress."

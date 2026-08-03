@@ -160,18 +160,31 @@ test("keeps mode management on game pages", () => {
   );
 });
 
-test("marks Admin and Games navigation as administrator-only", () => {
+test("allows staff into the Admin and Games management pages", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
   const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
 
-  assert.match(html, /data-tab="admin" hidden/);
-  assert.match(html, /data-tab="games" hidden/);
-  assert.match(app, /\["admin", "games"\]/);
+  assert.match(
+    html,
+    /class="tab-button staff-access-tab"[^>]*data-tab="admin" hidden/
+  );
+  assert.match(
+    html,
+    /class="tab-button staff-access-tab"[^>]*data-tab="games" hidden/
+  );
+  assert.match(
+    app,
+    /\["admin", "games"\]\.includes\([\s\S]*?canTournament\(\s*"results\.manage"/
+  );
   assert.match(
     auth,
-    /\.admin-only-tab,[^']*#adminTab, #gamesTab/
+    /\.staff-access-tab, #adminTab, #gamesTab/
+  );
+  assert.match(
+    auth,
+    /const canAccessAdmin =\s*canManageTournament \|\|\s*canEnterResults/
   );
 });
 
@@ -186,7 +199,55 @@ test("shows report data tools only to administrators", () => {
   );
   assert.match(
     auth,
-    /\.admin-only-tab, \.admin-only-content, #adminTab, #gamesTab/
+    /\.admin-only-tab, \.admin-only-content/
+  );
+});
+
+test("restricts destructive actions to Callum's administrator account", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+
+  assert.match(
+    html,
+    /class="card wide tournament-reset-card primary-admin-only"[\s\S]*?hidden[\s\S]*?Destructive actions/
+  );
+  assert.match(
+    auth,
+    /function canAccessDestructiveActions\(\)[\s\S]*?isRootAdministrator\(\)[\s\S]*?callum\.henderson@omc\.com/
+  );
+  assert.match(
+    auth,
+    /\.primary-admin-only[\s\S]*?!canUseDestructiveActions/
+  );
+  assert.match(
+    app,
+    /typeof canAccessDestructiveActions[\s\S]*?!canAccessDestructiveActions\(\)/
+  );
+});
+
+test("adds collapsed-by-default controls to every Admin card", () => {
+  const app = fs.readFileSync(
+    path.join(__dirname, "..", "js", "app.js"),
+    "utf8"
+  );
+
+  assert.match(
+    app,
+    /#adminTab > \.app-layout > \.card/
+  );
+  assert.match(
+    app,
+    /const initialisedAdminFeatures = new Set\(\)/
+  );
+  assert.match(
+    app,
+    /isAdminFeature[\s\S]*?collapsedGameFeatures\.add\(\s*featureKey/
+  );
+  assert.match(
+    app,
+    /:scope > \.feature-collapse-button/
   );
 });
 

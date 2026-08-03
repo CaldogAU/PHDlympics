@@ -27,8 +27,8 @@
 
       <nav class="tab-nav" aria-label="Main navigation">
         <button class="tab-button active" type="button" data-tab="home">Home</button>
-        <button class="tab-button admin-only-tab" type="button" data-tab="admin" hidden>Admin</button>
-        <button class="tab-button admin-only-tab" type="button" data-tab="games" hidden>Games</button>
+        <button class="tab-button staff-access-tab" type="button" data-tab="admin" hidden>Admin</button>
+        <button class="tab-button staff-access-tab" type="button" data-tab="games" hidden>Games</button>
         <button class="tab-button" type="button" data-tab="standings">Standings</button>
         <button class="tab-button" type="button" data-tab="reports">Reports</button>
         <button class="tab-button" type="button" data-tab="display">Display</button>
@@ -366,7 +366,10 @@
               <ul id="teamList" class="team-list"></ul>
             </section>
 
-            <section class="card wide tournament-reset-card">
+            <section
+              class="card wide tournament-reset-card primary-admin-only"
+              hidden
+            >
               <div class="section-heading">
                 <div>
                   <p class="eyebrow">Destructive actions</p>
