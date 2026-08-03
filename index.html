@@ -398,7 +398,7 @@
                 <div>
                   <p class="eyebrow">Games</p>
                   <h2>Video Games</h2>
-                  <p id="gameCount" class="muted">0 / 5 games added</p>
+                  <p id="gameCount" class="muted">0 games added</p>
                 </div>
 
                 <button id="clearGameForm" class="secondary" type="button">
@@ -541,7 +541,11 @@
               <div id="reportPreview"></div>
             </section>
 
-            <section class="card wide">
+            <section
+              id="reportDataTools"
+              class="card wide admin-only-content"
+              hidden
+            >
               <div class="section-heading">
                 <div>
                   <h2>Data Tools</h2>
@@ -615,8 +619,8 @@
                   <p class="eyebrow">Display</p>
                   <h2>Public Display Mode</h2>
                   <p class="muted">
-                    Launch a full-screen display with the clock, top standings,
-                    current round and ticker.
+                    Launch a full-screen display with the clock, live ticker
+                    and complete tournament standings.
                   </p>
                 </div>
 

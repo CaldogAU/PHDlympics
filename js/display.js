@@ -2,10 +2,6 @@ let displayRefreshTimer = null;
 let displayClockTimer = null;
 let previousDisplayLeader = null;
 
-function getCurrentRound() {
-  return PHDTournament.state.rounds.at(-1) || null;
-}
-
 function formatDisplayTime() {
   return new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -78,8 +74,23 @@ function renderDisplayMode() {
     getDisplayTickerText();
 
   const tournament = getTournament();
-  const standings = getStandings().slice(0, 8);
-  const currentRound = getCurrentRound();
+  const standings = getStandings();
+  const standingsColumns = Math.max(
+    1,
+    Math.ceil(Math.sqrt(standings.length / 2))
+  );
+  const standingsRows = Math.max(
+    1,
+    Math.ceil(standings.length / standingsColumns)
+  );
+  const standingsFontSize = Math.max(
+    0.8,
+    Math.min(3.9, 35 / standingsRows)
+  );
+  const standingsGap = Math.max(
+    1,
+    Math.min(14, Math.floor(70 / standingsRows))
+  );
 
   const currentLeader = standings[0] ? standings[0].id : null;
   const leaderChanged = previousDisplayLeader && currentLeader !== previousDisplayLeader;
@@ -95,36 +106,6 @@ function renderDisplayMode() {
     `).join("")
     : `<p>No standings yet.</p>`;
 
-  const matchesHtml = currentRound
-    ? currentRound.matches.map(match => {
-      const teamA = getTeamById(match.teamAId);
-      const teamB = getTeamById(match.teamBId);
-      const gameLabel = match.gameId ? getGameLabel(match.gameId) : "No game selected";
-
-      if (match.bye) {
-        return `
-          <div class="display-match">
-            <strong>${escapeHtml(teamA ? teamA.name : "Unknown")}</strong>
-            <span>BYE</span>
-            <span></span>
-          </div>
-        `;
-      }
-
-      return `
-        <div class="display-match-with-game">
-          <div class="display-game-name">${escapeHtml(gameLabel)}</div>
-
-          <div class="display-match">
-            <strong>${escapeHtml(teamA ? teamA.name : "Unknown")}</strong>
-            <span>${match.completed ? `${match.scoreA} - ${match.scoreB}` : "vs"}</span>
-            <strong>${escapeHtml(teamB ? teamB.name : "Unknown")}</strong>
-          </div>
-        </div>
-      `;
-    }).join("")
-    : `<p>No current round.</p>`;
-
   const displayHtml = `
     <section class="display-topbar">
       <div>
@@ -139,20 +120,18 @@ function renderDisplayMode() {
       </div>
     </section>
 
+    <section class="display-ticker">
+      <div>${escapeHtml(tickerText)}</div>
+    </section>
+
     <section class="display-grid">
-      <article class="display-panel">
+      <article
+        class="display-panel display-standings-panel"
+        style="--standings-columns: ${standingsColumns}; --standings-rows: ${standingsRows}; --standings-font-size: ${standingsFontSize}vh; --standings-gap: ${standingsGap}px;"
+      >
         <h3>Top Standings</h3>
         <div class="display-list">${standingsHtml}</div>
       </article>
-
-      <article class="display-panel">
-        <h3>${currentRound ? `Round ${currentRound.number}` : "Current Round"}</h3>
-        <div class="display-list">${matchesHtml}</div>
-      </article>
-    </section>
-
-    <section class="display-ticker">
-      <div>${escapeHtml(tickerText)}</div>
     </section>
   `;
 

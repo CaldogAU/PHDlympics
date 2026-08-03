@@ -45,6 +45,8 @@ body {
   overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
+  animation:
+    ambientPageBase 20s ease-in-out infinite;
 }
 
 body::before {
@@ -56,25 +58,25 @@ body::before {
   background:
     radial-gradient(
       circle at 76% 14%,
-      rgba(44, 118, 180, 0.22),
-      transparent 31%
+      rgba(44, 118, 180, 0.42),
+      transparent 34%
     ),
     radial-gradient(
       circle at 22% 74%,
-      rgba(109, 93, 252, 0.17),
-      transparent 35%
+      rgba(109, 93, 252, 0.34),
+      transparent 38%
     ),
     radial-gradient(
       circle at 52% 48%,
-      rgba(34, 201, 139, 0.055),
-      transparent 42%
+      rgba(34, 201, 139, 0.16),
+      transparent 45%
     );
   opacity: 0.72;
   transform: scale(1);
   transform-origin: center;
   animation:
     ambientBackgroundBreath
-    28s
+    20s
     ease-in-out
     infinite;
   will-change: transform, opacity, filter;
@@ -89,23 +91,38 @@ body::before {
 @keyframes ambientBackgroundBreath {
   0%,
   100% {
-    opacity: 0.62;
+    opacity: 0.52;
     transform:
-      translate3d(-1.2%, -0.8%, 0)
-      scale(1);
-    filter: saturate(0.94) hue-rotate(-2deg);
+      translate3d(-3.5%, -2.5%, 0)
+      scale(0.98);
+    filter: saturate(0.88) hue-rotate(-6deg);
   }
 
   50% {
-    opacity: 0.82;
+    opacity: 1;
     transform:
-      translate3d(1.2%, 0.8%, 0)
-      scale(1.055);
-    filter: saturate(1.08) hue-rotate(3deg);
+      translate3d(3.5%, 2.5%, 0)
+      scale(1.12);
+    filter: saturate(1.28) hue-rotate(8deg);
+  }
+}
+
+@keyframes ambientPageBase {
+  0%,
+  100% {
+    background-color: #050b14;
+  }
+
+  50% {
+    background-color: #0a1024;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+
   body::before {
     animation: none;
     opacity: 0.68;
@@ -1136,7 +1153,7 @@ tbody tr:hover {
 .activity-ticker div {
   display: inline-block;
   padding-left: 100%;
-  animation: tickerScroll 104s linear infinite;
+  animation: tickerScroll 52s linear infinite;
   font-weight: 700;
 }
 
@@ -1516,9 +1533,12 @@ body.display-active {
 
 body.display-active .display-mode {
   display: grid;
-  min-height: 100vh;
+  height: 100vh;
+  grid-template-rows: auto auto minmax(0, 1fr);
   padding: 36px;
-  gap: 28px;
+  gap: clamp(14px, 2vh, 28px);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .display-topbar {
@@ -1559,8 +1579,9 @@ body.display-active .display-mode {
 
 .display-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 28px;
+  min-height: 0;
 }
 
 .display-panel {
@@ -1579,6 +1600,43 @@ body.display-active .display-mode {
   border-radius: 28px;
   padding: 30px;
   box-shadow: var(--shadow);
+}
+
+.display-standings-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.display-standings-panel .display-list {
+  grid-template-columns:
+    repeat(var(--standings-columns), minmax(0, 1fr));
+  grid-template-rows:
+    repeat(var(--standings-rows), minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: var(--standings-gap);
+  min-height: 0;
+}
+
+.display-standings-panel .display-row {
+  min-width: 0;
+  padding: clamp(4px, 0.8vh, 18px) 0;
+  grid-template-columns:
+    clamp(34px, 5vw, 90px) minmax(0, 1fr) auto;
+  gap: clamp(6px, 1.2vw, 18px);
+  font-size: clamp(
+    8px,
+    var(--standings-font-size),
+    42px
+  );
+}
+
+.display-standings-panel .display-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .display-panel h3 {
@@ -1690,7 +1748,7 @@ body.display-active .display-mode {
   display: inline-block;
   position: relative;
   width: max-content;
-  animation: tickerScroll 112s linear infinite;
+  animation: tickerScroll 56s linear infinite;
   will-change: left, transform;
 }
 
@@ -2237,9 +2295,9 @@ body.dark .audit-entry-marker {
 }
 
 .team-page-logo {
-  width: 120px;
-  height: 120px;
-  border-radius: 28px;
+  width: 360px;
+  height: 360px;
+  border-radius: 36px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -2434,11 +2492,16 @@ body.dark .audit-entry-marker {
 }
 
 /*
- * The main team-page logo remains inside its 120px card.
- * This prevents wide or tall logos from overflowing.
+ * The main team-page logo fills its enlarged 360px card.
+ * Explicit dimensions upscale smaller source images while
+ * preserving their aspect ratio and preventing overflow.
  */
 .team-page-logo img {
-  max-height: min(600px, 100%);
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
 }
 
 /* Dark-mode adjustments */
@@ -2495,10 +2558,11 @@ body.dark .team-page-game-row {
   }
 
   .team-page-logo {
-    width: 100px;
-    height: 100px;
+    width: min(360px, 100%);
+    height: auto;
+    aspect-ratio: 1;
     margin: 0 auto;
-    border-radius: 24px;
+    border-radius: 30px;
   }
 
   .team-page-position {

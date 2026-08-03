@@ -169,7 +169,25 @@ test("marks Admin and Games navigation as administrator-only", () => {
   assert.match(html, /data-tab="admin" hidden/);
   assert.match(html, /data-tab="games" hidden/);
   assert.match(app, /\["admin", "games"\]/);
-  assert.match(auth, /\.admin-only-tab, #adminTab, #gamesTab/);
+  assert.match(
+    auth,
+    /\.admin-only-tab,[^']*#adminTab, #gamesTab/
+  );
+});
+
+test("shows report data tools only to administrators", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
+
+  assert.match(
+    html,
+    /id="reportDataTools"[\s\S]*?class="card wide admin-only-content"[\s\S]*?hidden/
+  );
+  assert.match(
+    auth,
+    /\.admin-only-tab, \.admin-only-content, #adminTab, #gamesTab/
+  );
 });
 
 test("loads staff management after Firebase authentication", () => {
@@ -221,6 +239,30 @@ test("does not expose the legacy game format field", () => {
   assert.doesNotMatch(
     games,
     /getValue\("gameFormat"\)/
+  );
+});
+
+test("allows an unlimited number of configured games", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "..", "index.html"),
+    "utf8"
+  );
+  const games = fs.readFileSync(
+    path.join(__dirname, "..", "js", "games.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(
+    games,
+    /games\.length\s*>=\s*5|supports up to 5 games|\/ 5 games added/
+  );
+  assert.doesNotMatch(
+    html,
+    /\/ 5 games added/
+  );
+  assert.match(
+    games,
+    /games\.length === 1\s*\? "game"\s*:\s*"games"/
   );
 });
 
@@ -301,6 +343,38 @@ test("shows a top-level workflow for every game mode", () => {
   );
 });
 
+test("labels tournament-point outcomes clearly in multiplayer diagrams", () => {
+  const app = fs.readFileSync(
+    path.join(__dirname, "..", "js", "app.js"),
+    "utf8"
+  );
+
+  assert.equal(
+    (
+      app.match(
+        /"Overall Tournament Points Allocated"/g
+      ) || []
+    ).length,
+    4
+  );
+  assert.doesNotMatch(
+    app,
+    /\["Close tournament", \[\["Final points"/
+  );
+  assert.match(
+    app,
+    /\["Live ranking"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Tournament points"/
+  );
+  assert.match(
+    app,
+    /\["Points scale"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Overall standings update"/
+  );
+  assert.match(
+    app,
+    /\["Heat points"[\s\S]*?\["Overall Tournament Points Allocated", \[\["After all heats"/
+  );
+});
+
 test("uses a reduced-motion-safe ambient background animation", () => {
   const styles = fs.readFileSync(
     path.join(
@@ -323,4 +397,44 @@ test("uses a reduced-motion-safe ambient background animation", () => {
     styles,
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*body::before[\s\S]*animation: none/
   );
+  assert.match(
+    styles,
+    /@keyframes ambientPageBase/
+  );
+  assert.match(
+    styles,
+    /opacity: 1;[\s\S]*scale\(1\.12\)[\s\S]*saturate\(1\.28\)/
+  );
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*body \{[\s\S]*animation: none/
+  );
+});
+
+test("display mode shows every team below the faster ticker", () => {
+  const root = path.join(__dirname, "..");
+  const display = fs.readFileSync(
+    path.join(root, "js", "display.js"),
+    "utf8"
+  );
+  const styles = fs.readFileSync(
+    path.join(root, "styles.css"),
+    "utf8"
+  );
+  const tickerIndex = display.indexOf(
+    '<section class="display-ticker">'
+  );
+  const standingsIndex = display.indexOf(
+    '<section class="display-grid">'
+  );
+
+  assert.match(display, /const standings = getStandings\(\);/);
+  assert.doesNotMatch(display, /getStandings\(\)\.slice\(0, 8\)/);
+  assert.equal(display.includes("Current Round"), false);
+  assert.ok(tickerIndex >= 0 && tickerIndex < standingsIndex);
+  assert.match(display, /--standings-columns:/);
+  assert.match(display, /--standings-font-size:/);
+  assert.match(styles, /animation: tickerScroll 52s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 56s linear infinite/);
+  assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
 });

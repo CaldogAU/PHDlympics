@@ -4,6 +4,22 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
+test("team page logos use the enlarged scalable image frame", () => {
+  const styles = fs.readFileSync(
+    path.join(__dirname, "..", "styles.css"),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /\.team-page-logo\s*\{[\s\S]*?width:\s*360px;[\s\S]*?height:\s*360px;/
+  );
+  assert.match(
+    styles,
+    /\.team-page-logo img\s*\{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;[\s\S]*?object-fit:\s*contain;/
+  );
+});
+
 function getHistory() {
   const state = {
     teams: [
