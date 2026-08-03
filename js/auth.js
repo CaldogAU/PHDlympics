@@ -276,6 +276,16 @@ function isRootAdministrator() {
   );
 }
 
+function canAccessDestructiveActions() {
+  const email =
+    PHDAuth.user && PHDAuth.user.email
+      ? PHDAuth.user.email.trim().toLowerCase()
+      : "";
+
+  return isRootAdministrator() &&
+    email === "callum.henderson@omc.com";
+}
+
 function canTournament(capability) {
   return window.PHDAccessControl.can(PHDAuth.role, capability);
 }
@@ -426,6 +436,11 @@ function applyAdminAccessState() {
   const canEdit =
     canManageTournament ||
     canEnterResults;
+  const canAccessAdmin =
+    canManageTournament ||
+    canEnterResults;
+  const canUseDestructiveActions =
+    canAccessDestructiveActions();
 
   document.body.classList.toggle(
     "admin-mode",
@@ -442,7 +457,7 @@ function applyAdminAccessState() {
 
   document
     .querySelectorAll(
-      '.admin-only-tab, .admin-only-content, #adminTab, #gamesTab'
+      '.admin-only-tab, .admin-only-content'
     )
     .forEach(element => {
       element.hidden =
@@ -455,15 +470,42 @@ function applyAdminAccessState() {
       );
     });
 
+  document
+    .querySelectorAll(
+      '.staff-access-tab, #adminTab, #gamesTab'
+    )
+    .forEach(element => {
+      element.hidden = !canAccessAdmin;
+      element.setAttribute(
+        "aria-hidden",
+        String(!canAccessAdmin)
+      );
+    });
+
+  document
+    .querySelectorAll(
+      ".primary-admin-only"
+    )
+    .forEach(element => {
+      element.hidden =
+        !canUseDestructiveActions;
+      element.setAttribute(
+        "aria-hidden",
+        String(
+          !canUseDestructiveActions
+        )
+      );
+    });
+
   if (
-    !canManageTournament &&
     typeof switchTab === "function"
   ) {
-    const activeAdminPanel =
+    const inaccessibleManagementPage =
+      !canAccessAdmin &&
       document.querySelector(
         "#adminTab.active, #gamesTab.active"
       );
-    if (activeAdminPanel) {
+    if (inaccessibleManagementPage) {
       switchTab("home");
     }
   }
@@ -543,9 +585,7 @@ function applyAdminAccessState() {
     setElementAdminState(
       element,
       resetControl
-        ? canTournament(
-            "tournament.reset"
-          )
+        ? canUseDestructiveActions
         : staffControl
           ? canTournament(
               "staff.manage"
@@ -759,6 +799,8 @@ window.isTournamentAdmin =
   isTournamentAdmin;
 window.isRootAdministrator =
   isRootAdministrator;
+window.canAccessDestructiveActions =
+  canAccessDestructiveActions;
 window.canTournament =
   canTournament;
 window.subscribeToAuth =
