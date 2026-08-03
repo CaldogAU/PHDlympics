@@ -322,7 +322,7 @@ const GAME_MODE_DIAGRAMS = {
       ["Scoring", ["1st 10 pts", "3rd 6 pts", "Qualified 3 pts", "Played 1 pt"]],
       ["Best results count", ["Office 1 - 13 pts", "Office 2 - 7 pts"], "advance"]
     ]],
-    ["Overall Tournament Points Allocated", [["After all heats", ["1st office", "2nd office", "3rd office", "4th office"], "advance"]]]
+    ["Overall Tournament Points Allocated", [["Final rank sets overall points", ["Last office = 1 pt", "Each place higher = +1 pt", "1st = number of offices pts", "Added to overall standings"], "advance"]]]
   ]
 };
 
