@@ -534,6 +534,21 @@ function applyAdminAccessState() {
           ".toggle-staff-access, .staff-team-assignment"
         )
       );
+    const teamManagementControl =
+      [
+        "teamName",
+        "teamShortName",
+        "teamLogoUrl",
+        "teamColour",
+        "saveTeam",
+        "clearTeamForm"
+      ].includes(element.id) ||
+      element.classList.contains(
+        "edit-team"
+      ) ||
+      element.classList.contains(
+        "delete-team"
+      );
     const resultControl = Boolean(
       element.closest(
           ".save-match, .clear-match, .toggle-round, .generate-game-round, .save-game-entries, .game-capacity-management, .create-game-event, .save-time-trial-results, .save-grand-prix-results, .reopen-game-event, [data-event-workspace], .match-card, .generate-four-player-round, .save-four-player-group, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, [data-four-player-game-id], .save-fall-guys-settings, .add-fall-guys-heat, .save-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament, [data-fall-guys-game-id]"
@@ -592,6 +607,8 @@ function applyAdminAccessState() {
             ) &&
             element.dataset
               .selfAccount !== "true"
+          : teamManagementControl
+            ? canAccessAdmin
           : resultControl
             ? canEnterResults &&
               teamResultAllowed &&
