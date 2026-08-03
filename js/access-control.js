@@ -6,7 +6,8 @@
     "tournament-director": [
       "results.manage",
       "reports.view",
-      "audit.view"
+      "audit.view",
+      "staff.manage"
     ],
     "score-entry": ["results.manage", "reports.view"],
     volunteer: ["results.view", "reports.view"],

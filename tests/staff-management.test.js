@@ -139,7 +139,7 @@ test("protects managed staff records in Firestore rules", () => {
   );
   assert.match(
     rules,
-    /allow create, update: if isRootAdministrator\(\)/
+    /allow create, update: if isTournamentManager\(\)/
   );
   assert.match(
     rules,
