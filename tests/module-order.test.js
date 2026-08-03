@@ -478,7 +478,7 @@ test("labels tournament-point outcomes clearly in multiplayer diagrams", () => {
   );
   assert.match(
     app,
-    /\["Heat points"[\s\S]*?\["Overall Tournament Points Allocated", \[\["After all heats"/
+    /\["Heat points"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Final rank sets overall points"[\s\S]*?"Last office = 1 pt"[\s\S]*?"1st = number of offices pts"[\s\S]*?"Added to overall standings"/
   );
 });
 
