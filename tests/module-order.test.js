@@ -215,6 +215,21 @@ test("allows staff to use team Edit and Delete controls", () => {
   );
 });
 
+test("scopes staff competitor counts to their assigned team", () => {
+  const root = path.join(__dirname, "..");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const auth = fs.readFileSync(path.join(root, "js", "auth.js"), "utf8");
+
+  assert.match(
+    app,
+    /function canEditGameEntry[\s\S]*?isTournamentAdmin\(\)[\s\S]*?canManageTeamResult\(teamId\)/
+  );
+  assert.doesNotMatch(
+    auth,
+    /const competitorEntryControl/
+  );
+});
+
 test("shows report data tools only to administrators", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");

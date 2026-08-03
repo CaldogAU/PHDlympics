@@ -75,7 +75,7 @@ service cloud.firestore {
           && request.auth.uid == staffId
         );
 
-      allow create, update: if isRootAdministrator()
+      allow create, update: if isTournamentManager()
         && request.resource.data.email is string
         && request.resource.data.role == "tournament-director"
         && request.resource.data.active is bool
