@@ -444,7 +444,7 @@
 
     return `
       <article
-        class="round-card ${
+        class="round-card wide fall-guys-heat-card ${
           heat.completed
             ? "completed"
             : ""
