@@ -254,6 +254,82 @@ const GAME_MODE_OVERVIEWS = {
   }
 };
 
+const GAME_MODE_DETAILS = {
+  swiss: [
+    ["Confirm entrants", "Enter each office's competitor count on the game page. Offices with competitors become eligible for this game."],
+    ["Generate the opening round", "Select Generate Round. The first round creates one-versus-one pairings and assigns a bye when the field has an odd number of offices."],
+    ["Play every match", "Each paired office plays its scheduled opponent. A bye is recorded automatically and does not require a score."],
+    ["Enter the scores", "Record both offices' scores for every match. The round must be complete before another round can be generated."],
+    ["Update the Swiss ladder", "The ladder ranks offices by match points, then score difference and points scored. Nobody is eliminated."],
+    ["Generate the next round", "The next round pairs offices with similar records while avoiding repeat opponents where possible and rotating byes."],
+    ["Finish the game", "Repeat for the planned number of rounds, then mark the game complete so its final ranking can contribute to the overall tournament standings."],
+    ["Allocate tournament points", "Last place receives 1 overall tournament point and every higher position receives one additional point." ]
+  ],
+  "round-robin": [
+    ["Confirm entrants", "Enter each office's competitor count. Every eligible office is included in the schedule."],
+    ["Create the schedule", "Generate the round-robin schedule. The website creates every required pairing so each office plays every other office once."],
+    ["Handle odd fields", "If there is an odd number of offices, one office receives a bye in each applicable round."],
+    ["Play the matches", "Offices play the scheduled one-versus-one matches across the generated rounds."],
+    ["Enter every score", "Record both offices' scores. Completed results update wins, draws, losses, points scored and score difference."],
+    ["Complete the schedule", "Continue until every generated pairing has a result. The final ladder represents the Round Robin finishing order."],
+    ["Complete the game", "Lock the finished game once the schedule has been played and checked."],
+    ["Allocate tournament points", "The final ladder is converted into overall tournament points, with last receiving 1 and each higher position receiving one more." ]
+  ],
+  "single-elimination": [
+    ["Confirm entrants", "Enter the participating offices on the game page before creating the bracket."],
+    ["Create the opening bracket", "Generate the first knockout round. The bracket is padded as needed, so some offices may receive an opening-round bye."],
+    ["Play each knockout match", "Each pairing plays a deciding match. A winner is required because a drawn result cannot advance an office."],
+    ["Enter and confirm scores", "Record the score for each match. The winning office is identified from the completed result."],
+    ["Advance the winners", "Once the round is complete, generate the next round using only the winning offices."],
+    ["Repeat until the final", "Continue through each knockout stage. Offices that lose do not play another round in this game."],
+    ["Play the championship match", "The final winner becomes the game champion and the other finalist becomes runner-up."],
+    ["Complete the game", "Lock the bracket after the final so the resulting order can be reflected in the tournament records and standings."],
+    ["Allocate tournament points", "The completed knockout results produce the game ranking used by the overall tournament standings." ]
+  ],
+  "four-player-swiss": [
+    ["Enter competitor counts", "Set the number of players for each office. Multiple players from one office are labelled Player A, Player B and so on."],
+    ["Build complete lobbies", "The total number of competitors must be a multiple of four. The website keeps office console groups together while creating four-player lobbies."],
+    ["Generate Round 1", "The opening round creates groups of four players. No player or office is eliminated."],
+    ["Play each group", "All four players compete together and finish in 1st, 2nd, 3rd and 4th place."],
+    ["Enter placements", "Assign every player a unique placement within their lobby. Round points are 4 for 1st, 3 for 2nd, 2 for 3rd and 1 for 4th."],
+    ["Re-rank the field", "Completed groups update the Swiss ladder. Ties use firsts, seconds, thirds and opponent strength."],
+    ["Generate the next round", "The next set of four-player lobbies is built from the updated rankings. Complete the current round before generating another."],
+    ["Close the tournament", "After all desired rounds are complete, close the game. Final place becomes overall tournament points: last receives 1 and each higher place receives one more." ]
+  ],
+  "time-trial": [
+    ["Confirm entrants", "Enter a competitor count for every office taking part in the Time Trial."],
+    ["Run the challenge", "Each office completes the same course, lap or challenge under the agreed tournament conditions."],
+    ["Record the result", "Enter each office's best valid time using minutes and seconds only."],
+    ["Save provisional times", "The table automatically reorders as valid times are entered, with the fastest office at the top."],
+    ["Complete every office", "The event cannot be finalised until every participating office has a valid recorded time."],
+    ["Review the ranking", "Lower times rank ahead of higher times. Check the complete fastest-to-slowest order before locking it."],
+    ["Complete the event", "Mark the Time Trial complete to lock the results and reveal the final ranking."],
+    ["Allocate tournament points", "Last place receives 1 overall tournament point and every faster position receives one additional point." ]
+  ],
+  "grand-prix": [
+    ["Enter competitor counts", "Set how many players each office is entering. Multiple players are labelled by office as Player A, Player B and so on."],
+    ["Review the lobby plan", "The website uses the configured console and lobby capacities to split entrants into suitable lobbies when required."],
+    ["Play the race or event", "Every listed player competes in their allocated lobby and receives a finishing position."],
+    ["Enter player positions", "Record each player's finishing position. Separate lobbies may each have their own 1st, 2nd, 3rd and later places."],
+    ["Calculate office results", "Each player earns lobby points from their finishing position. Those points are added for their office, with its best individual finish used as the first tie-break."],
+    ["Review the animated ranking", "As positions are entered, the table reorders to show the current finishing order from first to last."],
+    ["Complete the event", "When every required result is present, complete the Grand Prix to lock its final ranking."],
+    ["Allocate tournament points", "Last place receives 1 overall tournament point and every higher-ranked office receives one additional point." ]
+  ],
+  "fall-guys-grand-prix": [
+    ["Enter competitor counts", "Set how many players each office is entering and confirm that the configured lobby can hold the participating field."],
+    ["Configure the series", "Choose the number of planned heats and how many of each office's best player results will count per heat."],
+    ["Add a heat", "Create Heat 1, then put all participating players into the Fall Guys lobby. Nobody is eliminated from the overall series."],
+    ["Play the heat", "Run the agreed Fall Guys show and record each player's outcome for their office."],
+    ["Enter outcomes", "Award 10 points for 1st, 8 for 2nd, 6 for 3rd, 5 for 4th, 3 for Qualified and 1 for Participated. Only one player can occupy each of 1st through 4th in a heat."],
+    ["Calculate office heat scores", "The website keeps only the configured number of best results for each office. For example, if three count, results worth 10, 6, 3 and 1 produce a 19-point heat score."],
+    ["Complete the heat", "Every participating office needs at least one recorded outcome. Save the valid results to update the live office standings."],
+    ["Repeat all planned heats", "Add the next heat only after the current one is complete. Every office returns for every heat."],
+    ["Rank the offices", "Completed heats are totalled. Ties are separated by wins, podiums and qualifications."],
+    ["Close and allocate points", "After every planned heat is complete, close the series. Last place receives 1 overall tournament point and every higher place receives one more." ]
+  ]
+};
+
 const GAME_MODE_DIAGRAMS = {
   swiss: [
     ["Round 1", [["Opening pairings", ["Sydney vs Melbourne", "Brisbane vs Auckland"]]]],
@@ -397,6 +473,9 @@ function renderGameModeOverview(
       GAME_MODE_DIAGRAMS[mode] ||
       GAME_MODE_DIAGRAMS.swiss
     );
+  const detailedSteps =
+    GAME_MODE_DETAILS[mode] ||
+    GAME_MODE_DETAILS.swiss;
   const modeName =
     window.PHDGameModes &&
     typeof window.PHDGameModes
@@ -420,61 +499,79 @@ function renderGameModeOverview(
         </div>
       </div>
 
-      <div
-        class="game-mode-diagram"
-        role="img"
-        aria-label="${escapeHtml(
-          `${modeName} example flow from start to final result`
-        )}"
-      >
-        ${diagram
-          .map(
-            ([stage, groups], index) => `
-              <section class="game-mode-stage">
-                <div class="game-mode-stage-heading">
-                  <span>${index + 1}</span>
-                  <strong>${escapeHtml(stage)}</strong>
-                </div>
-                <div class="game-mode-stage-groups">
-                  ${groups
-                    .map(
-                      ([title, lines, tone]) => `
-                        <div class="game-mode-node${
-                          tone
-                            ? ` is-${escapeHtml(tone)}`
-                            : ""
-                        }">
-                          <strong>
-                            ${escapeHtml(title)}
-                          </strong>
-                          ${lines
-                            .map(
-                              line => `
-                                <span>
-                                  ${escapeHtml(line)}
-                                </span>
-                              `
-                            )
-                            .join("")}
-                        </div>
-                      `
-                    )
-                    .join("")}
-                </div>
-              </section>
-            `
-          )
-          .join("")}
+      <div class="game-mode-infographic">
+        <div
+          class="game-mode-diagram"
+          role="img"
+          aria-label="${escapeHtml(
+            `${modeName} example flow from start to final result`
+          )}"
+        >
+          ${diagram
+            .map(
+              ([stage, groups], index) => `
+                <section class="game-mode-stage">
+                  <div class="game-mode-stage-heading">
+                    <span>${index + 1}</span>
+                    <strong>${escapeHtml(stage)}</strong>
+                  </div>
+                  <div class="game-mode-stage-groups">
+                    ${groups
+                      .map(
+                        ([title, lines, tone]) => `
+                          <div class="game-mode-node${
+                            tone
+                              ? ` is-${escapeHtml(tone)}`
+                              : ""
+                          }">
+                            <strong>
+                              ${escapeHtml(title)}
+                            </strong>
+                            ${lines
+                              .map(
+                                line => `
+                                  <span>
+                                    ${escapeHtml(line)}
+                                  </span>
+                                `
+                              )
+                              .join("")}
+                          </div>
+                        `
+                      )
+                      .join("")}
+                  </div>
+                </section>
+              `
+            )
+            .join("")}
+        </div>
+
+        <p class="game-mode-note">
+          ${escapeHtml(overview.note)}
+        </p>
       </div>
 
-      <p class="game-mode-note">
-        ${escapeHtml(overview.note)}
-      </p>
+      <div class="game-mode-detailed" hidden>
+        <ol class="game-mode-detailed-steps">
+          ${detailedSteps
+            .map(
+              ([title, explanation]) => `
+                <li>
+                  <strong>${escapeHtml(title)}</strong>
+                  <p>${escapeHtml(explanation)}</p>
+                </li>
+              `
+            )
+            .join("")}
+        </ol>
+      </div>
     </section>
   `;
 }
 
 const collapsedGameFeatures = new Set();
+const detailedGameModeFeatures = new Set();
 const initialisedAdminFeatures = new Set();
 
 function enhanceCollapsibleGameFeatures() {
@@ -485,7 +582,7 @@ function enhanceCollapsibleGameFeatures() {
     .forEach((card, index) => {
       if (
         card.querySelector(
-          ":scope > .feature-collapse-button"
+          ":scope > .feature-controls"
         )
       ) {
         return;
@@ -534,6 +631,12 @@ function enhanceCollapsibleGameFeatures() {
         collapsedGameFeatures.has(
           featureKey
         );
+      const detailed =
+        detailedGameModeFeatures.has(
+          featureKey
+        );
+      const controls =
+        document.createElement("div");
       const button =
         document.createElement(
           "button"
@@ -548,6 +651,56 @@ function enhanceCollapsibleGameFeatures() {
       );
       card.dataset.featureKey =
         featureKey;
+      controls.className =
+        "feature-controls";
+
+      if (
+        card.classList.contains(
+          "game-mode-overview"
+        )
+      ) {
+        const detailButton =
+          document.createElement(
+            "button"
+          );
+        const infographic =
+          card.querySelector(
+            ".game-mode-infographic"
+          );
+        const detailedView =
+          card.querySelector(
+            ".game-mode-detailed"
+          );
+
+        detailButton.type = "button";
+        detailButton.className =
+          "game-mode-detail-button secondary";
+        detailButton.dataset.gameModeDetail =
+          "true";
+        detailButton.setAttribute(
+          "aria-pressed",
+          String(detailed)
+        );
+        detailButton.setAttribute(
+          "aria-label",
+          detailed
+            ? `Show infographic version of ${heading ? heading.textContent.trim() : "game mode instructions"}`
+            : `Show detailed version of ${heading ? heading.textContent.trim() : "game mode instructions"}`
+        );
+        detailButton.textContent = detailed
+          ? "Show infographic version"
+          : "Show me detailed version";
+        if (infographic) {
+          infographic.hidden = detailed;
+        }
+        if (detailedView) {
+          detailedView.hidden = !detailed;
+        }
+        controls.appendChild(
+          detailButton
+        );
+      }
+
       button.type = "button";
       button.className =
         "feature-collapse-button secondary";
@@ -568,7 +721,8 @@ function enhanceCollapsibleGameFeatures() {
       button.textContent = collapsed
         ? "Expand"
         : "Collapse";
-      card.appendChild(button);
+      controls.appendChild(button);
+      card.appendChild(controls);
     });
 }
 
@@ -1788,6 +1942,96 @@ function bindGameEvents() {
             : "section"
         }`
       );
+    }
+  );
+
+  document.addEventListener(
+    "click",
+    event => {
+      const button = event.target.closest(
+        "[data-game-mode-detail]"
+      );
+      if (!button) return;
+
+      const card = button.closest(
+        ".game-mode-overview"
+      );
+      if (!card) return;
+
+      const detailed =
+        button.getAttribute(
+          "aria-pressed"
+        ) !== "true";
+      const infographic =
+        card.querySelector(
+          ".game-mode-infographic"
+        );
+      const detailedView =
+        card.querySelector(
+          ".game-mode-detailed"
+        );
+
+      if (infographic) {
+        infographic.hidden = detailed;
+      }
+      if (detailedView) {
+        detailedView.hidden = !detailed;
+      }
+      button.setAttribute(
+        "aria-pressed",
+        String(detailed)
+      );
+      button.textContent = detailed
+        ? "Show infographic version"
+        : "Show me detailed version";
+      const heading = card.querySelector(
+        "h2, h3, h4"
+      );
+      button.setAttribute(
+        "aria-label",
+        detailed
+          ? `Show infographic version of ${heading ? heading.textContent.trim() : "game mode instructions"}`
+          : `Show detailed version of ${heading ? heading.textContent.trim() : "game mode instructions"}`
+      );
+
+      if (detailed) {
+        detailedGameModeFeatures.add(
+          card.dataset.featureKey
+        );
+      } else {
+        detailedGameModeFeatures.delete(
+          card.dataset.featureKey
+        );
+      }
+
+      if (
+        card.classList.contains(
+          "is-collapsed"
+        )
+      ) {
+        card.classList.remove(
+          "is-collapsed"
+        );
+        collapsedGameFeatures.delete(
+          card.dataset.featureKey
+        );
+        const collapseButton =
+          card.querySelector(
+            "[data-feature-collapse]"
+          );
+        if (collapseButton) {
+          collapseButton.textContent =
+            "Collapse";
+          collapseButton.setAttribute(
+            "aria-expanded",
+            "true"
+          );
+          collapseButton.setAttribute(
+            "aria-label",
+            `Collapse ${heading ? heading.textContent.trim() : "section"}`
+          );
+        }
+      }
     }
   );
 }

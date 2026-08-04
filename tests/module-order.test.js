@@ -293,7 +293,7 @@ test("adds collapsed-by-default controls to every Admin card", () => {
   );
   assert.match(
     app,
-    /:scope > \.feature-collapse-button/
+    /:scope > \.feature-controls/
   );
 });
 
@@ -447,6 +447,61 @@ test("shows a top-level workflow for every game mode", () => {
   assert.match(
     app,
     /class="game-mode-note"/
+  );
+  assert.match(
+    app,
+    /const GAME_MODE_DETAILS = \{/
+  );
+  assert.match(
+    app,
+    /class="game-mode-detailed" hidden/
+  );
+  assert.match(
+    app,
+    /dataset\.gameModeDetail/
+  );
+});
+
+test("offers detailed instructions for every game mode beside the top-right collapse control", () => {
+  const root = path.join(__dirname, "..");
+  const app = fs.readFileSync(
+    path.join(root, "js", "app.js"),
+    "utf8"
+  );
+  const styles = fs.readFileSync(
+    path.join(root, "styles.css"),
+    "utf8"
+  );
+  const detailBlock = app.match(
+    /const GAME_MODE_DETAILS = \{([\s\S]*?)\n\};\n\nconst GAME_MODE_DIAGRAMS/
+  );
+
+  assert.ok(detailBlock);
+  [
+    "swiss",
+    "round-robin",
+    "single-elimination",
+    "four-player-swiss",
+    "time-trial",
+    "grand-prix",
+    "fall-guys-grand-prix"
+  ].forEach(mode => {
+    assert.match(
+      detailBlock[1],
+      new RegExp(`"${mode}"|${mode}:`)
+    );
+  });
+  assert.match(
+    app,
+    /Show me detailed version/
+  );
+  assert.match(
+    app,
+    /Show infographic version/
+  );
+  assert.match(
+    styles,
+    /\.collapsible-game-feature > \.feature-controls \{[\s\S]*?position: absolute;[\s\S]*?top: 18px;[\s\S]*?right: 18px;/
   );
 });
 

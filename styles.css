@@ -534,14 +534,23 @@ button.warning,
 
 .collapsible-game-feature {
   position: relative;
-  padding-top: 64px;
+  padding-top: 72px;
 }
 
-.feature-collapse-button {
+.collapsible-game-feature > .feature-controls {
   position: absolute;
   z-index: 4;
   top: 18px;
   right: 18px;
+  max-width: calc(100% - 36px);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.feature-collapse-button,
+.game-mode-detail-button {
   min-width: 88px;
   padding: 8px 12px;
   font-size: 12px;
@@ -553,7 +562,7 @@ button.warning,
 }
 
 .collapsible-game-feature.is-collapsed
-  > :not(.feature-collapse-button):not(.section-heading):not(h2):not(h3):not(h4) {
+  > :not(.feature-controls):not(.section-heading):not(h2):not(h3):not(h4) {
   display: none !important;
 }
 
@@ -1500,6 +1509,62 @@ tbody tr:hover {
   font-size: 13px;
   font-weight: 700;
   line-height: 1.5;
+}
+
+.game-mode-infographic[hidden],
+.game-mode-detailed[hidden] {
+  display: none !important;
+}
+
+.game-mode-detailed {
+  margin-top: 24px;
+}
+
+.game-mode-detailed-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  counter-reset: detailed-mode-step;
+}
+
+.game-mode-detailed-steps li {
+  position: relative;
+  min-height: 72px;
+  padding: 16px 18px 16px 66px;
+  border: 1px solid rgba(59, 130, 160, 0.7);
+  background: rgba(4, 16, 34, 0.74);
+  counter-increment: detailed-mode-step;
+}
+
+.game-mode-detailed-steps li::before {
+  content: counter(detailed-mode-step);
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  transform: skew(-8deg);
+  background: #f9c74f;
+  color: #071225;
+  font-weight: 900;
+}
+
+.game-mode-detailed-steps strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.game-mode-detailed-steps p {
+  margin: 6px 0 0;
+  color: #c7d2e4;
+  line-height: 1.55;
 }
 
 .app-footer {
