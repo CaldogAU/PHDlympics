@@ -30,7 +30,7 @@
         <button class="tab-button staff-access-tab" type="button" data-tab="admin" hidden>Admin</button>
         <button class="tab-button staff-access-tab" type="button" data-tab="games" hidden>Games</button>
         <button class="tab-button" type="button" data-tab="standings">Standings</button>
-        <button class="tab-button" type="button" data-tab="reports">Reports</button>
+        <button class="tab-button signed-in-only-tab" type="button" data-tab="reports" hidden>Reports</button>
         <button class="tab-button" type="button" data-tab="display">Display</button>
 
         <div class="sidebar-divider"></div>
@@ -520,7 +520,7 @@
           </div>
         </section>
 
-        <section id="reportsTab" class="tab-panel">
+        <section id="reportsTab" class="tab-panel signed-in-only-content" hidden>
           <div class="app-layout">
             <section class="card wide">
               <div class="section-heading">

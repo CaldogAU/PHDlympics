@@ -429,6 +429,9 @@ function updateViewOnlyNotice(isAdmin) {
 }
 
 function applyAdminAccessState() {
+  const isSignedIn = Boolean(
+    PHDAuth.user
+  );
   const canManageTournament =
     canTournament("tournament.manage");
   const canEnterResults =
@@ -484,6 +487,18 @@ function applyAdminAccessState() {
 
   document
     .querySelectorAll(
+      '.signed-in-only-tab, .signed-in-only-content'
+    )
+    .forEach(element => {
+      element.hidden = !isSignedIn;
+      element.setAttribute(
+        "aria-hidden",
+        String(!isSignedIn)
+      );
+    });
+
+  document
+    .querySelectorAll(
       ".primary-admin-only"
     )
     .forEach(element => {
@@ -505,7 +520,15 @@ function applyAdminAccessState() {
       document.querySelector(
         "#adminTab.active, #gamesTab.active"
       );
-    if (inaccessibleManagementPage) {
+    const inaccessibleReportsPage =
+      !isSignedIn &&
+      document.querySelector(
+        "#reportsTab.active"
+      );
+    if (
+      inaccessibleManagementPage ||
+      inaccessibleReportsPage
+    ) {
       switchTab("home");
     }
   }

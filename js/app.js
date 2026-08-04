@@ -1627,6 +1627,17 @@ function switchTab(tabName) {
 
 function getValidTabName(tabName) {
   if (
+    tabName === "reports" &&
+    (
+      typeof getSignedInUser !==
+        "function" ||
+      !getSignedInUser()
+    )
+  ) {
+    return "home";
+  }
+
+  if (
     ["admin", "games"].includes(
       tabName
     ) &&

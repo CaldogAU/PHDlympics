@@ -249,6 +249,43 @@ test("shows report data tools only to administrators", () => {
   );
 });
 
+test("hides the Reports page from signed-out viewers", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(
+    path.join(root, "index.html"),
+    "utf8"
+  );
+  const app = fs.readFileSync(
+    path.join(root, "js", "app.js"),
+    "utf8"
+  );
+  const auth = fs.readFileSync(
+    path.join(root, "js", "auth.js"),
+    "utf8"
+  );
+
+  assert.match(
+    html,
+    /class="tab-button signed-in-only-tab"[^>]*data-tab="reports" hidden/
+  );
+  assert.match(
+    html,
+    /id="reportsTab" class="tab-panel signed-in-only-content" hidden/
+  );
+  assert.match(
+    auth,
+    /const isSignedIn = Boolean\([\s\S]*?PHDAuth\.user[\s\S]*?\.signed-in-only-tab, \.signed-in-only-content[\s\S]*?element\.hidden = !isSignedIn/
+  );
+  assert.match(
+    auth,
+    /inaccessibleReportsPage[\s\S]*?!isSignedIn[\s\S]*?#reportsTab\.active[\s\S]*?switchTab\("home"\)/
+  );
+  assert.match(
+    app,
+    /tabName === "reports"[\s\S]*?!getSignedInUser\(\)[\s\S]*?return "home"/
+  );
+});
+
 test("restricts destructive actions to Callum's administrator account", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
@@ -473,7 +510,7 @@ test("offers detailed instructions for every game mode beside the top-right coll
     "utf8"
   );
   const detailBlock = app.match(
-    /const GAME_MODE_DETAILS = \{([\s\S]*?)\n\};\n\nconst GAME_MODE_DIAGRAMS/
+    /const GAME_MODE_DETAILS = \{([\s\S]*?)\r?\n\};\r?\n\r?\nconst GAME_MODE_DIAGRAMS/
   );
 
   assert.ok(detailBlock);
