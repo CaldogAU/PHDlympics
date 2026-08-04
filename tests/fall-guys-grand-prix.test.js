@@ -38,6 +38,23 @@ function loadEngine() {
     .PHDFallGuysGrandPrix;
 }
 
+test("renders every heat score card at full page width", () => {
+  const source = fs.readFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "js",
+      "fall-guys-grand-prix.js"
+    ),
+    "utf8"
+  );
+
+  assert.match(
+    source,
+    /class="round-card wide fall-guys-heat-card/
+  );
+});
+
 test("counts only the best configured player results per office", () => {
   const engine = loadEngine();
   const result = {
