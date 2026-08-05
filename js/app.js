@@ -29,10 +29,6 @@ function renderTournamentForm() {
     tournament.description
   );
   setValue(
-    "tournamentLogoUrl",
-    tournament.logoUrl || ""
-  );
-  setValue(
     "tournamentBannerUrl",
     tournament.bannerUrl || ""
   );
@@ -105,8 +101,7 @@ function renderTournamentSummary() {
 
   setText(
     "summaryBranding",
-    tournament.logoUrl ||
-      tournament.bannerUrl
+    tournament.bannerUrl
       ? "Custom branding active"
       : "Default"
   );
@@ -1450,11 +1445,6 @@ function previewTournamentBranding() {
 
   const tournament = getTournament();
 
-  tournament.logoUrl =
-    getValue(
-      "tournamentLogoUrl"
-    ).trim();
-
   tournament.bannerUrl =
     getValue(
       "tournamentBannerUrl"
@@ -1490,11 +1480,6 @@ async function updateTournamentSettings() {
   tournament.description =
     getValue(
       "tournamentDescription"
-    ).trim();
-
-  tournament.logoUrl =
-    getValue(
-      "tournamentLogoUrl"
     ).trim();
 
   tournament.bannerUrl =
@@ -1758,7 +1743,6 @@ function bindTournamentEvents() {
   [
     "tournamentName",
     "tournamentDescription",
-    "tournamentLogoUrl",
     "tournamentBannerUrl",
     "tournamentAccentColour"
   ].forEach(id => {
@@ -1769,7 +1753,6 @@ function bindTournamentEvents() {
   });
 
   [
-    "tournamentLogoUrl",
     "tournamentBannerUrl",
     "tournamentAccentColour"
   ].forEach(id => {
