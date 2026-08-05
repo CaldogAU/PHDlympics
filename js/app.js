@@ -2,6 +2,15 @@ function getTournament() {
   return PHDTournament.state.tournament;
 }
 
+function updateThemeToggleLabel() {
+  setText(
+    "themeToggle",
+    document.body.classList.contains("light")
+      ? "Use Dark Theme"
+      : "Use Light Theme"
+  );
+}
+
 function ensureStateShape() {
   if (!Array.isArray(PHDTournament.state.teams)) {
     PHDTournament.state.teams = [];
@@ -2484,18 +2493,18 @@ function bindAppEvents() {
   bindClick(
     "themeToggle",
     () => {
-      document.body.classList.toggle(
-        "dark"
-      );
+      const lightMode =
+        document.body.classList.toggle(
+          "light"
+        );
+      document.body.classList.remove("dark");
 
-      const theme =
-        document.body.classList.contains(
-          "dark"
-        )
-          ? "dark"
-          : "light";
+      const theme = lightMode
+        ? "light"
+        : "dark";
 
       saveThemePreference(theme);
+      updateThemeToggleLabel();
     }
   );
 
@@ -2555,6 +2564,7 @@ function initialiseAppInterface() {
 
 function initApp() {
   loadThemePreference();
+  updateThemeToggleLabel();
 
   setSaveStatus(
     "Connecting to cloud..."

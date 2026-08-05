@@ -213,6 +213,27 @@ body.dark .auth-panel {
   background: rgba(255, 255, 255, 0.04);
 }
 
+body.light .auth-panel {
+  border-color: rgba(61, 82, 105, 0.2);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+body.light .auth-panel input {
+  border-color: var(--border);
+  background: #ffffff;
+  color: var(--text);
+}
+
+body.light .auth-panel input::placeholder {
+  color: #73859a;
+}
+
+body.light #headerAuthStatus {
+  border-color: rgba(61, 82, 105, 0.25);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+}
+
 body.dark #viewOnlyNotice {
   background: rgba(109, 93, 252, 0.14) !important;
 }
