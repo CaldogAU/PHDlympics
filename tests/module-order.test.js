@@ -678,3 +678,22 @@ test("display mode shows every team below the faster ticker", () => {
   assert.match(styles, /animation: tickerScroll 56s linear infinite/);
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
 });
+
+test("home page shows overall standings below recent activity", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const ladder = fs.readFileSync(
+    path.join(root, "js", "ladder.js"),
+    "utf8"
+  );
+  const activityIndex = html.indexOf('id="activityTickerText"');
+  const standingsIndex = html.indexOf('id="homeStandingsHeader"');
+
+  assert.ok(activityIndex >= 0);
+  assert.ok(standingsIndex > activityIndex);
+  assert.match(html, /id="homeStandingsBody"/);
+  assert.match(
+    ladder,
+    /\["standingsBody", "standingsHeader"\][\s\S]*?\["homeStandingsBody", "homeStandingsHeader"\]/
+  );
+});
