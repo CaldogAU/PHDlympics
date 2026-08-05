@@ -307,7 +307,7 @@ test("uses the tournament banner in the sidebar without a page-wide banner", () 
   );
   assert.doesNotMatch(
     html,
-    /id="brandBanner"|phd-posters-looping\.gif/
+    /id="brandBanner"|phd-posters-looping\.gif|sidebar-brand-title/
   );
   assert.match(
     app,
