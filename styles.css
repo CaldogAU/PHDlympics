@@ -2316,7 +2316,7 @@ body.dark .audit-entry-marker {
 .team-page-logo {
   width: 360px;
   height: 360px;
-  background: transparent;
+  background: var(--team-colour, #6d5dfc);
   border-radius: 36px;
   display: grid;
   place-items: center;
@@ -2327,6 +2327,10 @@ body.dark .audit-entry-marker {
   font-weight: 900;
   text-align: center;
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18);
+}
+
+.team-page-logo.has-image {
+  background: transparent;
 }
 
 .team-page-position {

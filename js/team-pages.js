@@ -1024,7 +1024,11 @@ function renderTeamPagePanel(team) {
         >
           <div class="team-page-header">
             <span
-              class="team-page-logo"
+              class="team-page-logo${
+                team.logoUrl
+                  ? " has-image"
+                  : ""
+              }"
             >
               ${renderTeamPageLogo(team)}
             </span>
