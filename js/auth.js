@@ -13,7 +13,6 @@ const PHDAuth = {
 const ADMIN_CONTROL_IDS = [
   "tournamentName",
   "tournamentDescription",
-  "tournamentLogoUrl",
   "tournamentBannerUrl",
   "tournamentAccentColour",
   "saveTournament",

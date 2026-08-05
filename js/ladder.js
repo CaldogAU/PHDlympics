@@ -267,82 +267,85 @@ function getStandings(gameId = "") {
 }
 
 function renderStandings() {
-  const body =
-    document.getElementById(
-      "standingsBody"
-    );
-  const header =
-    document.getElementById(
-      "standingsHeader"
-    );
   const standings = getStandings();
   const games =
     PHDTournament.state.games || [];
 
-  if (header) {
-    header.innerHTML = `
-      <th>#</th>
-      <th>Team</th>
-      <th>Tournament Points</th>
-      <th>Completed Games</th>
-      ${games.map(game => `
-        <th class="game-points-heading">
-          ${escapeHtml(game.name)}
-        </th>
-      `).join("")}
-    `;
-  }
+  [
+    ["homeStandingsBody", "homeStandingsHeader"]
+  ].forEach(([bodyId, headerId]) => {
+    const body =
+      document.getElementById(bodyId);
+    const header =
+      document.getElementById(headerId);
 
-  body.innerHTML = "";
+    if (!body) return;
 
-  if (standings.length === 0) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="${4 + games.length}">No teams yet. Add teams to populate the standings.</td>
-      </tr>
-    `;
-    return;
-  }
+    if (header) {
+      header.innerHTML = `
+        <th>#</th>
+        <th>Team</th>
+        <th>Tournament Points</th>
+        <th>Completed Games</th>
+        ${games.map(game => `
+          <th class="game-points-heading">
+            ${escapeHtml(game.name)}
+          </th>
+        `).join("")}
+      `;
+    }
 
-  standings.forEach((team, index) => {
-    const row = document.createElement("tr");
+    body.innerHTML = "";
 
-    row.innerHTML = `
-      <td class="rank-cell">${index + 1}</td>
-      <td>
-        <div class="team-cell">
-          <span class="team-logo" style="background:${escapeHtml(team.colour || "#6d5dfc")}">
-            ${renderTeamLogo(team)}
-          </span>
-          <strong>${escapeHtml(team.name)}</strong>
-        </div>
-      </td>
-      <td>${team.points}</td>
-      <td>${team.gamesCompleted}</td>
-      ${games.map(game => {
-        const gameResult =
-          team.gamePoints.find(
-            result =>
-              result.gameId ===
-              game.id
-          );
+    if (standings.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="${4 + games.length}">No teams yet. Add teams to populate the standings.</td>
+        </tr>
+      `;
+      return;
+    }
 
-        return `
-          <td
-            class="game-points-cell"
-            title="${escapeHtml(game.name)}"
-          >
-            ${
-              gameResult
-                ? gameResult.points
-                : "—"
-            }
-          </td>
-        `;
-      }).join("")}
-    `;
+    standings.forEach((team, index) => {
+      const row = document.createElement("tr");
 
-    body.appendChild(row);
+      row.innerHTML = `
+        <td class="rank-cell">${index + 1}</td>
+        <td>
+          <div class="team-cell">
+            <span class="team-logo" style="background:${escapeHtml(team.colour || "#6d5dfc")}">
+              ${renderTeamLogo(team)}
+            </span>
+            <strong>${escapeHtml(team.name)}</strong>
+          </div>
+        </td>
+        <td>${team.points}</td>
+        <td>${team.gamesCompleted}</td>
+        ${games.map(game => {
+          const gameResult =
+            team.gamePoints.find(
+              result =>
+                result.gameId ===
+                game.id
+            );
+
+          return `
+            <td
+              class="game-points-cell"
+              title="${escapeHtml(game.name)}"
+            >
+              ${
+                gameResult
+                  ? gameResult.points
+                  : "—"
+              }
+            </td>
+          `;
+        }).join("")}
+      `;
+
+      body.appendChild(row);
+    });
   });
 }
 

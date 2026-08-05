@@ -1024,12 +1024,10 @@ function renderTeamPagePanel(team) {
         >
           <div class="team-page-header">
             <span
-              class="team-page-logo"
-              style="background:${
-                escapeHtml(
-                  team.colour ||
-                  "#6d5dfc"
-                )
+              class="team-page-logo${
+                team.logoUrl
+                  ? " has-image"
+                  : ""
               }"
             >
               ${renderTeamPageLogo(team)}

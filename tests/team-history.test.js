@@ -20,6 +20,28 @@ test("team page logos use the enlarged scalable image frame", () => {
   );
 });
 
+test("team page logos remove their background only when an image exists", () => {
+  const root = path.join(__dirname, "..");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+  const teamPages = fs.readFileSync(
+    path.join(root, "js", "team-pages.js"),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /\.team-page-logo\s*\{[\s\S]*?background:\s*var\(--team-colour, #6d5dfc\);[\s\S]*?border-radius:\s*36px;/
+  );
+  assert.match(
+    styles,
+    /\.team-page-logo\.has-image\s*\{[\s\S]*?background:\s*transparent;/
+  );
+  assert.match(
+    teamPages,
+    /class="team-page-logo\$\{[\s\S]*?team\.logoUrl[\s\S]*?" has-image"/
+  );
+});
+
 function getHistory() {
   const state = {
     teams: [

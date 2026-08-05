@@ -307,7 +307,7 @@ test("uses the tournament banner in the sidebar without a page-wide banner", () 
   );
   assert.doesNotMatch(
     html,
-    /id="brandBanner"|phd-posters-looping\.gif|sidebar-brand-title/
+    /id="brandBanner"|phd-posters-looping\.gif|sidebar-brand-title|tournamentLogoUrl|Tournament Logo URL/
   );
   assert.match(
     app,
@@ -315,7 +315,7 @@ test("uses the tournament banner in the sidebar without a page-wide banner", () 
   );
   assert.doesNotMatch(
     app,
-    /getElement\("brandBanner"\)|phd-posters-looping\.gif/
+    /getElement\("brandBanner"\)|phd-posters-looping\.gif|tournamentLogoUrl/
   );
   assert.match(
     styles,
@@ -677,4 +677,55 @@ test("display mode shows every team below the faster ticker", () => {
   assert.match(styles, /animation: tickerScroll 52s linear infinite/);
   assert.match(styles, /animation: tickerScroll 56s linear infinite/);
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
+});
+
+test("sidebar banner has a motion-safe white liquid border", () => {
+  const styles = fs.readFileSync(
+    path.join(__dirname, "..", "styles.css"),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /\.header-logo::before,[\s\S]*?\.header-logo::after[\s\S]*?background:\s*#ffffff;[\s\S]*?animation:\s*liquidBannerBorder/
+  );
+  assert.match(styles, /@keyframes liquidBannerBorder/);
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.header-logo::before,[\s\S]*?\.header-logo::after[\s\S]*?animation:\s*none;/
+  );
+});
+
+test("home page shows overall standings below recent activity", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const ladder = fs.readFileSync(
+    path.join(root, "js", "ladder.js"),
+    "utf8"
+  );
+  const activityIndex = html.indexOf('id="activityTickerText"');
+  const standingsIndex = html.indexOf('id="homeStandingsHeader"');
+
+  assert.ok(activityIndex >= 0);
+  assert.ok(standingsIndex > activityIndex);
+  assert.match(html, /id="homeStandingsBody"/);
+  assert.match(
+    ladder,
+    /\["homeStandingsBody", "homeStandingsHeader"\]/
+  );
+});
+
+test("dedicated standings page is now match history only", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "..", "index.html"),
+    "utf8"
+  );
+  const pageStart = html.indexOf('id="standingsTab"');
+  const pageEnd = html.indexOf('id="reportsTab"');
+  const page = html.slice(pageStart, pageEnd);
+
+  assert.match(html, /data-tab="standings">Match History<\/button>/);
+  assert.match(page, /<h2>Match History<\/h2>/);
+  assert.doesNotMatch(page, /Overall Tournament Standings/);
+  assert.doesNotMatch(page, /id="standings(?:Header|Body)"/);
 });
