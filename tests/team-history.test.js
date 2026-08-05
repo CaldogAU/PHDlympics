@@ -20,6 +20,24 @@ test("team page logos use the enlarged scalable image frame", () => {
   );
 });
 
+test("team page logos retain their shape without a coloured background", () => {
+  const root = path.join(__dirname, "..");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+  const teamPages = fs.readFileSync(
+    path.join(root, "js", "team-pages.js"),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /\.team-page-logo\s*\{[\s\S]*?background:\s*transparent;[\s\S]*?border-radius:\s*36px;/
+  );
+  assert.doesNotMatch(
+    teamPages,
+    /class="team-page-logo"\s+style="background:/
+  );
+});
+
 function getHistory() {
   const state = {
     teams: [

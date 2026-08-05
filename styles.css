@@ -2316,6 +2316,7 @@ body.dark .audit-entry-marker {
 .team-page-logo {
   width: 360px;
   height: 360px;
+  background: transparent;
   border-radius: 36px;
   display: grid;
   place-items: center;

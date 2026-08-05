@@ -272,7 +272,6 @@ function renderStandings() {
     PHDTournament.state.games || [];
 
   [
-    ["standingsBody", "standingsHeader"],
     ["homeStandingsBody", "homeStandingsHeader"]
   ].forEach(([bodyId, headerId]) => {
     const body =

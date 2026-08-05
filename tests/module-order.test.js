@@ -694,6 +694,21 @@ test("home page shows overall standings below recent activity", () => {
   assert.match(html, /id="homeStandingsBody"/);
   assert.match(
     ladder,
-    /\["standingsBody", "standingsHeader"\][\s\S]*?\["homeStandingsBody", "homeStandingsHeader"\]/
+    /\["homeStandingsBody", "homeStandingsHeader"\]/
   );
+});
+
+test("dedicated standings page is now match history only", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "..", "index.html"),
+    "utf8"
+  );
+  const pageStart = html.indexOf('id="standingsTab"');
+  const pageEnd = html.indexOf('id="reportsTab"');
+  const page = html.slice(pageStart, pageEnd);
+
+  assert.match(html, /data-tab="standings">Match History<\/button>/);
+  assert.match(page, /<h2>Match History<\/h2>/);
+  assert.doesNotMatch(page, /Overall Tournament Standings/);
+  assert.doesNotMatch(page, /id="standings(?:Header|Body)"/);
 });
