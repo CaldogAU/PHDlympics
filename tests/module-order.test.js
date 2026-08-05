@@ -679,6 +679,23 @@ test("display mode shows every team below the faster ticker", () => {
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
 });
 
+test("sidebar banner has a motion-safe white liquid border", () => {
+  const styles = fs.readFileSync(
+    path.join(__dirname, "..", "styles.css"),
+    "utf8"
+  );
+
+  assert.match(
+    styles,
+    /\.header-logo::before,[\s\S]*?\.header-logo::after[\s\S]*?background:\s*#ffffff;[\s\S]*?animation:\s*liquidBannerBorder/
+  );
+  assert.match(styles, /@keyframes liquidBannerBorder/);
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.header-logo::before,[\s\S]*?\.header-logo::after[\s\S]*?animation:\s*none;/
+  );
+});
+
 test("home page shows overall standings below recent activity", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");

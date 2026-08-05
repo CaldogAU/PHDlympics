@@ -163,15 +163,40 @@ body::before {
 }
 
 .header-logo {
+  position: relative;
+  isolation: isolate;
   width: 100%;
   height: auto;
   border-radius: 0;
-  background: #ffffff;
+  background: transparent;
   border: 0;
   display: block;
-  overflow: hidden;
+  padding: 4px;
+  overflow: visible;
   flex-shrink: 0;
   box-shadow: none;
+}
+
+.header-logo::before,
+.header-logo::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  background: #ffffff;
+  animation: liquidBannerBorder 8s ease-in-out infinite;
+  will-change: transform, border-radius;
+}
+
+.header-logo::before {
+  inset: 0;
+}
+
+.header-logo::after {
+  inset: -2px;
+  opacity: 0.45;
+  filter: blur(3px);
+  animation-delay: -4s;
 }
 
 .header-logo[hidden] {
@@ -179,10 +204,43 @@ body::before {
 }
 
 .header-logo img {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+@keyframes liquidBannerBorder {
+  0%,
+  100% {
+    border-radius: 3% 1% 4% 2% / 2% 4% 1% 3%;
+    transform: scale(1) rotate(0deg);
+  }
+
+  25% {
+    border-radius: 1% 4% 2% 5% / 4% 1% 5% 2%;
+    transform: scale(1.006, 0.996) rotate(0.15deg);
+  }
+
+  50% {
+    border-radius: 5% 2% 4% 1% / 1% 5% 2% 4%;
+    transform: scale(0.997, 1.007) rotate(-0.12deg);
+  }
+
+  75% {
+    border-radius: 2% 5% 1% 4% / 5% 2% 4% 1%;
+    transform: scale(1.004, 1.002) rotate(0.08deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-logo::before,
+  .header-logo::after {
+    animation: none;
+    transform: none;
+  }
 }
 
 .sidebar-status {
