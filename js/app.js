@@ -56,25 +56,19 @@ function renderBranding() {
   const headerLogo = getElement("headerLogo");
 
   if (headerLogo) {
-    headerLogo.innerHTML = `
-      <img
-        src="assets/phd-posters-looping.gif"
-        alt="PHD Blaze New Trails animated poster"
-      />
-    `;
-  }
-
-  const banner = getElement("brandBanner");
-
-  if (banner) {
     if (tournament.bannerUrl) {
-      banner.classList.add("visible");
-
-      banner.style.backgroundImage =
-        `url("${tournament.bannerUrl}")`;
+      headerLogo.hidden = false;
+      headerLogo.innerHTML = `
+        <img
+          src="${escapeHtml(tournament.bannerUrl)}"
+          alt="${escapeHtml(
+            tournament.name || "PHDlympics"
+          )} banner"
+        />
+      `;
     } else {
-      banner.classList.remove("visible");
-      banner.style.backgroundImage = "";
+      headerLogo.hidden = true;
+      headerLogo.innerHTML = "";
     }
   }
 }

@@ -286,6 +286,47 @@ test("hides the Reports page from signed-out viewers", () => {
   );
 });
 
+test("uses the tournament banner in the sidebar without a page-wide banner", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(
+    path.join(root, "index.html"),
+    "utf8"
+  );
+  const app = fs.readFileSync(
+    path.join(root, "js", "app.js"),
+    "utf8"
+  );
+  const styles = fs.readFileSync(
+    path.join(root, "styles.css"),
+    "utf8"
+  );
+
+  assert.match(
+    html,
+    /id="headerLogo" class="header-logo" hidden/
+  );
+  assert.doesNotMatch(
+    html,
+    /id="brandBanner"|phd-posters-looping\.gif|sidebar-brand-title/
+  );
+  assert.match(
+    app,
+    /if \(tournament\.bannerUrl\)[\s\S]*?headerLogo\.hidden = false[\s\S]*?src="\$\{escapeHtml\(tournament\.bannerUrl\)\}"/
+  );
+  assert.doesNotMatch(
+    app,
+    /getElement\("brandBanner"\)|phd-posters-looping\.gif/
+  );
+  assert.match(
+    styles,
+    /\.header-logo img \{[\s\S]*?width: 100%;[\s\S]*?object-fit: contain;/
+  );
+  assert.doesNotMatch(
+    styles,
+    /\.brand-banner/
+  );
+});
+
 test("restricts destructive actions to Callum's administrator account", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
