@@ -757,6 +757,22 @@ test("mobile navigation collapses to a labelled rail and closes after routing", 
   assert.match(styles, /\.mobile-navigation-label[\s\S]*?writing-mode:\s*vertical-rl/);
 });
 
+test("uses the transparent PHD cursor on mouse-capable devices", () => {
+  const root = path.join(__dirname, "..");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+  const cursor = fs.readFileSync(
+    path.join(root, "assets", "phd-cursor.png")
+  );
+
+  assert.match(
+    styles,
+    /@media \(pointer: fine\)[\s\S]*?cursor:\s*url\("assets\/phd-cursor\.png"\) 1 1, auto;/
+  );
+  assert.equal(cursor.subarray(1, 4).toString("ascii"), "PNG");
+  assert.equal(cursor.readUInt32BE(16), 48);
+  assert.equal(cursor.readUInt32BE(20), 48);
+});
+
 test("home page shows overall standings below recent activity", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");

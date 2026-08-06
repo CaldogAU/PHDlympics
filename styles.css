@@ -2585,6 +2585,14 @@ body.dark .audit-entry-marker {
   }
 }
 
+@media (pointer: fine) {
+  html,
+  body,
+  body * {
+    cursor: url("assets/phd-cursor.png") 1 1, auto;
+  }
+}
+
 /* =========================================================
    Team pages
    ========================================================= */
