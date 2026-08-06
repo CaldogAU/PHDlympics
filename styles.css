@@ -652,6 +652,18 @@ body.light .game-mode-node > strong {
   color: var(--text);
 }
 
+body.light .game-mode-overview,
+body.light .game-mode-overview h2,
+body.light .game-mode-overview h3,
+body.light .game-mode-overview h4 {
+  color: var(--text);
+}
+
+body.light .game-mode-note {
+  background: rgba(249, 199, 79, 0.28);
+  color: #26384a;
+}
+
 body.light .game-mode-node {
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 10px 24px rgba(37, 65, 92, 0.12);
@@ -2570,6 +2582,14 @@ body.dark .audit-entry-marker {
 @media print {
   .audit-log-panel {
     display: none !important;
+  }
+}
+
+@media (pointer: fine) {
+  html,
+  body,
+  body * {
+    cursor: url("assets/phd-cursor.png") 1 1, auto;
   }
 }
 

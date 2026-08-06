@@ -700,17 +700,28 @@ test("theme toggle keeps dark as default and switches to a complete light theme"
   const root = path.join(__dirname, "..");
   const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
   const storage = fs.readFileSync(path.join(root, "js", "storage.js"), "utf8");
+  const state = fs.readFileSync(path.join(root, "js", "state.js"), "utf8");
   const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
   const auth = fs.readFileSync(path.join(root, "auth.css"), "utf8");
 
   assert.match(app, /classList\.toggle\(\s*"light"/);
   assert.match(app, /"Use Dark Theme"[\s\S]*?"Use Light Theme"/);
   assert.match(storage, /savedTheme === "light"/);
+  assert.match(state, /themeKey:\s*"phdTournamentThemeV2"/);
+  assert.doesNotMatch(state, /themeKey:\s*"phdTournamentTheme",/);
   assert.match(styles, /body\.light\s*\{[\s\S]*?--bg:\s*#eef4fb;[\s\S]*?--card:\s*#ffffff;/);
   assert.match(styles, /body\.light \.app-sidebar/);
   assert.match(styles, /body\.light \.app-header/);
   assert.match(styles, /body\.light \.card/);
   assert.match(auth, /body\.light \.auth-panel/);
+  assert.match(
+    styles,
+    /body\.light \.game-mode-overview,[\s\S]*?body\.light \.game-mode-overview h2[\s\S]*?color:\s*var\(--text\);/
+  );
+  assert.match(
+    styles,
+    /body\.light \.game-mode-note\s*\{[\s\S]*?color:\s*#26384a;/
+  );
 });
 
 test("top tournament banner uses the compact half-height treatment", () => {
@@ -744,6 +755,22 @@ test("mobile navigation collapses to a labelled rail and closes after routing", 
     /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*50vw;[\s\S]*?height:\s*50dvh;/
   );
   assert.match(styles, /\.mobile-navigation-label[\s\S]*?writing-mode:\s*vertical-rl/);
+});
+
+test("uses the transparent PHD cursor on mouse-capable devices", () => {
+  const root = path.join(__dirname, "..");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+  const cursor = fs.readFileSync(
+    path.join(root, "assets", "phd-cursor.png")
+  );
+
+  assert.match(
+    styles,
+    /@media \(pointer: fine\)[\s\S]*?cursor:\s*url\("assets\/phd-cursor\.png"\) 1 1, auto;/
+  );
+  assert.equal(cursor.subarray(1, 4).toString("ascii"), "PNG");
+  assert.equal(cursor.readUInt32BE(16), 48);
+  assert.equal(cursor.readUInt32BE(20), 48);
 });
 
 test("home page shows overall standings below recent activity", () => {
