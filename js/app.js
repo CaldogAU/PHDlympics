@@ -1596,20 +1596,34 @@ function switchTab(tabName) {
     );
   });
 
-  const sidebar =
-    document.querySelector(
-      ".app-sidebar"
-    );
-
-  if (sidebar) {
-    sidebar.classList.remove(
-      "nav-open"
-    );
-  }
+  setMobileNavigationOpen(false);
 
   localStorage.setItem(
     "phdTournamentActiveTab",
     validTabName
+  );
+}
+
+function setMobileNavigationOpen(open) {
+  const sidebar = document.querySelector(
+    ".app-sidebar"
+  );
+  const toggle = document.getElementById(
+    "mobileNavigationToggle"
+  );
+
+  if (!sidebar || !toggle) return;
+
+  sidebar.classList.toggle("nav-open", open);
+  toggle.setAttribute(
+    "aria-expanded",
+    String(open)
+  );
+  toggle.setAttribute(
+    "aria-label",
+    open
+      ? "Collapse navigation"
+      : "Expand navigation"
   );
 }
 
@@ -1738,6 +1752,24 @@ function bindTabEvents() {
 
       switchTab(
         button.dataset.tab
+      );
+    }
+  );
+}
+
+function bindMobileNavigation() {
+  bindClick(
+    "mobileNavigationToggle",
+    () => {
+      const sidebar =
+        document.querySelector(
+          ".app-sidebar"
+        );
+
+      setMobileNavigationOpen(
+        !sidebar.classList.contains(
+          "nav-open"
+        )
       );
     }
   );
@@ -2542,6 +2574,7 @@ function initialiseAppInterface() {
   ensureStateShape();
 
   bindTabEvents();
+  bindMobileNavigation();
   bindTournamentEvents();
   bindGameEvents();
   bindTeamEvents();

@@ -11,7 +11,23 @@
   <div id="displayMode" class="display-mode"></div>
 
   <div class="desktop-app-shell">
-    <aside class="app-sidebar">
+    <aside id="mobileNavigation" class="app-sidebar">
+      <button
+        id="mobileNavigationToggle"
+        class="mobile-navigation-toggle"
+        type="button"
+        aria-controls="mobileNavigation"
+        aria-expanded="false"
+        aria-label="Expand navigation"
+      >
+        <span class="mobile-navigation-arrows" aria-hidden="true">
+          <span>→</span>
+          <span>→</span>
+        </span>
+      </button>
+
+      <span class="mobile-navigation-label" aria-hidden="true">Navigation</span>
+
       <div class="sidebar-brand">
         <div id="headerLogo" class="header-logo" hidden></div>
       </div>

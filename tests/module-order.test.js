@@ -726,6 +726,23 @@ test("top tournament banner uses the compact half-height treatment", () => {
   assert.match(styles, /\.app-header \.header-actions button\s*\{[\s\S]*?padding:\s*8px 11px;/);
 });
 
+test("mobile navigation collapses to a labelled rail and closes after routing", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  assert.match(html, /id="mobileNavigationToggle"[\s\S]*?aria-expanded="false"/);
+  assert.match(html, /class="mobile-navigation-label"[^>]*>Navigation<\/span>/);
+  assert.match(html, /class="mobile-navigation-arrows"[\s\S]*?<span>→<\/span>[\s\S]*?<span>→<\/span>/);
+  assert.match(app, /function setMobileNavigationOpen\(open\)/);
+  assert.match(app, /function switchTab\(tabName\)[\s\S]*?setMobileNavigationOpen\(false\)/);
+  assert.match(app, /bindMobileNavigation\(\)/);
+  assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?\.app-sidebar\s*\{[\s\S]*?width:\s*46px;/);
+  assert.match(styles, /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*min\(86vw, 320px\)/);
+  assert.match(styles, /\.mobile-navigation-label[\s\S]*?writing-mode:\s*vertical-rl/);
+});
+
 test("home page shows overall standings below recent activity", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
