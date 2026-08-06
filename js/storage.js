@@ -664,13 +664,11 @@ function loadThemePreference() {
       PHDTournament.themeKey
     );
 
-  if (
-    savedTheme === "dark"
-  ) {
-    document.body.classList.add(
-      "dark"
-    );
-  }
+  document.body.classList.toggle(
+    "light",
+    savedTheme === "light"
+  );
+  document.body.classList.remove("dark");
 }
 
 async function createRestorePoint() {
