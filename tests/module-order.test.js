@@ -700,12 +700,15 @@ test("theme toggle keeps dark as default and switches to a complete light theme"
   const root = path.join(__dirname, "..");
   const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
   const storage = fs.readFileSync(path.join(root, "js", "storage.js"), "utf8");
+  const state = fs.readFileSync(path.join(root, "js", "state.js"), "utf8");
   const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
   const auth = fs.readFileSync(path.join(root, "auth.css"), "utf8");
 
   assert.match(app, /classList\.toggle\(\s*"light"/);
   assert.match(app, /"Use Dark Theme"[\s\S]*?"Use Light Theme"/);
   assert.match(storage, /savedTheme === "light"/);
+  assert.match(state, /themeKey:\s*"phdTournamentThemeV2"/);
+  assert.doesNotMatch(state, /themeKey:\s*"phdTournamentTheme",/);
   assert.match(styles, /body\.light\s*\{[\s\S]*?--bg:\s*#eef4fb;[\s\S]*?--card:\s*#ffffff;/);
   assert.match(styles, /body\.light \.app-sidebar/);
   assert.match(styles, /body\.light \.app-header/);

@@ -1,7 +1,9 @@
 const PHDTournament = {
   modules: [],
   storageKey: "phdTournamentState",
-  themeKey: "phdTournamentTheme",
+  // Versioned so legacy values from the former no-op toggle
+  // cannot make the redesigned site start in light mode.
+  themeKey: "phdTournamentThemeV2",
   editingTeamId: null,
   editingGameId: null,
   defaultState: {
