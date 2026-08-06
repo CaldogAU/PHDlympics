@@ -656,7 +656,7 @@ body.light .game-mode-overview,
 body.light .game-mode-overview h2,
 body.light .game-mode-overview h3,
 body.light .game-mode-overview h4 {
-  color: #102033;
+  color: var(--text);
 }
 
 body.light .game-mode-note {

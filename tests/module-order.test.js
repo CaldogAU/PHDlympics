@@ -716,7 +716,7 @@ test("theme toggle keeps dark as default and switches to a complete light theme"
   assert.match(auth, /body\.light \.auth-panel/);
   assert.match(
     styles,
-    /body\.light \.game-mode-overview,[\s\S]*?body\.light \.game-mode-overview h2[\s\S]*?color:\s*#102033;/
+    /body\.light \.game-mode-overview,[\s\S]*?body\.light \.game-mode-overview h2[\s\S]*?color:\s*var\(--text\);/
   );
   assert.match(
     styles,
