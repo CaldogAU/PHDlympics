@@ -2138,7 +2138,8 @@ body.display-active .display-mode {
   }
 
   .app-sidebar.nav-open {
-    width: min(86vw, 320px);
+    width: 50vw;
+    height: 50dvh;
     padding: 8px 16px 18px;
     overflow-y: auto;
     box-shadow: 18px 0 44px rgba(0, 0, 0, 0.34);
@@ -2214,7 +2215,7 @@ body.display-active .display-mode {
   .app-sidebar > .tab-nav,
   .app-sidebar > .auth-panel,
   .app-sidebar > .sidebar-status {
-    width: calc(min(86vw, 320px) - 32px);
+    width: calc(50vw - 32px);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
