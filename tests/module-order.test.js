@@ -714,6 +714,14 @@ test("theme toggle keeps dark as default and switches to a complete light theme"
   assert.match(styles, /body\.light \.app-header/);
   assert.match(styles, /body\.light \.card/);
   assert.match(auth, /body\.light \.auth-panel/);
+  assert.match(
+    styles,
+    /body\.light \.game-mode-overview,[\s\S]*?body\.light \.game-mode-overview h2[\s\S]*?color:\s*#102033;/
+  );
+  assert.match(
+    styles,
+    /body\.light \.game-mode-note\s*\{[\s\S]*?color:\s*#26384a;/
+  );
 });
 
 test("top tournament banner uses the compact half-height treatment", () => {
