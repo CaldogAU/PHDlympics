@@ -2151,7 +2151,7 @@ body.display-active .display-mode {
 
   .app-sidebar.nav-open {
     width: 50vw;
-    height: 50dvh;
+    height: 100dvh;
     padding: 8px 16px 18px;
     overflow-y: auto;
     box-shadow: 18px 0 44px rgba(0, 0, 0, 0.34);
@@ -2247,6 +2247,30 @@ body.display-active .display-mode {
   .app-sidebar .tab-nav,
   .app-sidebar .game-tab-buttons {
     grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .stat-card {
+    flex: 0 1 auto;
+    width: max-content;
+    max-width: 100%;
+    padding: 11px 12px;
+  }
+
+  .stat-card span {
+    margin-bottom: 5px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .stat-card strong {
+    font-size: 19px;
   }
 
   .app-header {

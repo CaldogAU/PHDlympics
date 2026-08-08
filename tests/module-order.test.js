@@ -752,9 +752,17 @@ test("mobile navigation collapses to a labelled rail and closes after routing", 
   assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?\.app-sidebar\s*\{[\s\S]*?width:\s*46px;/);
   assert.match(
     styles,
-    /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*50vw;[\s\S]*?height:\s*50dvh;/
+    /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*50vw;[\s\S]*?height:\s*100dvh;/
   );
   assert.match(styles, /\.mobile-navigation-label[\s\S]*?writing-mode:\s*vertical-rl/);
+  assert.match(
+    styles,
+    /@media \(max-width: 600px\)[\s\S]*?\.stats-grid\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-wrap:\s*wrap;/
+  );
+  assert.match(
+    styles,
+    /@media \(max-width: 600px\)[\s\S]*?\.stat-card\s*\{[\s\S]*?width:\s*max-content;[\s\S]*?max-width:\s*100%;/
+  );
 });
 
 test("uses the transparent PHD cursor on mouse-capable devices", () => {
