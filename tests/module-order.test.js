@@ -674,9 +674,19 @@ test("display mode shows every team below the faster ticker", () => {
   assert.ok(tickerIndex >= 0 && tickerIndex < standingsIndex);
   assert.match(display, /--standings-columns:/);
   assert.match(display, /--standings-font-size:/);
-  assert.match(styles, /animation: tickerScroll 52s linear infinite/);
-  assert.match(styles, /animation: tickerScroll 56s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 34\.67s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 37\.33s linear infinite/);
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
+  assert.match(
+    styles,
+    /@media \(max-width: 600px\)[\s\S]*?\.display-topbar \.eyebrow\s*\{[\s\S]*?display:\s*none;/
+  );
+  assert.match(
+    styles,
+    /@media \(max-width: 600px\)[\s\S]*?\.display-standings-panel \.display-list\s*\{[\s\S]*?display:\s*block;[\s\S]*?overflow-y:\s*auto;/
+  );
+  assert.match(display, /function scrollMobileDisplayStandings\(\)/);
+  assert.match(display, /displayStandingsScrollTimer = setInterval\([\s\S]*?40/);
 });
 
 test("sidebar banner has a motion-safe white liquid border", () => {
@@ -752,9 +762,26 @@ test("mobile navigation collapses to a labelled rail and closes after routing", 
   assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?\.app-sidebar\s*\{[\s\S]*?width:\s*46px;/);
   assert.match(
     styles,
-    /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*50vw;[\s\S]*?height:\s*50dvh;/
+    /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*50vw;[\s\S]*?height:\s*100dvh;/
   );
   assert.match(styles, /\.mobile-navigation-label[\s\S]*?writing-mode:\s*vertical-rl/);
+});
+
+test("dashboard statistics rotate through an accessible carousel", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  assert.match(html, /id="dashboardCarousel"[\s\S]*?id="dashboardCarouselPrevious"[\s\S]*?id="dashboardStatsTrack"/);
+  assert.match(html, /id="dashboardCarouselNext"[\s\S]*?id="dashboardCarouselStatus"[\s\S]*?aria-live="polite"/);
+  assert.equal((html.match(/data-stat-card/g) || []).length, 7);
+  assert.match(app, /function setDashboardCarouselIndex\(index\)/);
+  assert.match(app, /setInterval\([\s\S]*?4500/);
+  assert.match(app, /mouseenter[\s\S]*?stopDashboardCarousel[\s\S]*?mouseleave[\s\S]*?startDashboardCarousel/);
+  assert.match(styles, /\.stats-grid\s*\{[\s\S]*?--carousel-index:[\s\S]*?translate3d/);
+  assert.match(styles, /@keyframes dashboardStatSpin/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.stat-card\.is-active[\s\S]*?animation:\s*none/);
 });
 
 test("uses the transparent PHD cursor on mouse-capable devices", () => {

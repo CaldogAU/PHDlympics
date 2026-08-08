@@ -119,41 +119,69 @@
                 </div>
               </div>
 
-              <div class="stats-grid">
-                <div class="stat-card">
+              <div
+                id="dashboardCarousel"
+                class="dashboard-carousel"
+                aria-label="Tournament statistics carousel"
+              >
+                <button
+                  id="dashboardCarouselPrevious"
+                  class="dashboard-carousel-control secondary"
+                  type="button"
+                  aria-label="Show previous statistic"
+                >‹</button>
+
+                <div class="dashboard-carousel-viewport">
+                  <div id="dashboardStatsTrack" class="stats-grid">
+                <div class="stat-card" data-stat-card>
                   <span>Teams</span>
                   <strong id="statTeams">0</strong>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card" data-stat-card>
                   <span>Games</span>
                   <strong id="statGames">0</strong>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card" data-stat-card>
                   <span>Rounds</span>
                   <strong id="statRounds">0</strong>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card" data-stat-card>
                   <span>Completed Matches</span>
                   <strong id="statCompletedMatches">0</strong>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card" data-stat-card>
                   <span>Leader</span>
                   <strong id="statLeader">—</strong>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card" data-stat-card>
                   <span>Highest Score</span>
                   <strong id="statHighestScore">0</strong>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card" data-stat-card>
                   <span>Largest Margin</span>
                   <strong id="statLargestMargin">0</strong>
                 </div>
+                  </div>
+                </div>
+
+                <button
+                  id="dashboardCarouselNext"
+                  class="dashboard-carousel-control secondary"
+                  type="button"
+                  aria-label="Show next statistic"
+                >›</button>
+
+                <p
+                  id="dashboardCarouselStatus"
+                  class="dashboard-carousel-status"
+                  aria-live="polite"
+                >Statistic 1 of 7</p>
               </div>
             </section>
 

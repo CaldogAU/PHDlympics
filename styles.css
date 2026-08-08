@@ -751,13 +751,16 @@ body.light .game-mode-node > span {
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr));
-  gap: 14px;
-  margin-top: 18px;
+  --carousel-index: 0;
+  display: flex;
+  width: 100%;
+  transform: translate3d(calc(var(--carousel-index) * -100%), 0, 0);
+  transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .stat-card {
+  flex: 0 0 100%;
+  min-width: 100%;
   border: 1px solid var(--border);
   border-top: 4px solid #f9c74f;
   border-radius: 14px;
@@ -768,6 +771,58 @@ body.light .game-mode-node > span {
       rgba(34, 68, 96, 0.34),
       rgba(5, 16, 30, 0.72)
     );
+}
+
+.stat-card.is-active {
+  animation: dashboardStatSpin 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dashboard-carousel {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 380px) 42px;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.dashboard-carousel-viewport {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  perspective: 800px;
+}
+
+.dashboard-carousel-control {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.dashboard-carousel-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@keyframes dashboardStatSpin {
+  from {
+    opacity: 0.35;
+    transform: rotateY(-18deg) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotateY(0) scale(1);
+  }
 }
 
 .stat-card span {
@@ -1324,7 +1379,7 @@ tbody tr:hover {
 .activity-ticker div {
   display: inline-block;
   padding-left: 100%;
-  animation: tickerScroll 52s linear infinite;
+  animation: tickerScroll 34.67s linear infinite;
   font-weight: 700;
 }
 
@@ -1974,7 +2029,7 @@ body.display-active .display-mode {
   display: inline-block;
   position: relative;
   width: max-content;
-  animation: tickerScroll 56s linear infinite;
+  animation: tickerScroll 37.33s linear infinite;
   will-change: left, transform;
 }
 
@@ -2151,7 +2206,7 @@ body.display-active .display-mode {
 
   .app-sidebar.nav-open {
     width: 50vw;
-    height: 50dvh;
+    height: 100dvh;
     padding: 8px 16px 18px;
     overflow-y: auto;
     box-shadow: 18px 0 44px rgba(0, 0, 0, 0.34);
@@ -2249,6 +2304,21 @@ body.display-active .display-mode {
     grid-template-columns: 1fr;
   }
 
+  .dashboard-carousel {
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    gap: 7px;
+  }
+
+  .dashboard-carousel-control {
+    width: 34px;
+    height: 34px;
+    font-size: 22px;
+  }
+
+  .stat-card {
+    padding: 13px;
+  }
+
   .app-header {
     margin: 16px 16px 0;
     padding: 18px;
@@ -2330,6 +2400,32 @@ body.display-active .display-mode {
     padding: 20px;
     border-radius: 20px;
   }
+
+  .display-topbar .eyebrow {
+    display: none;
+  }
+
+  .display-standings-panel .display-list {
+    display: block;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .display-standings-panel .display-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .display-standings-panel .display-row {
+    min-height: 58px;
+    padding: 10px 0;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+    font-size: clamp(16px, 5vw, 22px);
+  }
+
+  .display-standings-panel .display-row strong {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 600px) and (prefers-reduced-motion: reduce) {
@@ -2340,6 +2436,16 @@ body.display-active .display-mode {
   .app-sidebar > .auth-panel,
   .app-sidebar > .sidebar-status {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-grid {
+    transition: none;
+  }
+
+  .stat-card.is-active {
+    animation: none;
   }
 }
 
