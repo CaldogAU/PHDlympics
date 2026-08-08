@@ -858,3 +858,15 @@ test("match history explains fair multi-team office scoring", () => {
   assert.match(html, /class="game-mode-detailed" hidden/);
   assert.match(app, /#standingsTab > \.app-layout > \.office-championship-overview/);
 });
+
+test("admin labels offices as countries and keeps country rows horizontal", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  const teams = fs.readFileSync(path.join(__dirname, "..", "js", "teams.js"), "utf8");
+  const styles = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+
+  assert.match(html, /<h2>Countries<\/h2>/);
+  assert.match(html, /Select country/);
+  assert.match(teams, /class="team-item country-item"/);
+  assert.match(styles, /\.country-item\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto;/);
+  assert.match(styles, /\.country-meta\s*\{[\s\S]*?grid-template-columns:[\s\S]*?minmax\(160px, 1fr\)/);
+});
