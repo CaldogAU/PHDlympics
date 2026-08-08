@@ -751,13 +751,16 @@ body.light .game-mode-node > span {
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr));
-  gap: 14px;
-  margin-top: 18px;
+  --carousel-index: 0;
+  display: flex;
+  width: 100%;
+  transform: translate3d(calc(var(--carousel-index) * -100%), 0, 0);
+  transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .stat-card {
+  flex: 0 0 100%;
+  min-width: 100%;
   border: 1px solid var(--border);
   border-top: 4px solid #f9c74f;
   border-radius: 14px;
@@ -768,6 +771,58 @@ body.light .game-mode-node > span {
       rgba(34, 68, 96, 0.34),
       rgba(5, 16, 30, 0.72)
     );
+}
+
+.stat-card.is-active {
+  animation: dashboardStatSpin 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dashboard-carousel {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 380px) 42px;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.dashboard-carousel-viewport {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  perspective: 800px;
+}
+
+.dashboard-carousel-control {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.dashboard-carousel-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@keyframes dashboardStatSpin {
+  from {
+    opacity: 0.35;
+    transform: rotateY(-18deg) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotateY(0) scale(1);
+  }
 }
 
 .stat-card span {
@@ -2249,28 +2304,19 @@ body.display-active .display-mode {
     grid-template-columns: 1fr;
   }
 
-  .stats-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 10px;
+  .dashboard-carousel {
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    gap: 7px;
+  }
+
+  .dashboard-carousel-control {
+    width: 34px;
+    height: 34px;
+    font-size: 22px;
   }
 
   .stat-card {
-    flex: 0 1 auto;
-    width: max-content;
-    max-width: 100%;
-    padding: 11px 12px;
-  }
-
-  .stat-card span {
-    margin-bottom: 5px;
-    font-size: 11px;
-    white-space: nowrap;
-  }
-
-  .stat-card strong {
-    font-size: 19px;
+    padding: 13px;
   }
 
   .app-header {
@@ -2364,6 +2410,16 @@ body.display-active .display-mode {
   .app-sidebar > .auth-panel,
   .app-sidebar > .sidebar-status {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-grid {
+    transition: none;
+  }
+
+  .stat-card.is-active {
+    animation: none;
   }
 }
 

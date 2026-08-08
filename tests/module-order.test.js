@@ -755,14 +755,23 @@ test("mobile navigation collapses to a labelled rail and closes after routing", 
     /\.app-sidebar\.nav-open\s*\{[\s\S]*?width:\s*50vw;[\s\S]*?height:\s*100dvh;/
   );
   assert.match(styles, /\.mobile-navigation-label[\s\S]*?writing-mode:\s*vertical-rl/);
-  assert.match(
-    styles,
-    /@media \(max-width: 600px\)[\s\S]*?\.stats-grid\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-wrap:\s*wrap;/
-  );
-  assert.match(
-    styles,
-    /@media \(max-width: 600px\)[\s\S]*?\.stat-card\s*\{[\s\S]*?width:\s*max-content;[\s\S]*?max-width:\s*100%;/
-  );
+});
+
+test("dashboard statistics rotate through an accessible carousel", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  assert.match(html, /id="dashboardCarousel"[\s\S]*?id="dashboardCarouselPrevious"[\s\S]*?id="dashboardStatsTrack"/);
+  assert.match(html, /id="dashboardCarouselNext"[\s\S]*?id="dashboardCarouselStatus"[\s\S]*?aria-live="polite"/);
+  assert.equal((html.match(/data-stat-card/g) || []).length, 7);
+  assert.match(app, /function setDashboardCarouselIndex\(index\)/);
+  assert.match(app, /setInterval\([\s\S]*?4500/);
+  assert.match(app, /mouseenter[\s\S]*?stopDashboardCarousel[\s\S]*?mouseleave[\s\S]*?startDashboardCarousel/);
+  assert.match(styles, /\.stats-grid\s*\{[\s\S]*?--carousel-index:[\s\S]*?translate3d/);
+  assert.match(styles, /@keyframes dashboardStatSpin/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.stat-card\.is-active[\s\S]*?animation:\s*none/);
 });
 
 test("uses the transparent PHD cursor on mouse-capable devices", () => {

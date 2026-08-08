@@ -1775,6 +1775,128 @@ function bindMobileNavigation() {
   );
 }
 
+let dashboardCarouselIndex = 0;
+let dashboardCarouselTimer = null;
+
+function setDashboardCarouselIndex(index) {
+  const track = document.getElementById(
+    "dashboardStatsTrack"
+  );
+  const status = document.getElementById(
+    "dashboardCarouselStatus"
+  );
+
+  if (!track) return;
+
+  const cards = [
+    ...track.querySelectorAll(
+      "[data-stat-card]"
+    )
+  ];
+
+  if (!cards.length) return;
+
+  dashboardCarouselIndex =
+    (index + cards.length) % cards.length;
+  track.style.setProperty(
+    "--carousel-index",
+    dashboardCarouselIndex
+  );
+
+  cards.forEach((card, cardIndex) => {
+    const active =
+      cardIndex === dashboardCarouselIndex;
+    card.classList.toggle("is-active", active);
+    card.setAttribute(
+      "aria-hidden",
+      String(!active)
+    );
+  });
+
+  if (status) {
+    status.textContent =
+      `Statistic ${dashboardCarouselIndex + 1} of ${cards.length}`;
+  }
+}
+
+function stopDashboardCarousel() {
+  if (!dashboardCarouselTimer) return;
+
+  clearInterval(dashboardCarouselTimer);
+  dashboardCarouselTimer = null;
+}
+
+function startDashboardCarousel() {
+  stopDashboardCarousel();
+
+  if (
+    window.matchMedia &&
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+  ) {
+    return;
+  }
+
+  dashboardCarouselTimer = setInterval(
+    () => setDashboardCarouselIndex(
+      dashboardCarouselIndex + 1
+    ),
+    4500
+  );
+}
+
+function bindDashboardCarousel() {
+  const carousel = document.getElementById(
+    "dashboardCarousel"
+  );
+
+  if (!carousel) return;
+
+  bindClick(
+    "dashboardCarouselPrevious",
+    () => {
+      setDashboardCarouselIndex(
+        dashboardCarouselIndex - 1
+      );
+      startDashboardCarousel();
+    }
+  );
+  bindClick(
+    "dashboardCarouselNext",
+    () => {
+      setDashboardCarouselIndex(
+        dashboardCarouselIndex + 1
+      );
+      startDashboardCarousel();
+    }
+  );
+
+  carousel.addEventListener(
+    "mouseenter",
+    stopDashboardCarousel
+  );
+  carousel.addEventListener(
+    "mouseleave",
+    startDashboardCarousel
+  );
+  carousel.addEventListener(
+    "focusin",
+    stopDashboardCarousel
+  );
+  carousel.addEventListener(
+    "focusout",
+    event => {
+      if (!carousel.contains(event.relatedTarget)) {
+        startDashboardCarousel();
+      }
+    }
+  );
+
+  setDashboardCarouselIndex(0);
+  startDashboardCarousel();
+}
+
 function bindTournamentEvents() {
   bindClick(
     "saveTournament",
@@ -2575,6 +2697,7 @@ function initialiseAppInterface() {
 
   bindTabEvents();
   bindMobileNavigation();
+  bindDashboardCarousel();
   bindTournamentEvents();
   bindGameEvents();
   bindTeamEvents();
