@@ -14,7 +14,11 @@ function getTeamFormValues() {
 
     colour:
       document.getElementById("teamColour").value ||
-      "#6d5dfc"
+      "#6d5dfc",
+
+    officeId: document
+      .getElementById("teamOffice")
+      .value
   };
 }
 
@@ -25,6 +29,7 @@ function clearTeamForm() {
   document.getElementById("teamShortName").value = "";
   document.getElementById("teamLogoUrl").value = "";
   document.getElementById("teamColour").value = "#6d5dfc";
+  document.getElementById("teamOffice").value = "";
   document.getElementById("saveTeam").textContent = "Add Team";
 }
 
@@ -35,6 +40,7 @@ function createTeam(values) {
     shortName: values.shortName,
     logoUrl: values.logoUrl,
     colour: values.colour,
+    officeId: values.officeId,
     createdAt: new Date().toISOString()
   };
 }
@@ -45,7 +51,8 @@ function getTeamAuditDetails(team) {
     name: team.name,
     shortName: team.shortName || "",
     logoUrl: team.logoUrl || "",
-    colour: team.colour || "#6d5dfc"
+    colour: team.colour || "#6d5dfc",
+    officeId: team.officeId || ""
   };
 }
 
@@ -56,7 +63,8 @@ function getTeamChanges(previousTeam, updatedTeam) {
     "name",
     "shortName",
     "logoUrl",
-    "colour"
+    "colour",
+    "officeId"
   ].forEach(field => {
     const previousValue =
       previousTeam[field] || "";
@@ -80,6 +88,11 @@ async function saveTeamFromForm() {
 
   if (!values.name) {
     alert("Enter a team name.");
+    return;
+  }
+
+  if (!getOfficeById(values.officeId)) {
+    alert("Select an office for this team.");
     return;
   }
 
@@ -118,6 +131,7 @@ async function saveTeamFromForm() {
     team.shortName = values.shortName;
     team.logoUrl = values.logoUrl;
     team.colour = values.colour;
+    team.officeId = values.officeId;
 
     auditAction = "team.updated";
     auditSummary =
@@ -202,6 +216,10 @@ function editTeam(teamId) {
     "teamColour"
   ).value =
     team.colour || "#6d5dfc";
+
+  document.getElementById(
+    "teamOffice"
+  ).value = team.officeId || "";
 
   document.getElementById(
     "saveTeam"
@@ -356,6 +374,11 @@ function renderTeams() {
               team.logoUrl ||
                 "No logo URL"
             )}
+            &middot;
+            ${escapeHtml(
+              (getOfficeForTeam(team) || {}).name ||
+                "No office"
+            )}
           </span>
         </div>
 
@@ -381,6 +404,118 @@ function renderTeams() {
       list.appendChild(item);
     }
   );
+}
+
+function getOfficeFormValues() {
+  return {
+    name: document.getElementById("officeName").value.trim(),
+    shortName: document.getElementById("officeShortName").value.trim()
+  };
+}
+
+function clearOfficeForm() {
+  PHDTournament.editingOfficeId = null;
+  document.getElementById("officeName").value = "";
+  document.getElementById("officeShortName").value = "";
+  document.getElementById("saveOffice").textContent = "Add Office";
+}
+
+async function saveOfficeFromForm() {
+  const values = getOfficeFormValues();
+  if (!values.name) {
+    alert("Enter an office name.");
+    return;
+  }
+
+  const duplicate = (PHDTournament.state.offices || []).some(
+    office => office.name.toLowerCase() === values.name.toLowerCase() &&
+      office.id !== PHDTournament.editingOfficeId
+  );
+  if (duplicate) {
+    alert("That office already exists.");
+    return;
+  }
+
+  let office;
+  let action;
+  if (PHDTournament.editingOfficeId) {
+    office = getOfficeById(PHDTournament.editingOfficeId);
+    if (!office) return;
+    office.name = values.name;
+    office.shortName = values.shortName;
+    action = "office.updated";
+  } else {
+    office = {
+      id: crypto.randomUUID(),
+      name: values.name,
+      shortName: values.shortName,
+      createdAt: new Date().toISOString()
+    };
+    PHDTournament.state.offices.push(office);
+    action = "office.created";
+  }
+
+  clearOfficeForm();
+  render();
+  await saveState();
+  if (typeof recordAuditEntry === "function") {
+    await recordAuditEntry(action, `${action === "office.created" ? "Added" : "Updated"} office "${office.name}".`, { office });
+  }
+}
+
+function editOffice(officeId) {
+  const office = getOfficeById(officeId);
+  if (!office) return;
+  PHDTournament.editingOfficeId = office.id;
+  document.getElementById("officeName").value = office.name;
+  document.getElementById("officeShortName").value = office.shortName || "";
+  document.getElementById("saveOffice").textContent = "Save Office";
+}
+
+async function deleteOffice(officeId) {
+  const office = getOfficeById(officeId);
+  if (!office) return;
+  if (getTeamsForOffice(officeId).length) {
+    alert("Reassign or delete this office's teams before deleting the office.");
+    return;
+  }
+  if (!confirm(`Delete ${office.name}?`)) return;
+  PHDTournament.state.offices = PHDTournament.state.offices
+    .filter(item => item.id !== officeId);
+  clearOfficeForm();
+  render();
+  await saveState();
+  if (typeof recordAuditEntry === "function") {
+    await recordAuditEntry("office.deleted", `Deleted office "${office.name}".`, { office });
+  }
+}
+
+function renderOffices() {
+  const offices = PHDTournament.state.offices || [];
+  const select = document.getElementById("teamOffice");
+  const list = document.getElementById("officeList");
+
+  if (select) {
+    const selected = select.value;
+    select.innerHTML = `<option value="">Select office</option>${offices.map(office => `
+      <option value="${escapeHtml(office.id)}">${escapeHtml(office.name)}</option>
+    `).join("")}`;
+    select.value = offices.some(office => office.id === selected) ? selected : "";
+  }
+
+  if (!list) return;
+  list.innerHTML = offices.length ? offices.map(office => `
+    <li class="team-item">
+      <div class="team-meta">
+        <strong>${escapeHtml(office.name)}</strong>
+        <span>${escapeHtml(office.shortName || "No short name")} &middot; ${getTeamsForOffice(office.id).length} team(s)</span>
+      </div>
+      <div class="team-actions">
+        <button class="small-button secondary edit-office" type="button" data-office-id="${escapeHtml(office.id)}">Edit</button>
+        <button class="small-button danger delete-office" type="button" data-office-id="${escapeHtml(office.id)}">Delete</button>
+      </div>
+    </li>
+  `).join("") : `<li class="empty-state">No offices yet. Add an office before creating a team.</li>`;
 }
 
 PHDTournament.modules.push("teams");

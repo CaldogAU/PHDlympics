@@ -12,6 +12,9 @@ function updateThemeToggleLabel() {
 }
 
 function ensureStateShape() {
+  if (!Array.isArray(PHDTournament.state.offices)) {
+    PHDTournament.state.offices = [];
+  }
   if (!Array.isArray(PHDTournament.state.teams)) {
     PHDTournament.state.teams = [];
   }
@@ -1296,6 +1299,7 @@ function render() {
   renderStatistics();
   renderGames();
   renderGameTabs();
+  renderOffices();
   renderTeams();
   if (
     typeof renderStaffManagement ===
@@ -2235,6 +2239,29 @@ function bindGameEvents() {
 }
 
 function bindTeamEvents() {
+  bindClick("saveOffice", () => {
+    if (!requireTeamManagementForAction()) return;
+    saveOfficeFromForm();
+  });
+
+  bindClick("clearOfficeForm", () => {
+    if (!requireTeamManagementForAction()) return;
+    clearOfficeForm();
+  });
+
+  const officeList = getElement("officeList");
+  if (officeList) {
+    officeList.addEventListener("click", event => {
+      const officeId = event.target.dataset.officeId;
+      if (!officeId || !requireTeamManagementForAction()) return;
+      if (event.target.classList.contains("edit-office")) {
+        editOffice(officeId);
+      } else if (event.target.classList.contains("delete-office")) {
+        deleteOffice(officeId);
+      }
+    });
+  }
+
   bindClick("saveTeam", () => {
     if (!requireTeamManagementForAction()) {
       return;

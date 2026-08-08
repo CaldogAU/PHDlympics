@@ -201,13 +201,70 @@ function getCompletedGameLeaderboard(game) {
     : null;
 }
 
+function buildOfficeLeaderboard(
+  teamLeaderboard,
+  teams = PHDTournament.state.teams,
+  offices = PHDTournament.state.offices
+) {
+  const teamsById = new Map(
+    (teams || []).map(team => [team.id, team])
+  );
+  const officesById = new Map(
+    (offices || []).map(office => [office.id, office])
+  );
+  const representedOffices = new Set();
+  const officeRankings = [];
+
+  [...(teamLeaderboard || [])]
+    .sort((a, b) =>
+      Number(a.position) - Number(b.position) ||
+      String(a.teamId).localeCompare(String(b.teamId))
+    )
+    .forEach(result => {
+      const team = teamsById.get(result.teamId);
+      if (!team || !team.officeId || representedOffices.has(team.officeId)) {
+        return;
+      }
+      const office = officesById.get(team.officeId);
+      if (!office) return;
+
+      const previous = officeRankings[officeRankings.length - 1];
+      const sourcePosition = Number(result.position);
+      const position = previous && previous.sourcePosition === sourcePosition
+        ? previous.position
+        : officeRankings.length + 1;
+
+      representedOffices.add(team.officeId);
+      officeRankings.push({
+        officeId: office.id,
+        name: office.name,
+        shortName: office.shortName || "",
+        position,
+        sourcePosition,
+        scoringTeamId: team.id,
+        scoringTeamName: team.name
+      });
+    });
+
+  return window.PHDGameModes.awardChampionshipPoints(officeRankings)
+    .map(({ sourcePosition, ...entry }) => entry);
+}
+
 function getTournamentStandings() {
   const standings = new Map();
 
-  PHDTournament.state.teams.forEach(
-    team => {
-      standings.set(team.id, {
-        ...createEmptyStanding(team),
+  (PHDTournament.state.offices || []).forEach(
+    office => {
+      const representativeTeam = (PHDTournament.state.teams || [])
+        .find(team => team.officeId === office.id) || {};
+      standings.set(office.id, {
+        id: office.id,
+        officeId: office.id,
+        name: office.name,
+        shortName: office.shortName || "",
+        logoUrl: "",
+        colour: representativeTeam.colour || "#6d5dfc",
+        points: 0,
         gamesCompleted: 0,
         gamePoints: []
       });
@@ -225,9 +282,13 @@ function getTournamentStandings() {
         return;
       }
 
-      leaderboard.forEach(result => {
+      buildOfficeLeaderboard(
+        leaderboard,
+        PHDTournament.state.teams,
+        PHDTournament.state.offices
+      ).forEach(result => {
         const standing =
-          standings.get(result.teamId);
+          standings.get(result.officeId);
         const points = Number(
           result.championshipPoints
         );
@@ -245,7 +306,9 @@ function getTournamentStandings() {
           gameId: game.id,
           gameName: game.name,
           position: result.position,
-          points
+          points,
+          scoringTeamId: result.scoringTeamId,
+          scoringTeamName: result.scoringTeamName
         });
       });
     }
@@ -284,7 +347,7 @@ function renderStandings() {
     if (header) {
       header.innerHTML = `
         <th>#</th>
-        <th>Team</th>
+        <th>Office</th>
         <th>Tournament Points</th>
         <th>Completed Games</th>
         ${games.map(game => `
@@ -300,7 +363,7 @@ function renderStandings() {
     if (standings.length === 0) {
       body.innerHTML = `
         <tr>
-          <td colspan="${4 + games.length}">No teams yet. Add teams to populate the standings.</td>
+          <td colspan="${4 + games.length}">No offices yet. Add offices and teams to populate the standings.</td>
         </tr>
       `;
       return;
@@ -332,11 +395,11 @@ function renderStandings() {
           return `
             <td
               class="game-points-cell"
-              title="${escapeHtml(game.name)}"
+              title="${escapeHtml(gameResult ? `${game.name}: scored by ${gameResult.scoringTeamName}` : game.name)}"
             >
               ${
                 gameResult
-                  ? gameResult.points
+                  ? `${gameResult.points}<small>${escapeHtml(gameResult.scoringTeamName)}</small>`
                   : "—"
               }
             </td>

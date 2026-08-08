@@ -24,6 +24,23 @@ function getTeamById(teamId) {
   return PHDTournament.state.teams.find(team => team.id === teamId);
 }
 
+function getOfficeById(officeId) {
+  return (PHDTournament.state.offices || [])
+    .find(office => office.id === officeId);
+}
+
+function getOfficeForTeam(teamOrId) {
+  const team = typeof teamOrId === "string"
+    ? getTeamById(teamOrId)
+    : teamOrId;
+  return team ? getOfficeById(team.officeId) : null;
+}
+
+function getTeamsForOffice(officeId) {
+  return (PHDTournament.state.teams || [])
+    .filter(team => team.officeId === officeId);
+}
+
 function renderTeamLogo(team) {
   if (!team) return "";
 

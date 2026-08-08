@@ -176,6 +176,31 @@ test("normalises legacy cloud state at the storage boundary", () => {
   );
 });
 
+test("migrates every legacy team into an independent office", () => {
+  const { mergeTournamentState } = loadMergeTournamentState();
+  const merged = mergeTournamentState({
+    teams: [
+      { id: "sg-a", name: "Singapore A", shortName: "SGA" },
+      { id: "sg-b", name: "Singapore B", shortName: "SGB" }
+    ],
+    games: [],
+    rounds: [],
+    events: []
+  });
+
+  assert.deepEqual(
+    Array.from(merged.teams, team => team.officeId),
+    ["legacy-office-sg-a", "legacy-office-sg-b"]
+  );
+  assert.deepEqual(
+    Array.from(merged.offices, office => [office.id, office.name]),
+    [
+      ["legacy-office-sg-a", "Singapore A"],
+      ["legacy-office-sg-b", "Singapore B"]
+    ]
+  );
+});
+
 test("creates independent collections when resetting to defaults", () => {
   const {
     defaultState,

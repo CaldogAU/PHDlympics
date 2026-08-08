@@ -80,6 +80,9 @@ function createState() {
     { id: "c", name: "Charlie" },
     { id: "d", name: "Delta" }
   ];
+  teams.forEach(team => {
+    team.officeId = team.id;
+  });
 
   return {
     tournament: {
@@ -89,6 +92,11 @@ function createState() {
         byePoints: 3
       }
     },
+    offices: teams.map(team => ({
+      id: team.id,
+      name: team.name,
+      shortName: team.name.slice(0, 3)
+    })),
     teams,
     games: [
       {
@@ -262,6 +270,101 @@ test("excludes match games until the game itself is completed", () => {
     ),
     40
   );
+});
+
+test("scores only the best team per office and recalculates the point pool", () => {
+  const state = createState();
+  state.offices = [
+    { id: "singapore", name: "Singapore", shortName: "SG" },
+    { id: "melbourne", name: "Melbourne", shortName: "MEL" },
+    { id: "london", name: "London", shortName: "LON" }
+  ];
+  state.teams = [
+    { id: "sg-a", name: "Singapore A", officeId: "singapore" },
+    { id: "mel-a", name: "Melbourne A", officeId: "melbourne" },
+    { id: "sg-b", name: "Singapore B", officeId: "singapore" },
+    { id: "lon-a", name: "London A", officeId: "london" }
+  ];
+  state.games = [{ id: "gp", name: "Grand Prix", mode: "grand-prix" }];
+  state.events = [{
+    gameId: "gp",
+    mode: "grand-prix",
+    completed: true,
+    results: [
+      { teamId: "sg-a", finishPosition: 1 },
+      { teamId: "mel-a", finishPosition: 2 },
+      { teamId: "sg-b", finishPosition: 3 },
+      { teamId: "lon-a", finishPosition: 4 }
+    ]
+  }];
+
+  const standings = loadStandings(state);
+  assert.deepEqual(
+    Array.from(standings, office => [
+      office.id,
+      office.points,
+      office.gamePoints[0].scoringTeamId
+    ]),
+    [
+      ["singapore", 3, "sg-a"],
+      ["melbourne", 2, "mel-a"],
+      ["london", 1, "lon-a"]
+    ]
+  );
+});
+
+test("same-office top two do not preserve inflated team positions", () => {
+  const state = createState();
+  state.offices = [
+    { id: "sg", name: "Singapore" },
+    { id: "mel", name: "Melbourne" },
+    { id: "lon", name: "London" }
+  ];
+  state.teams = [
+    { id: "sg-a", name: "Singapore A", officeId: "sg" },
+    { id: "sg-b", name: "Singapore B", officeId: "sg" },
+    { id: "mel", name: "Melbourne", officeId: "mel" },
+    { id: "lon", name: "London", officeId: "lon" }
+  ];
+  state.games = [{ id: "four", name: "Swiss", mode: "four-player-swiss", fourPlayerSwiss: {
+    closed: true,
+    finalStandings: state.teams.map((team, index) => ({ teamId: team.id, position: index + 1 }))
+  }}];
+  state.events = [];
+
+  const standings = loadStandings(state);
+  assert.deepEqual(
+    Array.from(standings, office => [office.id, office.points]),
+    [["sg", 3], ["mel", 2], ["lon", 1]]
+  );
+});
+
+test("a fourteen-team field representing ten offices has a ten-point maximum", () => {
+  const state = createState();
+  state.offices = Array.from({ length: 10 }, (_, index) => ({
+    id: `office-${index + 1}`,
+    name: `Office ${index + 1}`
+  }));
+  state.teams = Array.from({ length: 14 }, (_, index) => ({
+    id: `team-${index + 1}`,
+    name: `Team ${index + 1}`,
+    officeId: `office-${index < 10 ? index + 1 : index - 9}`
+  }));
+  state.games = [{ id: "gp", name: "Grand Prix", mode: "grand-prix" }];
+  state.events = [{
+    gameId: "gp",
+    mode: "grand-prix",
+    completed: true,
+    results: state.teams.map((team, index) => ({
+      teamId: team.id,
+      finishPosition: index + 1
+    }))
+  }];
+
+  const standings = loadStandings(state);
+  assert.equal(standings.length, 10);
+  assert.equal(standings[0].points, 10);
+  assert.equal(standings.at(-1).points, 1);
 });
 
 test("closed Fall Guys Grand Prix awards final tournament points", () => {

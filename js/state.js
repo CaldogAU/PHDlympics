@@ -9,7 +9,7 @@ const PHDTournament = {
   defaultState: {
     appName: "PHDlympics",
     version: "1.3.0",
-    schemaVersion: 3,
+    schemaVersion: 4,
     access: {
       assignments: {}
     },
@@ -29,10 +29,11 @@ const PHDTournament = {
         byePoints: 3
       }
     },
-teams: [],
-games: [],
-rounds: [],
-events: []
+    offices: [],
+    teams: [],
+    games: [],
+    rounds: [],
+    events: []
   },
   state: null
 };
