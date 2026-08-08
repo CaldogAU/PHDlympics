@@ -579,6 +579,7 @@ function enhanceCollapsibleGameFeatures() {
   document
     .querySelectorAll(
       '.tab-panel[id^="game-"] > .app-layout > .card, #adminTab > .app-layout > .card'
+        + ', #standingsTab > .app-layout > .office-championship-overview'
     )
     .forEach((card, index) => {
       if (
