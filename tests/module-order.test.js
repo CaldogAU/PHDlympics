@@ -674,9 +674,19 @@ test("display mode shows every team below the faster ticker", () => {
   assert.ok(tickerIndex >= 0 && tickerIndex < standingsIndex);
   assert.match(display, /--standings-columns:/);
   assert.match(display, /--standings-font-size:/);
-  assert.match(styles, /animation: tickerScroll 52s linear infinite/);
-  assert.match(styles, /animation: tickerScroll 56s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 34\.67s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 37\.33s linear infinite/);
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
+  assert.match(
+    styles,
+    /@media \(max-width: 600px\)[\s\S]*?\.display-topbar \.eyebrow\s*\{[\s\S]*?display:\s*none;/
+  );
+  assert.match(
+    styles,
+    /@media \(max-width: 600px\)[\s\S]*?\.display-standings-panel \.display-list\s*\{[\s\S]*?display:\s*block;[\s\S]*?overflow-y:\s*auto;/
+  );
+  assert.match(display, /function scrollMobileDisplayStandings\(\)/);
+  assert.match(display, /displayStandingsScrollTimer = setInterval\([\s\S]*?40/);
 });
 
 test("sidebar banner has a motion-safe white liquid border", () => {

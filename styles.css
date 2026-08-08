@@ -1379,7 +1379,7 @@ tbody tr:hover {
 .activity-ticker div {
   display: inline-block;
   padding-left: 100%;
-  animation: tickerScroll 52s linear infinite;
+  animation: tickerScroll 34.67s linear infinite;
   font-weight: 700;
 }
 
@@ -2029,7 +2029,7 @@ body.display-active .display-mode {
   display: inline-block;
   position: relative;
   width: max-content;
-  animation: tickerScroll 56s linear infinite;
+  animation: tickerScroll 37.33s linear infinite;
   will-change: left, transform;
 }
 
@@ -2399,6 +2399,32 @@ body.display-active .display-mode {
   .display-panel {
     padding: 20px;
     border-radius: 20px;
+  }
+
+  .display-topbar .eyebrow {
+    display: none;
+  }
+
+  .display-standings-panel .display-list {
+    display: block;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .display-standings-panel .display-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .display-standings-panel .display-row {
+    min-height: 58px;
+    padding: 10px 0;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+    font-size: clamp(16px, 5vw, 22px);
+  }
+
+  .display-standings-panel .display-row strong {
+    white-space: normal;
   }
 }
 

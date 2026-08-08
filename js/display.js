@@ -1,5 +1,8 @@
 let displayRefreshTimer = null;
 let displayClockTimer = null;
+let displayStandingsScrollTimer = null;
+let displayStandingsScrollDirection = 1;
+let displayStandingsScrollPosition = 0;
 let previousDisplayLeader = null;
 
 function formatDisplayTime() {
@@ -193,6 +196,59 @@ function renderDisplayMode() {
   }
 
   bindDisplayModeInnerButtons();
+
+  const standingsList = container.querySelector(
+    ".display-standings-panel .display-list"
+  );
+  if (standingsList) {
+    standingsList.scrollTop =
+      displayStandingsScrollPosition;
+  }
+}
+
+function scrollMobileDisplayStandings() {
+  if (
+    !document.body.classList.contains(
+      "display-active"
+    ) ||
+    !window.matchMedia(
+      "(max-width: 600px)"
+    ).matches ||
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+  ) {
+    return;
+  }
+
+  const list = document.querySelector(
+    ".display-standings-panel .display-list"
+  );
+  if (!list) return;
+
+  const maximum = Math.max(
+    0,
+    list.scrollHeight - list.clientHeight
+  );
+  if (!maximum) return;
+
+  displayStandingsScrollPosition +=
+    displayStandingsScrollDirection;
+
+  if (
+    displayStandingsScrollPosition >= maximum
+  ) {
+    displayStandingsScrollPosition = maximum;
+    displayStandingsScrollDirection = -1;
+  } else if (
+    displayStandingsScrollPosition <= 0
+  ) {
+    displayStandingsScrollPosition = 0;
+    displayStandingsScrollDirection = 1;
+  }
+
+  list.scrollTop =
+    displayStandingsScrollPosition;
 }
 
 function bindDisplayModeInnerButtons() {
@@ -226,6 +282,10 @@ function startDisplayTimers() {
   }, 5000);
 
   displayClockTimer = setInterval(updateDisplayClock, 1000);
+  displayStandingsScrollTimer = setInterval(
+    scrollMobileDisplayStandings,
+    40
+  );
 }
 
 function stopDisplayTimers() {
@@ -238,9 +298,18 @@ function stopDisplayTimers() {
     clearInterval(displayClockTimer);
     displayClockTimer = null;
   }
+
+  if (displayStandingsScrollTimer) {
+    clearInterval(
+      displayStandingsScrollTimer
+    );
+    displayStandingsScrollTimer = null;
+  }
 }
 
 function enterDisplayMode() {
+  displayStandingsScrollPosition = 0;
+  displayStandingsScrollDirection = 1;
   document.body.classList.add("display-active");
   renderDisplayMode();
   startDisplayTimers();
