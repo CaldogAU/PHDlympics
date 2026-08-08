@@ -849,12 +849,13 @@ test("match history explains fair multi-team office scoring", () => {
   );
 
   assert.match(html, /office-championship-overview/);
-  assert.match(html, /Multiple teams, one fair office score/);
+  assert.match(html, /How country scoring works/);
+  assert.match(html, /Multiple teams, one fair country score/);
   assert.match(html, /id="officeExampleRanking"/);
   assert.match(app, /function renderOfficeChampionshipExample/);
   assert.match(app, /duplicateGroup\[0\].*otherTeams\[0\].*duplicateGroup\[1\]/s);
   assert.doesNotMatch(html, /Singapore A|Singapore B|Melbourne A|London A/);
-  assert.match(html, /14 teams representing 10 offices awards a maximum of 10/);
+  assert.match(html, /14 teams representing 10 countries awards a maximum of 10/);
   assert.match(html, /class="game-mode-detailed" hidden/);
   assert.match(app, /#standingsTab > \.app-layout > \.office-championship-overview/);
 });

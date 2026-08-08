@@ -132,7 +132,7 @@ function renderDisplayMode() {
         class="display-panel display-standings-panel"
         style="--standings-columns: ${standingsColumns}; --standings-rows: ${standingsRows}; --standings-font-size: ${standingsFontSize}vh; --standings-gap: ${standingsGap}px;"
       >
-        <h3>Office Championship</h3>
+        <h3>Country Championship</h3>
         <div class="display-list">${standingsHtml}</div>
       </article>
     </section>

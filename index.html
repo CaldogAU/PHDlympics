@@ -202,9 +202,9 @@
               <div class="section-heading">
                 <div>
                   <p class="eyebrow">Standings</p>
-                  <h2>Office Championship Standings</h2>
+                  <h2>Country Championship Standings</h2>
                   <p class="muted">
-                    Each office's best team scores in every completed game. Points are recalculated from the number of represented offices.
+                    Each country's best team scores in every completed game. Points are recalculated from the number of represented countries.
                   </p>
                 </div>
               </div>
@@ -551,10 +551,10 @@
             <section class="card wide game-mode-overview office-championship-overview">
               <div class="section-heading">
                 <div>
-                  <p class="eyebrow">How office scoring works</p>
-                  <h2>Multiple teams, one fair office score</h2>
+                  <p class="eyebrow">How country scoring works</p>
+                  <h2>Multiple teams, one fair country score</h2>
                   <p class="muted">
-                    Every team competes and keeps its full result, but only each office's best team contributes to the Office Championship for that game.
+                    Every team competes and keeps its full result, but only each country's best team contributes to the Country Championship for that game.
                   </p>
                 </div>
               </div>
@@ -563,7 +563,7 @@
                 <div
                   class="game-mode-diagram"
                   role="img"
-                  aria-label="Example showing four teams representing three offices, duplicate offices removed, and office championship points recalculated"
+                  aria-label="Example showing four teams representing three countries, duplicate countries removed, and country championship points recalculated"
                 >
                   <section class="game-mode-stage">
                     <div class="game-mode-stage-heading">
@@ -591,7 +591,7 @@
 
                   <section class="game-mode-stage">
                     <div class="game-mode-stage-heading">
-                      <span>3</span><strong>Best per office</strong>
+                      <span>3</span><strong>Best per country</strong>
                     </div>
                     <div class="game-mode-stage-groups">
                       <div class="game-mode-node is-advance">
@@ -611,7 +611,7 @@
                     </div>
                     <div class="game-mode-stage-groups">
                       <div class="game-mode-node is-advance">
-                        <strong id="officeExamplePointHeading">Current offices represented</strong>
+                        <strong id="officeExamplePointHeading">Current countries represented</strong>
                         <div id="officeExamplePoints"></div>
                       </div>
                     </div>
@@ -619,35 +619,35 @@
                 </div>
 
                 <p class="game-mode-note">
-                  Extra teams never increase an office's point ceiling: a game with 14 teams representing 10 offices awards a maximum of 10 Office Championship points, not 14.
+                  Extra teams never increase a country's point ceiling: a game with 14 teams representing 10 countries awards a maximum of 10 Country Championship points, not 14.
                 </p>
               </div>
 
               <div class="game-mode-detailed" hidden>
                 <ol class="game-mode-detailed-steps">
                   <li>
-                    <strong>Offices may enter multiple teams</strong>
-                    <p>Teams are separate competitors assigned to an office. They continue to enter games, lobbies, matches and tournament rounds independently.</p>
+                    <strong>Countries may enter multiple teams</strong>
+                    <p>Teams are separate competitors assigned to a country. They continue to enter games, lobbies, matches and tournament rounds independently.</p>
                   </li>
                   <li>
                     <strong>Every team receives its real result</strong>
                     <p>The complete game leaderboard is preserved. Team placements, match history, statistics, medals and records are not removed or combined.</p>
                   </li>
                   <li>
-                    <strong>The best team represents each office</strong>
-                    <p>For each completed game, the highest-ranked team belonging to an office becomes that office's scoring team. Lower-ranked teams from the same office retain their results but add no extra Office Championship points.</p>
+                    <strong>The best team represents each country</strong>
+                    <p>For each completed game, the highest-ranked team belonging to a country becomes that country's scoring team. Lower-ranked teams from the same country retain their results but add no extra Country Championship points.</p>
                   </li>
                   <li>
-                    <strong>Offices are ranked again</strong>
-                    <p>After duplicate offices are removed, the remaining offices receive new positions in their original performance order. This prevents gaps caused by non-scoring teams.</p>
+                    <strong>Countries are ranked again</strong>
+                    <p>After duplicate countries are removed, the remaining countries receive new positions in their original performance order. This prevents gaps caused by non-scoring teams.</p>
                   </li>
                   <li>
-                    <strong>The point pool matches the office field</strong>
-                    <p>Last office receives 1 point and each higher office receives one more. Ten represented offices therefore award 10 points for first, down to 1 point for tenth, regardless of how many teams entered.</p>
+                    <strong>The point pool matches the country field</strong>
+                    <p>Last country receives 1 point and each higher country receives one more. Ten represented countries therefore award 10 points for first, down to 1 point for tenth, regardless of how many teams entered.</p>
                   </li>
                   <li>
                     <strong>The scoring team may change by game</strong>
-                    <p id="officeExampleChangingTeam">Different teams from the same configured office can contribute its best result in different games.</p>
+                    <p id="officeExampleChangingTeam">Different teams from the same configured country can contribute its best result in different games.</p>
                   </li>
                 </ol>
               </div>
