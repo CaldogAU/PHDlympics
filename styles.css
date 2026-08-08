@@ -912,12 +912,21 @@ select:focus-visible,
 }
 
 .team-form,
+.office-form,
 .game-form {
   display: grid;
   grid-template-columns: 1.3fr 0.8fr 1.4fr 90px auto;
   gap: 12px;
   align-items: center;
   margin-top: 18px;
+}
+
+.team-form {
+  grid-template-columns: 1.2fr 1fr 0.8fr 1.2fr 90px auto;
+}
+
+.office-form {
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.7fr) auto;
 }
 
 .game-form {
@@ -1175,6 +1184,14 @@ tbody tr:hover {
 .game-points-cell {
   min-width: 110px;
   text-align: center;
+}
+
+.game-points-cell small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
 }
 
 .game-points-cell {
@@ -1599,7 +1616,8 @@ tbody tr:hover {
   letter-spacing: 0.035em;
 }
 
-.game-mode-node > span {
+.game-mode-node > span,
+.game-mode-node > div > span {
   display: block;
   padding: 5px 7px;
   overflow-wrap: anywhere;
@@ -1609,7 +1627,8 @@ tbody tr:hover {
   line-height: 1.25;
 }
 
-.game-mode-node > span + span {
+.game-mode-node > span + span,
+.game-mode-node > div > span + span {
   margin-top: 4px;
 }
 
@@ -2143,6 +2162,7 @@ body.display-active .display-mode {
 
   .grid.three,
   .team-form,
+  .office-form,
   .game-form,
   .stats-grid {
     grid-template-columns: 1fr;
@@ -2481,6 +2501,7 @@ body.display-active .display-mode {
   .app-header,
   .tab-nav,
   .team-form,
+  .office-form,
   .game-form,
   .header-actions,
   .section-heading button,

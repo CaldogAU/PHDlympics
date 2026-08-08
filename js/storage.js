@@ -30,6 +30,9 @@ function mergeTournamentState(sourceState) {
         )
       }
     },
+    offices: Array.isArray(source.offices)
+      ? structuredClone(source.offices)
+      : [],
     teams: Array.isArray(source.teams)
       ? structuredClone(source.teams)
       : [],
@@ -56,6 +59,29 @@ function mergeTournamentState(sourceState) {
       ? structuredClone(source.archive)
       : []
   };
+
+  const officesById = new Map(
+    mergedState.offices
+      .filter(office => office && office.id)
+      .map(office => [office.id, office])
+  );
+
+  mergedState.teams.forEach(team => {
+    if (!team.officeId) {
+      team.officeId = `legacy-office-${team.id}`;
+    }
+
+    if (!officesById.has(team.officeId)) {
+      const office = {
+        id: team.officeId,
+        name: team.name || "Legacy office",
+        shortName: team.shortName || "",
+        createdAt: team.createdAt || new Date().toISOString()
+      };
+      mergedState.offices.push(office);
+      officesById.set(office.id, office);
+    }
+  });
 
   if (
     !mergedState.tournament.bannerUrl ||

@@ -12,6 +12,9 @@ function updateThemeToggleLabel() {
 }
 
 function ensureStateShape() {
+  if (!Array.isArray(PHDTournament.state.offices)) {
+    PHDTournament.state.offices = [];
+  }
   if (!Array.isArray(PHDTournament.state.teams)) {
     PHDTournament.state.teams = [];
   }
@@ -576,6 +579,7 @@ function enhanceCollapsibleGameFeatures() {
   document
     .querySelectorAll(
       '.tab-panel[id^="game-"] > .app-layout > .card, #adminTab > .app-layout > .card'
+        + ', #standingsTab > .app-layout > .office-championship-overview'
     )
     .forEach((card, index) => {
       if (
@@ -1275,6 +1279,93 @@ function renderChampionshipAndArchive() {
   }
 }
 
+function renderOfficeChampionshipExample() {
+  const entries = getElement("officeExampleEntries");
+  if (!entries) return;
+
+  const teams = PHDTournament.state.teams || [];
+  const groups = new Map();
+  teams.forEach(team => {
+    if (!team.officeId) return;
+    if (!groups.has(team.officeId)) groups.set(team.officeId, []);
+    groups.get(team.officeId).push(team);
+  });
+
+  const duplicateGroup = [...groups.values()]
+    .find(group => group.length > 1);
+  const otherTeams = [...groups.values()]
+    .filter(group => group !== duplicateGroup)
+    .map(group => group[0]);
+  const exampleTeams = duplicateGroup
+    ? [duplicateGroup[0], otherTeams[0], duplicateGroup[1], otherTeams[1]]
+        .filter(Boolean)
+    : teams.slice(0, 4);
+  const ordinal = position => {
+    const remainder100 = position % 100;
+    const remainder10 = position % 10;
+    const suffix = remainder100 >= 11 && remainder100 <= 13
+      ? "th"
+      : remainder10 === 1
+        ? "st"
+        : remainder10 === 2
+          ? "nd"
+          : remainder10 === 3
+            ? "rd"
+            : "th";
+    return `${position}${suffix}`;
+  };
+  const spanList = values => values.length
+    ? values.map(value => `<span>${escapeHtml(value)}</span>`).join("")
+    : "<span>Add teams in Admin to populate this example.</span>";
+
+  entries.innerHTML = spanList(exampleTeams.map(team => team.name));
+  getElement("officeExampleRanking").innerHTML = spanList(
+    exampleTeams.map((team, index) => `${ordinal(index + 1)} ${team.name}`)
+  );
+
+  const represented = [];
+  const representedIds = new Set();
+  const nonScoring = [];
+  exampleTeams.forEach((team, index) => {
+    if (representedIds.has(team.officeId)) {
+      nonScoring.push({ team, position: index + 1 });
+      return;
+    }
+    representedIds.add(team.officeId);
+    represented.push({
+      team,
+      office: getOfficeById(team.officeId)
+    });
+  });
+
+  getElement("officeExampleScoring").innerHTML = spanList(
+    represented.map(({ team, office }) =>
+      `${office ? office.name : "Assigned office"} — ${team.name}`
+    )
+  );
+  getElement("officeExampleNonScoring").innerHTML = nonScoring.length
+    ? spanList(nonScoring.map(({ team, position }) =>
+        `${team.name} keeps ${ordinal(position)} place, but adds no second office score`
+      ))
+    : "<span>When two configured teams share an office, its lower result remains recorded but does not add a second office score.</span>";
+
+  const pointHeading = getElement("officeExamplePointHeading");
+  pointHeading.textContent = represented.length
+    ? `${represented.length} office${represented.length === 1 ? "" : "s"} represented`
+    : "Current offices represented";
+  getElement("officeExamplePoints").innerHTML = spanList(
+    represented.map(({ office }, index) =>
+      `${office ? office.name : "Assigned office"} — ${represented.length - index} pt${represented.length - index === 1 ? "" : "s"}`
+    )
+  );
+
+  const changingTeam = getElement("officeExampleChangingTeam");
+  if (duplicateGroup && changingTeam) {
+    const office = getOfficeById(duplicateGroup[0].officeId);
+    changingTeam.textContent = `${duplicateGroup[0].name} might be the best result in one game while ${duplicateGroup[1].name} scores in another. Both scores are credited to ${office ? office.name : "their assigned office"} in the overall Office Championship.`;
+  }
+}
+
 async function archiveCurrentTournament() {
   if (!confirm("Archive the current tournament results?")) return;
   PHDTournament.state.archive.push(
@@ -1296,7 +1387,9 @@ function render() {
   renderStatistics();
   renderGames();
   renderGameTabs();
+  renderOffices();
   renderTeams();
+  renderOfficeChampionshipExample();
   if (
     typeof renderStaffManagement ===
       "function"
@@ -2235,6 +2328,29 @@ function bindGameEvents() {
 }
 
 function bindTeamEvents() {
+  bindClick("saveOffice", () => {
+    if (!requireTeamManagementForAction()) return;
+    saveOfficeFromForm();
+  });
+
+  bindClick("clearOfficeForm", () => {
+    if (!requireTeamManagementForAction()) return;
+    clearOfficeForm();
+  });
+
+  const officeList = getElement("officeList");
+  if (officeList) {
+    officeList.addEventListener("click", event => {
+      const officeId = event.target.dataset.officeId;
+      if (!officeId || !requireTeamManagementForAction()) return;
+      if (event.target.classList.contains("edit-office")) {
+        editOffice(officeId);
+      } else if (event.target.classList.contains("delete-office")) {
+        deleteOffice(officeId);
+      }
+    });
+  }
+
   bindClick("saveTeam", () => {
     if (!requireTeamManagementForAction()) {
       return;

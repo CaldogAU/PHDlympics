@@ -27,12 +27,12 @@ function buildTournamentReportHtml() {
       <h2>${escapeHtml(tournament.name)}</h2>
       <p>${escapeHtml(tournament.description || "Tournament report")}</p>
 
-      <h3>Standings</h3>
+      <h3>Office Championship</h3>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>#</th><th>Team</th><th>Tournament Points</th><th>Completed Games</th>
+              <th>#</th><th>Office</th><th>Tournament Points</th><th>Completed Games</th>
             </tr>
           </thead>
           <tbody>${standingsRows || `<tr><td colspan="4">No standings yet.</td></tr>`}</tbody>

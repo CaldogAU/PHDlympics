@@ -837,3 +837,24 @@ test("dedicated standings page is now match history only", () => {
   assert.doesNotMatch(page, /Overall Tournament Standings/);
   assert.doesNotMatch(page, /id="standings(?:Header|Body)"/);
 });
+
+test("match history explains fair multi-team office scoring", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "..", "index.html"),
+    "utf8"
+  );
+  const app = fs.readFileSync(
+    path.join(__dirname, "..", "js", "app.js"),
+    "utf8"
+  );
+
+  assert.match(html, /office-championship-overview/);
+  assert.match(html, /Multiple teams, one fair office score/);
+  assert.match(html, /id="officeExampleRanking"/);
+  assert.match(app, /function renderOfficeChampionshipExample/);
+  assert.match(app, /duplicateGroup\[0\].*otherTeams\[0\].*duplicateGroup\[1\]/s);
+  assert.doesNotMatch(html, /Singapore A|Singapore B|Melbourne A|London A/);
+  assert.match(html, /14 teams representing 10 offices awards a maximum of 10/);
+  assert.match(html, /class="game-mode-detailed" hidden/);
+  assert.match(app, /#standingsTab > \.app-layout > \.office-championship-overview/);
+});

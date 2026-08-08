@@ -97,6 +97,10 @@ function normaliseImportedState(
         )
       }
     },
+    offices:
+      Array.isArray(incoming.offices)
+        ? incoming.offices
+        : [],
     teams:
       Array.isArray(incoming.teams)
         ? incoming.teams
@@ -110,6 +114,28 @@ function normaliseImportedState(
         ? incoming.rounds
         : []
   };
+
+  const officesById = new Map(
+    normalised.offices
+      .filter(office => office && office.id)
+      .map(office => [office.id, office])
+  );
+
+  normalised.teams.forEach(team => {
+    if (!team.officeId) {
+      team.officeId = `legacy-office-${team.id}`;
+    }
+    if (!officesById.has(team.officeId)) {
+      const office = {
+        id: team.officeId,
+        name: team.name || "Legacy office",
+        shortName: team.shortName || "",
+        createdAt: team.createdAt || new Date().toISOString()
+      };
+      normalised.offices.push(office);
+      officesById.set(office.id, office);
+    }
+  });
 
   if (
     window.PHDGameCapacity &&

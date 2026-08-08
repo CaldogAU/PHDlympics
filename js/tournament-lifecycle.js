@@ -18,6 +18,7 @@
       id: (createId || (() => crypto.randomUUID()))(),
       archivedAt,
       tournament: structuredClone(state.tournament),
+      offices: structuredClone(state.offices || []),
       teams: structuredClone(state.teams || []),
       games: structuredClone(state.games || []),
       rounds: structuredClone(state.rounds || []),
