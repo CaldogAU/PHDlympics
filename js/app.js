@@ -1830,7 +1830,10 @@ function startDashboardCarousel() {
   stopDashboardCarousel();
 
   if (
-    window.matchMedia &&
+    !window.matchMedia ||
+    !window.matchMedia(
+      "(max-width: 600px)"
+    ).matches ||
     window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches
@@ -1844,6 +1847,41 @@ function startDashboardCarousel() {
     ),
     4500
   );
+}
+
+function resetDashboardCarouselForDesktop() {
+  stopDashboardCarousel();
+  dashboardCarouselIndex = 0;
+
+  const track = document.getElementById(
+    "dashboardStatsTrack"
+  );
+  if (!track) return;
+
+  track.style.removeProperty(
+    "--carousel-index"
+  );
+  track.querySelectorAll(
+    "[data-stat-card]"
+  ).forEach(card => {
+    card.classList.remove("is-active");
+    card.removeAttribute("aria-hidden");
+  });
+}
+
+function syncDashboardCarouselLayout() {
+  if (
+    window.matchMedia(
+      "(max-width: 600px)"
+    ).matches
+  ) {
+    setDashboardCarouselIndex(
+      dashboardCarouselIndex
+    );
+    startDashboardCarousel();
+  } else {
+    resetDashboardCarouselForDesktop();
+  }
 }
 
 function bindDashboardCarousel() {
@@ -1893,8 +1931,17 @@ function bindDashboardCarousel() {
     }
   );
 
-  setDashboardCarouselIndex(0);
-  startDashboardCarousel();
+  const mobileLayout = window.matchMedia(
+    "(max-width: 600px)"
+  );
+  if (mobileLayout.addEventListener) {
+    mobileLayout.addEventListener(
+      "change",
+      syncDashboardCarouselLayout
+    );
+  }
+
+  syncDashboardCarouselLayout();
 }
 
 function bindTournamentEvents() {
