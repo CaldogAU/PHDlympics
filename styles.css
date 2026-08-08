@@ -1046,6 +1046,36 @@ select:focus-visible,
   flex-wrap: wrap;
 }
 
+.country-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 14px 16px;
+}
+
+.country-meta {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(100px, 0.55fr) auto;
+  gap: 24px;
+  align-items: center;
+}
+
+.country-meta strong,
+.country-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-meta span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.country-item .team-actions {
+  flex-wrap: nowrap;
+}
+
 .staff-management-form {
   display: grid;
   grid-template-columns:
@@ -2176,6 +2206,19 @@ body.display-active .display-mode {
   .team-actions,
   .game-actions {
     grid-column: 1 / -1;
+  }
+
+  .country-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .country-item .team-actions {
+    grid-column: auto;
+  }
+
+  .country-meta {
+    grid-template-columns: minmax(90px, 1fr) minmax(56px, 0.55fr) auto;
+    gap: 8px;
   }
 
   .history-item {

@@ -92,7 +92,7 @@ async function saveTeamFromForm() {
   }
 
   if (!getOfficeById(values.officeId)) {
-    alert("Select an office for this team.");
+    alert("Select a country for this team.");
     return;
   }
 
@@ -377,7 +377,7 @@ function renderTeams() {
             &middot;
             ${escapeHtml(
               (getOfficeForTeam(team) || {}).name ||
-                "No office"
+                "No country"
             )}
           </span>
         </div>
@@ -417,13 +417,13 @@ function clearOfficeForm() {
   PHDTournament.editingOfficeId = null;
   document.getElementById("officeName").value = "";
   document.getElementById("officeShortName").value = "";
-  document.getElementById("saveOffice").textContent = "Add Office";
+  document.getElementById("saveOffice").textContent = "Add Country";
 }
 
 async function saveOfficeFromForm() {
   const values = getOfficeFormValues();
   if (!values.name) {
-    alert("Enter an office name.");
+    alert("Enter a country name.");
     return;
   }
 
@@ -432,7 +432,7 @@ async function saveOfficeFromForm() {
       office.id !== PHDTournament.editingOfficeId
   );
   if (duplicate) {
-    alert("That office already exists.");
+    alert("That country already exists.");
     return;
   }
 
@@ -459,7 +459,7 @@ async function saveOfficeFromForm() {
   render();
   await saveState();
   if (typeof recordAuditEntry === "function") {
-    await recordAuditEntry(action, `${action === "office.created" ? "Added" : "Updated"} office "${office.name}".`, { office });
+    await recordAuditEntry(action, `${action === "office.created" ? "Added" : "Updated"} country "${office.name}".`, { office });
   }
 }
 
@@ -469,14 +469,14 @@ function editOffice(officeId) {
   PHDTournament.editingOfficeId = office.id;
   document.getElementById("officeName").value = office.name;
   document.getElementById("officeShortName").value = office.shortName || "";
-  document.getElementById("saveOffice").textContent = "Save Office";
+  document.getElementById("saveOffice").textContent = "Save Country";
 }
 
 async function deleteOffice(officeId) {
   const office = getOfficeById(officeId);
   if (!office) return;
   if (getTeamsForOffice(officeId).length) {
-    alert("Reassign or delete this office's teams before deleting the office.");
+    alert("Reassign or delete this country's teams before deleting the country.");
     return;
   }
   if (!confirm(`Delete ${office.name}?`)) return;
@@ -486,7 +486,7 @@ async function deleteOffice(officeId) {
   render();
   await saveState();
   if (typeof recordAuditEntry === "function") {
-    await recordAuditEntry("office.deleted", `Deleted office "${office.name}".`, { office });
+    await recordAuditEntry("office.deleted", `Deleted country "${office.name}".`, { office });
   }
 }
 
@@ -497,7 +497,7 @@ function renderOffices() {
 
   if (select) {
     const selected = select.value;
-    select.innerHTML = `<option value="">Select office</option>${offices.map(office => `
+    select.innerHTML = `<option value="">Select country</option>${offices.map(office => `
       <option value="${escapeHtml(office.id)}">${escapeHtml(office.name)}</option>
     `).join("")}`;
     select.value = offices.some(office => office.id === selected) ? selected : "";
@@ -505,17 +505,18 @@ function renderOffices() {
 
   if (!list) return;
   list.innerHTML = offices.length ? offices.map(office => `
-    <li class="team-item">
-      <div class="team-meta">
+    <li class="team-item country-item">
+      <div class="country-meta">
         <strong>${escapeHtml(office.name)}</strong>
-        <span>${escapeHtml(office.shortName || "No short name")} &middot; ${getTeamsForOffice(office.id).length} team(s)</span>
+        <span>${escapeHtml(office.shortName || "No short name")}</span>
+        <span>${getTeamsForOffice(office.id).length} team(s)</span>
       </div>
       <div class="team-actions">
         <button class="small-button secondary edit-office" type="button" data-office-id="${escapeHtml(office.id)}">Edit</button>
         <button class="small-button danger delete-office" type="button" data-office-id="${escapeHtml(office.id)}">Delete</button>
       </div>
     </li>
-  `).join("") : `<li class="empty-state">No offices yet. Add an office before creating a team.</li>`;
+  `).join("") : `<li class="empty-state">No countries yet. Add a country before creating a team.</li>`;
 }
 
 PHDTournament.modules.push("teams");

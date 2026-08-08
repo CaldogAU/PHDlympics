@@ -347,7 +347,7 @@ function renderStandings() {
     if (header) {
       header.innerHTML = `
         <th>#</th>
-        <th>Office</th>
+        <th>Country</th>
         <th>Tournament Points</th>
         <th>Completed Games</th>
         ${games.map(game => `
@@ -363,7 +363,7 @@ function renderStandings() {
     if (standings.length === 0) {
       body.innerHTML = `
         <tr>
-          <td colspan="${4 + games.length}">No offices yet. Add offices and teams to populate the standings.</td>
+          <td colspan="${4 + games.length}">No countries yet. Add countries and teams to populate the standings.</td>
         </tr>
       `;
       return;

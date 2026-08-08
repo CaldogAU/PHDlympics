@@ -1340,29 +1340,29 @@ function renderOfficeChampionshipExample() {
 
   getElement("officeExampleScoring").innerHTML = spanList(
     represented.map(({ team, office }) =>
-      `${office ? office.name : "Assigned office"} — ${team.name}`
+      `${office ? office.name : "Assigned country"} — ${team.name}`
     )
   );
   getElement("officeExampleNonScoring").innerHTML = nonScoring.length
     ? spanList(nonScoring.map(({ team, position }) =>
-        `${team.name} keeps ${ordinal(position)} place, but adds no second office score`
+        `${team.name} keeps ${ordinal(position)} place, but adds no second country score`
       ))
-    : "<span>When two configured teams share an office, its lower result remains recorded but does not add a second office score.</span>";
+    : "<span>When two configured teams share a country, its lower result remains recorded but does not add a second country score.</span>";
 
   const pointHeading = getElement("officeExamplePointHeading");
   pointHeading.textContent = represented.length
     ? `${represented.length} office${represented.length === 1 ? "" : "s"} represented`
-    : "Current offices represented";
+    : "Current countries represented";
   getElement("officeExamplePoints").innerHTML = spanList(
     represented.map(({ office }, index) =>
-      `${office ? office.name : "Assigned office"} — ${represented.length - index} pt${represented.length - index === 1 ? "" : "s"}`
+      `${office ? office.name : "Assigned country"} — ${represented.length - index} pt${represented.length - index === 1 ? "" : "s"}`
     )
   );
 
   const changingTeam = getElement("officeExampleChangingTeam");
   if (duplicateGroup && changingTeam) {
     const office = getOfficeById(duplicateGroup[0].officeId);
-    changingTeam.textContent = `${duplicateGroup[0].name} might be the best result in one game while ${duplicateGroup[1].name} scores in another. Both scores are credited to ${office ? office.name : "their assigned office"} in the overall Office Championship.`;
+    changingTeam.textContent = `${duplicateGroup[0].name} might be the best result in one game while ${duplicateGroup[1].name} scores in another. Both scores are credited to ${office ? office.name : "their assigned country"} in the overall Country Championship.`;
   }
 }
 
