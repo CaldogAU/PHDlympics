@@ -880,4 +880,8 @@ test("home country standings rotate assigned team logos every three seconds", ()
   assert.match(ladder, /class="country-team-logo/);
   assert.match(ladder, /setInterval\(\s*rotateCountryStandingLogos,\s*3000\s*\)/);
   assert.match(styles, /\.country-team-logo\.is-active\s*\{[\s\S]*?opacity:\s*1;/);
+  assert.match(
+    styles,
+    /\.country-logo-rotation \.country-team-logo\s*\{[\s\S]*?object-fit:\s*contain;[\s\S]*?object-position:\s*center;/
+  );
 });

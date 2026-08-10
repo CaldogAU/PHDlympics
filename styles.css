@@ -1034,6 +1034,9 @@ select:focus-visible,
 .country-logo-rotation .country-team-logo {
   position: absolute;
   inset: 0;
+  display: block;
+  object-fit: contain;
+  object-position: center;
   opacity: 0;
   transition: opacity 300ms ease;
 }
