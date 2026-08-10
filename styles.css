@@ -1027,6 +1027,27 @@ select:focus-visible,
   object-fit: cover;
 }
 
+.country-logo-rotation {
+  position: relative;
+}
+
+.country-logo-rotation .country-team-logo {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.country-logo-rotation .country-team-logo.is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .country-logo-rotation .country-team-logo {
+    transition: none;
+  }
+}
+
 .team-meta strong,
 .game-meta strong {
   display: block;
@@ -2791,7 +2812,47 @@ body.dark .audit-entry-marker {
 
 .team-tab-buttons {
   display: grid;
-  gap: 8px;
+  gap: 12px;
+}
+
+.team-country-group {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.team-country-heading {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.team-country-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.team-country-flag {
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.team-country-buttons {
+  display: grid;
+  gap: 7px;
 }
 
 .team-tab-button {
@@ -2830,6 +2891,29 @@ body.dark .audit-entry-marker {
   background: var(--team-colour, var(--accent));
   opacity: 0.08;
   pointer-events: none;
+}
+
+.team-page-country-flag {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: 5%;
+  transform: translateY(-50%);
+  font-size: clamp(150px, 22vw, 330px);
+  line-height: 1;
+  opacity: 0.1;
+  filter: saturate(0.85);
+  pointer-events: none;
+  user-select: none;
+}
+
+.team-page-country-name {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .team-page-header {

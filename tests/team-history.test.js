@@ -42,6 +42,26 @@ test("team page logos remove their background only when an image exists", () => 
   );
 });
 
+test("team page navigation groups countries with Australia first and shows flags", () => {
+  const root = path.join(__dirname, "..");
+  const teamPages = fs.readFileSync(
+    path.join(root, "js", "team-pages.js"),
+    "utf8"
+  );
+  const styles = fs.readFileSync(
+    path.join(root, "styles.css"),
+    "utf8"
+  );
+
+  assert.match(teamPages, /function getTeamPageCountryGroups/);
+  assert.match(teamPages, /australiaA[\s\S]*?return australiaA \? -1 : 1/);
+  assert.match(teamPages, /class="team-country-heading"/);
+  assert.match(teamPages, /class="team-country-flag"/);
+  assert.match(teamPages, /class="team-page-country-flag"/);
+  assert.match(styles, /\.team-country-heading\s*\{[\s\S]*?justify-content:\s*space-between/);
+  assert.match(styles, /\.team-page-country-flag\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?opacity:\s*0\.1/);
+});
+
 function getHistory() {
   const state = {
     teams: [

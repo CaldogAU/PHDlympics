@@ -610,6 +610,97 @@ function renderTeamPageLogo(
   `;
 }
 
+const TEAM_PAGE_COUNTRY_CODES = Object.freeze({
+  australia: "AU",
+  austria: "AT",
+  belgium: "BE",
+  brazil: "BR",
+  canada: "CA",
+  china: "CN",
+  france: "FR",
+  germany: "DE",
+  "hong kong": "HK",
+  india: "IN",
+  indonesia: "ID",
+  ireland: "IE",
+  italy: "IT",
+  japan: "JP",
+  malaysia: "MY",
+  mexico: "MX",
+  netherlands: "NL",
+  "new zealand": "NZ",
+  philippines: "PH",
+  singapore: "SG",
+  "south africa": "ZA",
+  "south korea": "KR",
+  spain: "ES",
+  sweden: "SE",
+  switzerland: "CH",
+  taiwan: "TW",
+  thailand: "TH",
+  "united arab emirates": "AE",
+  uae: "AE",
+  "united kingdom": "GB",
+  uk: "GB",
+  "united states": "US",
+  "united states of america": "US",
+  usa: "US",
+  vietnam: "VN"
+});
+
+function getTeamPageCountry(team) {
+  return typeof getOfficeById === "function"
+    ? getOfficeById(team.officeId)
+    : null;
+}
+
+function getCountryFlag(country) {
+  if (!country) return "🌐";
+  const shortCode = String(country.shortName || "")
+    .trim()
+    .toUpperCase();
+  const countryCode = /^[A-Z]{2}$/.test(shortCode)
+    ? shortCode
+    : TEAM_PAGE_COUNTRY_CODES[
+        String(country.name || "").trim().toLowerCase()
+      ];
+
+  if (!countryCode) return "🌐";
+  return [...countryCode]
+    .map(letter => String.fromCodePoint(127397 + letter.charCodeAt(0)))
+    .join("");
+}
+
+function getTeamPageCountryGroups(teams) {
+  const groups = new Map();
+  teams.forEach(team => {
+    const country = getTeamPageCountry(team);
+    const key = country ? country.id : "unassigned";
+    if (!groups.has(key)) {
+      groups.set(key, {
+        country,
+        name: country ? country.name : "Unassigned",
+        flag: getCountryFlag(country),
+        teams: []
+      });
+    }
+    groups.get(key).teams.push(team);
+  });
+
+  return [...groups.values()]
+    .map(group => ({
+      ...group,
+      teams: group.teams.sort((a, b) => a.name.localeCompare(b.name))
+    }))
+    .sort((a, b) => {
+      const australiaA = a.name.trim().toLowerCase() === "australia";
+      const australiaB = b.name.trim().toLowerCase() === "australia";
+      if (australiaA !== australiaB) return australiaA ? -1 : 1;
+      if (!a.country !== !b.country) return a.country ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+}
+
 function createTeamPageNavigation() {
   const gameButtons =
     document.getElementById(
@@ -728,10 +819,15 @@ function renderTeamPageNavigation(teams) {
     return;
   }
 
-  buttonContainer.innerHTML =
-    teams
-      .map(
-        team => `
+  buttonContainer.innerHTML = getTeamPageCountryGroups(teams)
+    .map(group => `
+      <section class="team-country-group">
+        <div class="team-country-heading">
+          <strong>${escapeHtml(group.name)}</strong>
+          <span class="team-country-flag" aria-hidden="true">${group.flag}</span>
+        </div>
+        <div class="team-country-buttons">
+          ${group.teams.map(team => `
           <button
             class="tab-button team-tab-button"
             type="button"
@@ -744,9 +840,10 @@ function renderTeamPageNavigation(teams) {
               team.name
             )}
           </button>
-        `
-      )
-      .join("");
+          `).join("")}
+        </div>
+      </section>
+    `).join("");
 }
 
 function renderTeamPageMatchRows(
@@ -1007,6 +1104,8 @@ function renderTeamPagePanel(team) {
 
   const difference =
     pointsFor - pointsAgainst;
+  const country = getTeamPageCountry(team);
+  const countryFlag = getCountryFlag(country);
 
   return `
     <section
@@ -1022,6 +1121,9 @@ function renderTeamPagePanel(team) {
             )
           }"
         >
+          <span class="team-page-country-flag" aria-hidden="true">
+            ${countryFlag}
+          </span>
           <div class="team-page-header">
             <span
               class="team-page-logo${
@@ -1049,6 +1151,8 @@ function renderTeamPagePanel(team) {
                     : "Tournament competitor"
                 )}
               </p>
+
+              ${country ? `<p class="team-page-country-name">${escapeHtml(country.name)}</p>` : ""}
             </div>
 
             <div class="team-page-position">
