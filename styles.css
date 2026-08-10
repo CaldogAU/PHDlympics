@@ -2120,7 +2120,7 @@ body.display-active .display-mode {
   display: inline-block;
   position: relative;
   width: max-content;
-  animation: tickerScroll 37.33s linear infinite;
+  animation: tickerScroll 62.22s linear infinite;
   will-change: left, transform;
 }
 

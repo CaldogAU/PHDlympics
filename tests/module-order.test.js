@@ -675,7 +675,7 @@ test("display mode shows every team below the faster ticker", () => {
   assert.match(display, /--standings-columns:/);
   assert.match(display, /--standings-font-size:/);
   assert.match(styles, /animation: tickerScroll 34\.67s linear infinite/);
-  assert.match(styles, /animation: tickerScroll 37\.33s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 62\.22s linear infinite/);
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
   assert.match(
     styles,
