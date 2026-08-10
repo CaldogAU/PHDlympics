@@ -882,10 +882,10 @@ test("home country standings rotate assigned team logos every three seconds", ()
   assert.match(styles, /\.country-team-logo\.is-active\s*\{[\s\S]*?opacity:\s*1;/);
   assert.match(
     styles,
-    /\.country-logo-rotation \.country-logo-fallback,[\s\S]*?\.country-logo-rotation \.country-team-logo\s*\{[\s\S]*?grid-area:\s*1 \/ 1;[\s\S]*?place-self:\s*center;/
+    /\.country-logo-rotation \.country-logo-fallback\s*\{[\s\S]*?grid-area:\s*1 \/ 1;[\s\S]*?place-items:\s*center;/
   );
   assert.match(
     styles,
-    /\.country-logo-rotation \.country-team-logo\s*\{[\s\S]*?object-fit:\s*contain;[\s\S]*?object-position:\s*center;/
+    /\.country-logo-rotation \.country-team-logo\s*\{[\s\S]*?top:\s*50%;[\s\S]*?left:\s*50%;[\s\S]*?object-fit:\s*contain;[\s\S]*?transform:\s*translate\(-50%, -50%\);/
   );
 });
