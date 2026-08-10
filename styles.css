@@ -2812,51 +2812,32 @@ body.dark .audit-entry-marker {
 
 .team-tab-buttons {
   display: grid;
-  gap: 12px;
-}
-
-.team-country-group {
-  min-width: 0;
-  display: grid;
-  gap: 7px;
-}
-
-.team-country-heading {
-  min-width: 0;
-  padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.team-country-heading strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.team-country-flag {
-  flex: 0 0 auto;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.team-country-buttons {
-  display: grid;
-  gap: 7px;
+  gap: 8px;
 }
 
 .team-tab-button {
   border-style: dashed;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+}
+
+.team-tab-button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-tab-country-flag {
+  width: 28px;
+  height: 19px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
 .team-pages-divider {
@@ -2899,10 +2880,11 @@ body.dark .audit-entry-marker {
   top: 50%;
   right: 5%;
   transform: translateY(-50%);
-  font-size: clamp(150px, 22vw, 330px);
-  line-height: 1;
-  opacity: 0.1;
+  width: clamp(220px, 35vw, 520px);
+  height: auto;
+  opacity: 0.12;
   filter: saturate(0.85);
+  object-fit: contain;
   pointer-events: none;
   user-select: none;
 }

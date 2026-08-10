@@ -654,8 +654,8 @@ function getTeamPageCountry(team) {
     : null;
 }
 
-function getCountryFlag(country) {
-  if (!country) return "🌐";
+function getCountryCode(country) {
+  if (!country) return "";
   const shortCode = String(country.shortName || "")
     .trim()
     .toUpperCase();
@@ -665,10 +665,14 @@ function getCountryFlag(country) {
         String(country.name || "").trim().toLowerCase()
       ];
 
-  if (!countryCode) return "🌐";
-  return [...countryCode]
-    .map(letter => String.fromCodePoint(127397 + letter.charCodeAt(0)))
-    .join("");
+  return countryCode || "";
+}
+
+function getCountryFlagUrl(country, width = 40) {
+  const countryCode = getCountryCode(country);
+  return countryCode
+    ? `https://flagcdn.com/w${width}/${countryCode.toLowerCase()}.png`
+    : "";
 }
 
 function getTeamPageCountryGroups(teams) {
@@ -680,7 +684,6 @@ function getTeamPageCountryGroups(teams) {
       groups.set(key, {
         country,
         name: country ? country.name : "Unassigned",
-        flag: getCountryFlag(country),
         teams: []
       });
     }
@@ -820,14 +823,9 @@ function renderTeamPageNavigation(teams) {
   }
 
   buttonContainer.innerHTML = getTeamPageCountryGroups(teams)
-    .map(group => `
-      <section class="team-country-group">
-        <div class="team-country-heading">
-          <strong>${escapeHtml(group.name)}</strong>
-          <span class="team-country-flag" aria-hidden="true">${group.flag}</span>
-        </div>
-        <div class="team-country-buttons">
-          ${group.teams.map(team => `
+    .map(group => group.teams.map(team => {
+      const flagUrl = getCountryFlagUrl(group.country);
+      return `
           <button
             class="tab-button team-tab-button"
             type="button"
@@ -835,15 +833,20 @@ function renderTeamPageNavigation(teams) {
               team
             )}"
           >
-            ${escapeHtml(
-              team.shortName ||
-              team.name
-            )}
+            <span>${escapeHtml(team.shortName || team.name)}</span>
+            ${flagUrl ? `
+              <img
+                class="team-tab-country-flag"
+                src="${escapeHtml(flagUrl)}"
+                alt="${escapeHtml(group.name)} flag"
+                title="${escapeHtml(group.name)}"
+                loading="lazy"
+                onerror="this.remove()"
+              />
+            ` : ""}
           </button>
-          `).join("")}
-        </div>
-      </section>
-    `).join("");
+      `;
+    }).join("")).join("");
 }
 
 function renderTeamPageMatchRows(
@@ -1105,7 +1108,7 @@ function renderTeamPagePanel(team) {
   const difference =
     pointsFor - pointsAgainst;
   const country = getTeamPageCountry(team);
-  const countryFlag = getCountryFlag(country);
+  const countryFlagUrl = getCountryFlagUrl(country, 320);
 
   return `
     <section
@@ -1121,9 +1124,16 @@ function renderTeamPagePanel(team) {
             )
           }"
         >
-          <span class="team-page-country-flag" aria-hidden="true">
-            ${countryFlag}
-          </span>
+          ${countryFlagUrl ? `
+            <img
+              class="team-page-country-flag"
+              src="${escapeHtml(countryFlagUrl)}"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              onerror="this.remove()"
+            />
+          ` : ""}
           <div class="team-page-header">
             <span
               class="team-page-logo${
