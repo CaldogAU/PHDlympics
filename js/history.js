@@ -104,6 +104,7 @@ function getMatchHistory() {
         history.push({
           round: round.number,
           type: "Bye",
+          mode: game ? game.mode : "swiss",
           game: "",
           teamA: teamA ? teamA.name : "Unknown",
           teamB: "",
@@ -117,6 +118,7 @@ function getMatchHistory() {
       history.push({
         round: round.number,
         type: "Match",
+        mode: game ? game.mode : "swiss",
         game: game ? getGameLabel(game.id) : "No game selected",
         teamA: teamA ? teamA.name : "Unknown",
         teamB: teamB ? teamB.name : "Unknown",
@@ -159,6 +161,7 @@ function getMatchHistory() {
     history.push({
       round: "",
       type: isGrandPrix ? "Grand Prix" : "Time Trial",
+      mode: event.mode,
       game: game ? getGameLabel(game.id) : "Unknown game",
       teamA: leaderName,
       teamB: "Multiple",
@@ -231,6 +234,8 @@ function getMatchHistory() {
             round: heat.number,
             type:
               "Fall Guys Grand Prix",
+            mode:
+              "fall-guys-grand-prix",
             game: getGameLabel(
               game.id
             ),
@@ -278,6 +283,7 @@ function getMatchHistory() {
         history.push({
           round: round.number,
           type: "4 Player Swiss",
+          mode: "four-player-swiss",
           game: getGameLabel(game.id),
           teamA: winnerName,
           teamB: "Multiple",
@@ -335,19 +341,38 @@ function getActivityTickerItemText(item) {
   return `Round ${item.round}: ${item.game} — ${item.teamA} ${item.score} ${item.teamB}`;
 }
 
+function getSharedTournamentTickerText({
+  activityLimit = 8,
+  commentaryLimit = 6,
+  emptyText = "The arena is ready — the next result will spark the commentary."
+} = {}) {
+  const activity = getRecentActivity(
+    activityLimit
+  );
+  const commentary = window.PHDCommentary
+    ? window.PHDCommentary.generate({
+        activity,
+        standings: getStandings(),
+        events:
+          PHDTournament.state.events || [],
+        teams:
+          PHDTournament.state.teams || [],
+        games:
+          PHDTournament.state.games || [],
+        limit: commentaryLimit
+      })
+    : [];
+  return commentary.length
+    ? commentary.join(" · ")
+    : emptyText;
+}
+
 function renderRecentActivityTicker() {
   const ticker = getElement("activityTickerText");
   if (!ticker) return;
 
-  const activity = getRecentActivity(8);
-  if (activity.length === 0) {
-    ticker.textContent = "No recent activity yet.";
-    return;
-  }
-
-  ticker.innerHTML = activity
-    .map(item => escapeHtml(getActivityTickerItemText(item)))
-    .join(" · ");
+  ticker.textContent =
+    getSharedTournamentTickerText();
 }
 
 function renderMatchHistory() {

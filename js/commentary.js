@@ -156,6 +156,42 @@
       ({ first, second, third }) => `Podium places go to ${first}, ${second}, and ${third}.`,
       ({ first, second, third }) => `${first} leads home fellow podium finishers ${second} and ${third}.`
     ],
+    swissResult: [
+      ({ winner, loser, game }) => `${winner} strengthens their Swiss campaign with victory over ${loser} in ${game}.`,
+      ({ winner, loser }) => `${winner} climbs the Swiss order after seeing off ${loser}.`,
+      ({ winner }) => `Swiss momentum is building for ${winner}.`,
+      ({ winner, loser, score }) => `${winner} takes the Swiss-round honours against ${loser}, ${score}.`,
+      ({ winner }) => `${winner} makes another important move in the Swiss standings.`
+    ],
+    roundRobinResult: [
+      ({ winner, loser, game }) => `${winner} adds a valuable round-robin win over ${loser} in ${game}.`,
+      ({ winner, loser }) => `${winner} gets the better of ${loser} in the all-play-all race.`,
+      ({ winner }) => `${winner} keeps their round-robin campaign moving in the right direction.`,
+      ({ winner, score }) => `${winner} banks the round-robin result with a ${score} victory.`,
+      ({ winner, loser }) => `Round-robin points secured: ${winner} defeats ${loser}.`
+    ],
+    eliminationResult: [
+      ({ winner, loser, game }) => `${winner} advances in ${game}, ending ${loser}'s bracket run.`,
+      ({ winner }) => `${winner} survives and advances in the knockout bracket.`,
+      ({ winner, loser }) => `Knockout pressure handled: ${winner} eliminates ${loser}.`,
+      ({ winner, score }) => `${winner} books the next-round place with a ${score} result.`,
+      ({ winner }) => `${winner} moves one step closer to the elimination title.`
+    ],
+    fourPlayerSwissResult: [
+      ({ winner, game, round }) => `${winner} tops a four-player group in ${game} Round ${round}.`,
+      ({ winner }) => `${winner} takes first place in the latest four-player Swiss group.`,
+      ({ winner, game }) => `Group victory belongs to ${winner} in ${game}.`,
+      ({ winner, round }) => `${winner} earns maximum placement value from Swiss Round ${round}.`,
+      ({ winner }) => `${winner} leads the group home and improves their Swiss position.`
+    ],
+    fallGuysHeatResult: [
+      ({ winner, game, heat }) => `${winner} conquers Heat ${heat} of ${game}.`,
+      ({ winner }) => `${winner} delivers the standout Fall Guys heat performance.`,
+      ({ winner, game }) => `${winner} piles up the points to lead the latest ${game} heat.`,
+      ({ winner, heat }) => `Heat ${heat} belongs to ${winner} after a chaotic Fall Guys battle.`,
+      ({ winner }) => `${winner} stays upright and rises to the top of the Fall Guys standings.`,
+      ({ winner, game }) => `A huge ${game} run puts ${winner} first in the heat.`
+    ],
     bye: [
       ({ team }) => `${team} advances with a bye and banks the available points.`,
       ({ team }) => `A scheduled bye gives ${team} a chance to reset for the next contest.`,
@@ -401,6 +437,62 @@
         `${latestBye.round}:${latestBye.teamA}`
       );
     }
+
+    activity.slice(0, 8).forEach(item => {
+      if (!item || item.type === "Bye") return;
+      const signature = `${item.mode || item.type}:${item.round || ""}:${item.teamA || ""}:${item.score || ""}`;
+
+      if (item.type === "4 Player Swiss") {
+        add(
+          "fourPlayerSwissResult",
+          96,
+          {
+            winner: normaliseName(item.teamA),
+            game: normaliseName(item.game, "the event"),
+            round: item.round
+          },
+          signature
+        );
+        return;
+      }
+
+      if (item.type === "Fall Guys Grand Prix") {
+        add(
+          "fallGuysHeatResult",
+          97,
+          {
+            winner: normaliseName(item.teamA),
+            game: normaliseName(item.game, "Fall Guys"),
+            heat: item.round
+          },
+          signature
+        );
+        return;
+      }
+
+      if (item.type !== "Match") return;
+      const values = parseScore(item.score);
+      if (!values || values[0] === values[1]) return;
+      const winner = values[0] > values[1]
+        ? item.teamA
+        : item.teamB;
+      const loser = values[0] > values[1]
+        ? item.teamB
+        : item.teamA;
+      const data = {
+        winner: normaliseName(winner),
+        loser: normaliseName(loser),
+        game: normaliseName(item.game, "the game"),
+        score: item.score
+      };
+      const templateType =
+        item.mode === "round-robin"
+          ? "roundRobinResult"
+          : item.mode === "single-elimination"
+            ? "eliminationResult"
+            : "swissResult";
+      add(templateType, 94, data, signature);
+    });
 
     const form = new Map();
     scored.forEach(match => {

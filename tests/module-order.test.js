@@ -661,6 +661,10 @@ test("display mode shows every team below the faster ticker", () => {
     path.join(root, "styles.css"),
     "utf8"
   );
+  const history = fs.readFileSync(
+    path.join(root, "js", "history.js"),
+    "utf8"
+  );
   const tickerIndex = display.indexOf(
     '<section class="display-ticker">'
   );
@@ -674,8 +678,19 @@ test("display mode shows every team below the faster ticker", () => {
   assert.ok(tickerIndex >= 0 && tickerIndex < standingsIndex);
   assert.match(display, /--standings-columns:/);
   assert.match(display, /--standings-font-size:/);
-  assert.match(styles, /animation: tickerScroll 34\.67s linear infinite/);
-  assert.match(styles, /animation: tickerScroll 37\.33s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 49\.53s linear infinite/);
+  assert.match(styles, /animation: tickerScroll 62\.22s linear infinite/);
+  assert.match(history, /function getSharedTournamentTickerText/);
+  assert.match(history, /renderRecentActivityTicker[\s\S]*?getSharedTournamentTickerText/);
+  assert.match(display, /getDisplayTickerText[\s\S]*?getSharedTournamentTickerText/);
+  assert.match(
+    history,
+    /return commentary\.length[\s\S]*?commentary\.join\(" · "\)/
+  );
+  assert.doesNotMatch(
+    history,
+    /const feed\s*=\s*\[[\s\S]*?activityText/
+  );
   assert.match(styles, /grid-template-columns:\s*repeat\(var\(--standings-columns\)/);
   assert.match(
     styles,
