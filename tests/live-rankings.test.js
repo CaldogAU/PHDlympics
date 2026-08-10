@@ -145,6 +145,14 @@ test("event rows animate into provisional ranking order", () => {
     /row\.animate/
   );
   assert.match(
+    events,
+    /document\.addEventListener\(\s*"change",[\s\S]*?\.finish-position, \.time-minutes, \.time-seconds[\s\S]*?animateEventRanking/
+  );
+  assert.doesNotMatch(
+    events,
+    /document\.addEventListener\(\s*"input",[\s\S]*?\.finish-position, \.time-minutes, \.time-seconds[\s\S]*?animateEventRanking/
+  );
+  assert.match(
     styles,
     /rankingRowReveal/
   );

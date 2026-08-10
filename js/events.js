@@ -1407,7 +1407,7 @@ function animateEventRanking(
 
 function initialiseEventControls() {
   document.addEventListener(
-    "input",
+    "change",
     event => {
       if (
         !event.target.matches(
