@@ -158,6 +158,22 @@ test("event rows animate into provisional ranking order", () => {
   );
 });
 
+test("Grand Prix lobbies alternate their result-row shade", () => {
+  const events = read("js/events.js");
+  const styles = read("styles.css");
+
+  assert.match(events, /const lobbyNumber\s*=\s*Number/);
+  assert.match(events, /lobbyNumber % 2 === 0/);
+  assert.match(
+    events,
+    /useAlternateLobbyShade[\s\S]*?event-lobby-alternate/
+  );
+  assert.match(
+    styles,
+    /\.event-lobby-alternate\s*\{[\s\S]*?color-mix\([\s\S]*?white 6%/
+  );
+});
+
 test("team-scoped staff receive partial result controls", () => {
   const auth = read("js/auth.js");
   const events = read("js/events.js");

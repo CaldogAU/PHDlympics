@@ -1179,6 +1179,22 @@ select:focus-visible,
     cubic-bezier(.2, .8, .2, 1);
 }
 
+.event-lobby-alternate {
+  background: color-mix(
+    in srgb,
+    var(--card),
+    white 6%
+  );
+}
+
+.event-lobby-alternate:hover {
+  background: color-mix(
+    in srgb,
+    var(--card),
+    white 10%
+  );
+}
+
 .event-tournament-points {
   font-weight: 800;
   text-align: center;

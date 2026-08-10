@@ -527,10 +527,20 @@ function renderGrandPrixEntries(
               Number.isInteger(finishPosition)
               ? ranking.position
               : null;
+            const lobbyNumber = Number(
+              String(participant.lobbyId || "")
+                .match(/\d+$/)?.[0]
+            ) || 1;
+            const useAlternateLobbyShade =
+              lobbyNumber % 2 === 0;
 
             return `
               <tr
-                class="animated-ranking-row"
+                class="animated-ranking-row${
+                  useAlternateLobbyShade
+                    ? " event-lobby-alternate"
+                    : ""
+                }"
                 data-event-id="${event.id}"
                 data-team-id="${participant.teamId}"
                 data-participant-id="${participant.participantId}"
