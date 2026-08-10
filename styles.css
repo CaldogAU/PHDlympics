@@ -1027,6 +1027,27 @@ select:focus-visible,
   object-fit: cover;
 }
 
+.country-logo-rotation {
+  position: relative;
+}
+
+.country-logo-rotation .country-team-logo {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.country-logo-rotation .country-team-logo.is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .country-logo-rotation .country-team-logo {
+    transition: none;
+  }
+}
+
 .team-meta strong,
 .game-meta strong {
   display: block;

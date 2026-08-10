@@ -1,3 +1,5 @@
+let countryLogoRotationTimer = null;
+
 function createEmptyStanding(team) {
   return {
     id: team.id,
@@ -255,14 +257,22 @@ function getTournamentStandings() {
 
   (PHDTournament.state.offices || []).forEach(
     office => {
-      const representativeTeam = (PHDTournament.state.teams || [])
-        .find(team => team.officeId === office.id) || {};
+      const countryTeams = (PHDTournament.state.teams || [])
+        .filter(team => team.officeId === office.id);
+      const representativeTeam = countryTeams[0] || {};
       standings.set(office.id, {
         id: office.id,
         officeId: office.id,
         name: office.name,
         shortName: office.shortName || "",
         logoUrl: "",
+        teamLogos: countryTeams
+          .filter(team => team.logoUrl)
+          .map(team => ({
+            teamId: team.id,
+            teamName: team.name,
+            logoUrl: team.logoUrl
+          })),
         colour: representativeTeam.colour || "#6d5dfc",
         points: 0,
         gamesCompleted: 0,
@@ -329,6 +339,59 @@ function getStandings(gameId = "") {
     : getTournamentStandings();
 }
 
+function renderCountryStandingLogo(country) {
+  const logos = country.teamLogos || [];
+  if (!logos.length) {
+    return renderTeamLogo(country);
+  }
+
+  return `
+    <span class="country-logo-fallback">${renderTeamLogo(country)}</span>
+    ${logos.map((logo, index) => `
+    <img
+      class="country-team-logo${index === 0 ? " is-active" : ""}"
+      src="${escapeHtml(logo.logoUrl)}"
+      alt="${escapeHtml(logo.teamName)} logo"
+      title="${escapeHtml(logo.teamName)}"
+      onerror="this.remove()"
+    />
+    `).join("")}
+  `;
+}
+
+function rotateCountryStandingLogos() {
+  document.querySelectorAll(".country-logo-rotation").forEach(container => {
+    const logos = [...container.querySelectorAll(".country-team-logo")];
+    if (logos.length < 2) return;
+    const activeIndex = logos.findIndex(
+      logo => logo.classList.contains("is-active")
+    );
+    if (activeIndex >= 0) {
+      logos[activeIndex].classList.remove("is-active");
+    }
+    logos[(activeIndex + 1) % logos.length].classList.add("is-active");
+  });
+}
+
+function startCountryLogoRotation() {
+  if (countryLogoRotationTimer) {
+    clearInterval(countryLogoRotationTimer);
+    countryLogoRotationTimer = null;
+  }
+
+  const hasRotatingCountry = [...document.querySelectorAll(".country-logo-rotation")]
+    .some(container => container.querySelectorAll(".country-team-logo").length > 1);
+  const reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (hasRotatingCountry && !reduceMotion) {
+    countryLogoRotationTimer = setInterval(
+      rotateCountryStandingLogos,
+      3000
+    );
+  }
+}
+
 function renderStandings() {
   const standings = getStandings();
   const games =
@@ -376,8 +439,8 @@ function renderStandings() {
         <td class="rank-cell">${index + 1}</td>
         <td>
           <div class="team-cell">
-            <span class="team-logo" style="background:${escapeHtml(team.colour || "#6d5dfc")}">
-              ${renderTeamLogo(team)}
+            <span class="team-logo country-logo-rotation" style="background:${escapeHtml(team.colour || "#6d5dfc")}">
+              ${renderCountryStandingLogo(team)}
             </span>
             <strong>${escapeHtml(team.name)}</strong>
           </div>
@@ -410,6 +473,8 @@ function renderStandings() {
       body.appendChild(row);
     });
   });
+
+  startCountryLogoRotation();
 }
 
 PHDTournament.modules.push("ladder");

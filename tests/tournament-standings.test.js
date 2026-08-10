@@ -367,6 +367,24 @@ test("a fourteen-team field representing ten offices has a ten-point maximum", (
   assert.equal(standings.at(-1).points, 1);
 });
 
+test("country standings include every uploaded team logo", () => {
+  const state = createState();
+  state.offices = [{ id: "country", name: "Country" }];
+  state.teams = [
+    { id: "a", name: "Team A", officeId: "country", logoUrl: "a.png" },
+    { id: "b", name: "Team B", officeId: "country", logoUrl: "b.png" },
+    { id: "c", name: "Team C", officeId: "country", logoUrl: "" }
+  ];
+  state.games = [];
+  state.events = [];
+
+  const [standing] = loadStandings(state);
+  assert.deepEqual(
+    Array.from(standing.teamLogos, logo => [logo.teamName, logo.logoUrl]),
+    [["Team A", "a.png"], ["Team B", "b.png"]]
+  );
+});
+
 test("closed Fall Guys Grand Prix awards final tournament points", () => {
   const state = createState();
   state.games.push({

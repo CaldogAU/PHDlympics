@@ -871,3 +871,13 @@ test("admin labels offices as countries and keeps country rows horizontal", () =
   assert.match(styles, /\.country-item\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto;/);
   assert.match(styles, /\.country-meta\s*\{[\s\S]*?grid-template-columns:[\s\S]*?minmax\(160px, 1fr\)/);
 });
+
+test("home country standings rotate assigned team logos every three seconds", () => {
+  const ladder = fs.readFileSync(path.join(__dirname, "..", "js", "ladder.js"), "utf8");
+  const styles = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+
+  assert.match(ladder, /teamLogos:\s*countryTeams/);
+  assert.match(ladder, /class="country-team-logo/);
+  assert.match(ladder, /setInterval\(\s*rotateCountryStandingLogos,\s*3000\s*\)/);
+  assert.match(styles, /\.country-team-logo\.is-active\s*\{[\s\S]*?opacity:\s*1;/);
+});
