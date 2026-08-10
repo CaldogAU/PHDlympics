@@ -42,7 +42,7 @@ test("team page logos remove their background only when an image exists", () => 
   );
 });
 
-test("team page navigation groups countries with Australia first and shows flags", () => {
+test("team page navigation orders countries with Australia first and uses flag images", () => {
   const root = path.join(__dirname, "..");
   const teamPages = fs.readFileSync(
     path.join(root, "js", "team-pages.js"),
@@ -55,11 +55,13 @@ test("team page navigation groups countries with Australia first and shows flags
 
   assert.match(teamPages, /function getTeamPageCountryGroups/);
   assert.match(teamPages, /australiaA[\s\S]*?return australiaA \? -1 : 1/);
-  assert.match(teamPages, /class="team-country-heading"/);
-  assert.match(teamPages, /class="team-country-flag"/);
+  assert.doesNotMatch(teamPages, /class="team-country-heading"/);
+  assert.match(teamPages, /class="team-tab-country-flag"/);
   assert.match(teamPages, /class="team-page-country-flag"/);
-  assert.match(styles, /\.team-country-heading\s*\{[\s\S]*?justify-content:\s*space-between/);
-  assert.match(styles, /\.team-page-country-flag\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?opacity:\s*0\.1/);
+  assert.match(teamPages, /https:\/\/flagcdn\.com\/w\$\{width\}/);
+  assert.match(styles, /\.team-tab-button\s*\{[\s\S]*?justify-content:\s*space-between/);
+  assert.match(styles, /\.team-tab-country-flag\s*\{[\s\S]*?width:\s*28px/);
+  assert.match(styles, /\.team-page-country-flag\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?opacity:\s*0\.12/);
 });
 
 function getHistory() {
