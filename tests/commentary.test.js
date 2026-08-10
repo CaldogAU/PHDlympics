@@ -163,3 +163,29 @@ test("provides broad sentence variation without an external service", () => {
   assert.equal(Object.keys(commentary.templateCounts).length >= 15, true);
   assert.equal(counts.reduce((sum, count) => sum + count, 0) >= 100, true);
 });
+
+test("covers every round-based and multiplayer game mode", () => {
+  const notes = load().generate({
+    activity: [
+      { type: "Match", mode: "swiss", round: 1, game: "Swiss Game", teamA: "Swiss Winner", teamB: "Swiss Rival", score: "3 - 1" },
+      { type: "Match", mode: "round-robin", round: 2, game: "League Game", teamA: "League Winner", teamB: "League Rival", score: "4 - 2" },
+      { type: "Match", mode: "single-elimination", round: 3, game: "Knockout Game", teamA: "Bracket Winner", teamB: "Bracket Rival", score: "2 - 0" },
+      { type: "4 Player Swiss", mode: "four-player-swiss", round: 2, game: "Four Player Game", teamA: "Group Winner", score: "placements" },
+      { type: "Fall Guys Grand Prix", mode: "fall-guys-grand-prix", round: 4, game: "Fall Guys", teamA: "Heat Winner", score: "results" }
+    ],
+    limit: 20
+  });
+
+  [
+    "Swiss Winner",
+    "League Winner",
+    "Bracket Winner",
+    "Group Winner",
+    "Heat Winner"
+  ].forEach(winner => {
+    assert.equal(
+      notes.some(note => note.includes(winner)),
+      true
+    );
+  });
+});

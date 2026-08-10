@@ -20,50 +20,8 @@ function updateDisplayClock() {
   clock.textContent = formatDisplayTime();
 }
 
-function getDisplayActivityText() {
-  const activity = getRecentActivity(8);
-
-  if (activity.length === 0) {
-    return "No completed games yet.";
-  }
-
-  return activity
-    .map(item => {
-      if (item.type === "Bye") {
-        return `Round ${item.round}: ${item.teamA} received a BYE`;
-      }
-
-      return `Round ${item.round}: ${item.game} — ${item.teamA} ${item.score} ${item.teamB}`;
-    })
-    .join(" · ");
-}
-
 function getDisplayTickerText() {
-  const activity = getRecentActivity(8);
-  const commentary = window.PHDCommentary
-    ? window.PHDCommentary.generate({
-        activity,
-        standings: getStandings(),
-        events:
-          PHDTournament.state.events ||
-          [],
-        teams:
-          PHDTournament.state.teams ||
-          [],
-        games:
-          PHDTournament.state.games ||
-          [],
-        limit: 6
-      })
-    : [];
-  const activityText =
-    getDisplayActivityText();
-
-  if (!commentary.length) {
-    return activityText;
-  }
-
-  return `${commentary.join(" · ")} · ${activityText}`;
+  return getSharedTournamentTickerText();
 }
 
 function renderDisplayMode() {
