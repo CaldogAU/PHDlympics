@@ -201,6 +201,54 @@ test("migrates every legacy team into an independent office", () => {
   );
 });
 
+test("updates the single Singapore team to the durian mascot", () => {
+  const { mergeTournamentState } = loadMergeTournamentState();
+  const merged = mergeTournamentState({
+    schemaVersion: 4,
+    offices: [
+      { id: "singapore", name: "Singapore" },
+      { id: "australia", name: "Australia" }
+    ],
+    teams: [
+      {
+        id: "sgp",
+        name: "SGP",
+        officeId: "singapore",
+        logoUrl: "old-singapore-logo.png"
+      },
+      {
+        id: "syd",
+        name: "Sydney",
+        officeId: "australia",
+        logoUrl: "sydney.png"
+      }
+    ],
+    games: [],
+    rounds: [],
+    events: []
+  });
+
+  assert.equal(
+    merged.teams.find(team => team.id === "sgp").logoUrl,
+    "assets/singapore-durian-mascot.png"
+  );
+  assert.equal(
+    merged.teams.find(team => team.id === "syd").logoUrl,
+    "sydney.png"
+  );
+  assert.equal(
+    fs.existsSync(
+      path.join(
+        __dirname,
+        "..",
+        "assets",
+        "singapore-durian-mascot.png"
+      )
+    ),
+    true
+  );
+});
+
 test("creates independent collections when resetting to defaults", () => {
   const {
     defaultState,

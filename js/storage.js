@@ -83,6 +83,30 @@ function mergeTournamentState(sourceState) {
     }
   });
 
+  if (Number(source.schemaVersion || 0) < 5) {
+    const singaporeOfficeIds = new Set(
+      mergedState.offices
+        .filter(office =>
+          /^singapore$/i.test(
+            String(office.name || "").trim()
+          )
+        )
+        .map(office => office.id)
+    );
+    const singaporeTeams = mergedState.teams
+      .filter(team =>
+        singaporeOfficeIds.has(team.officeId) ||
+        /^singapore$/i.test(
+          String(team.name || "").trim()
+        )
+      );
+
+    if (singaporeTeams.length === 1) {
+      singaporeTeams[0].logoUrl =
+        "assets/singapore-durian-mascot.png";
+    }
+  }
+
   if (
     !mergedState.tournament.bannerUrl ||
     String(
