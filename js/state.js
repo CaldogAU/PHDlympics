@@ -9,7 +9,7 @@ const PHDTournament = {
   defaultState: {
     appName: "PHDlympics",
     version: "1.3.0",
-    schemaVersion: 4,
+    schemaVersion: 5,
     access: {
       assignments: {}
     },
