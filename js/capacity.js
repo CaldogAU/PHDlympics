@@ -97,6 +97,60 @@
     );
   }
 
+  function normaliseConsoleEntries(
+    consoleEntries,
+    competitorEntries = {},
+    capacity = LEGACY_CAPACITY
+  ) {
+    const legacyEntries = normaliseCompetitorEntries(
+      competitorEntries
+    );
+    const source = consoleEntries &&
+      typeof consoleEntries === "object" &&
+      !Array.isArray(consoleEntries)
+      ? consoleEntries
+      : {};
+    const teamIds = new Set([
+      ...Object.keys(legacyEntries),
+      ...Object.keys(source)
+    ]);
+
+    return Object.fromEntries(
+      [...teamIds].map(teamId => {
+        const saved = Array.isArray(source[teamId])
+          ? source[teamId]
+          : [legacyEntries[teamId] || 0];
+        const counts = saved
+          .slice(0, 9)
+          .map(value =>
+            Number.isInteger(Number(value)) &&
+            Number(value) >= 0
+              ? Number(value)
+              : 0
+          );
+
+        return [
+          String(teamId),
+          counts.length ? counts : [0]
+        ];
+      })
+    );
+  }
+
+  function getCompetitorTotals(consoleEntries) {
+    return Object.fromEntries(
+      Object.entries(consoleEntries).map(
+        ([teamId, counts]) => [
+          teamId,
+          counts.reduce(
+            (total, count) => total + Number(count || 0),
+            0
+          )
+        ]
+      )
+    );
+  }
+
   function normaliseGame(game, options = {}) {
     if (!game || typeof game !== "object") {
       return false;
@@ -106,65 +160,94 @@
       JSON.stringify(game.capacity || null);
     const previousEntries =
       JSON.stringify(game.competitorEntries || null);
+    const previousConsoleEntries =
+      JSON.stringify(game.consoleEntries || null);
 
     game.capacity = normaliseCapacity(
       game.capacity,
       options
     );
-    game.competitorEntries =
-      normaliseCompetitorEntries(
-        game.competitorEntries
-      );
+    game.consoleEntries = normaliseConsoleEntries(
+      game.consoleEntries,
+      game.competitorEntries,
+      game.capacity
+    );
+    game.competitorEntries = getCompetitorTotals(
+      game.consoleEntries
+    );
 
     return previousCapacity !== JSON.stringify(game.capacity) ||
-      previousEntries !== JSON.stringify(game.competitorEntries);
+      previousEntries !== JSON.stringify(game.competitorEntries) ||
+      previousConsoleEntries !== JSON.stringify(game.consoleEntries);
   }
 
   function getEntryValidation(game, teams = []) {
     const capacity = normaliseCapacity(
       game && game.capacity
     );
-    const entries = normaliseCompetitorEntries(
-      game && game.competitorEntries
+    const consoleEntries = normaliseConsoleEntries(
+      game && game.consoleEntries,
+      game && game.competitorEntries,
+      capacity
     );
     const teamIds = new Set(
       teams.map(team => String(team.id))
     );
     const errors = [];
 
-    Object.entries(entries).forEach(([teamId, count]) => {
+    Object.entries(consoleEntries).forEach(([teamId, counts]) => {
       if (!teamIds.has(teamId)) return;
-      if (count > capacity.maxPlayersPerConsole) {
+      if (counts.length < 1 || counts.length > 9) {
+        errors.push(`${teamId} must use between 1 and 9 consoles.`);
+      }
+      counts.forEach((count, consoleIndex) => {
+        if (count <= capacity.maxPlayersPerConsole) return;
         const team = teams.find(
           item => String(item.id) === teamId
         );
         errors.push(
-          `${team ? team.name : teamId} has ${count} competitors, above the per-console limit of ${capacity.maxPlayersPerConsole}.`
+          `${team ? team.name : teamId} Console ${String.fromCharCode(65 + consoleIndex)} has ${count} competitors, above the per-console limit of ${capacity.maxPlayersPerConsole}.`
         );
-      }
+      });
     });
 
     return {
       valid: errors.length === 0,
       errors,
       capacity,
-      entries
+      entries: getCompetitorTotals(consoleEntries),
+      consoleEntries
     };
   }
 
   function getActiveEntries(game, teams = []) {
-    const entries = normaliseCompetitorEntries(
-      game && game.competitorEntries
+    const capacity = normaliseCapacity(
+      game && game.capacity
+    );
+    const consoleEntries = normaliseConsoleEntries(
+      game && game.consoleEntries,
+      game && game.competitorEntries,
+      capacity
     );
 
-    return teams
-      .map(team => ({
-        officeId: String(team.id),
-        officeName: String(team.name || team.id),
-        competitorCount:
-          Number(entries[team.id]) || 0
-      }))
-      .filter(entry => entry.competitorCount > 0);
+    return teams.flatMap(team => {
+      let playerStartIndex = 0;
+      return (consoleEntries[team.id] || [0])
+        .map((competitorCount, consoleIndex) => {
+          const entry = {
+            officeId: String(team.id),
+            officeName: String(team.name || team.id),
+            entryId: `${team.id}:console-${consoleIndex + 1}`,
+            consoleIndex,
+            consoleLabel: `Console ${String.fromCharCode(65 + consoleIndex)}`,
+            playerStartIndex,
+            competitorCount: Number(competitorCount) || 0
+          };
+          playerStartIndex += entry.competitorCount;
+          return entry;
+        })
+        .filter(entry => entry.competitorCount > 0);
+    });
   }
 
   function getEligibleTeams(game, teams = []) {
@@ -202,7 +285,7 @@
     const countAverage = counts.reduce((sum, value) => sum + value, 0) /
       lobbies.length;
     const signature = lobbies
-      .map(lobby => lobby.entries.map(entry => entry.officeId).sort().join(","))
+      .map(lobby => lobby.entries.map(entry => entry.entryId).sort().join(","))
       .sort()
       .join("|");
     const rankSpread = lobbies.reduce(
@@ -234,7 +317,7 @@
       (entryA, entryB) =>
         entryB.competitorCount - entryA.competitorCount ||
         (Number(entryA.rankIndex) || 0) - (Number(entryB.rankIndex) || 0) ||
-        entryA.officeId.localeCompare(entryB.officeId)
+        entryA.entryId.localeCompare(entryB.entryId)
     );
     const lobbies = Array.from(
       { length: lobbyCount },
@@ -300,6 +383,10 @@
       .map(entry => ({
         officeId: String(entry.officeId || ""),
         officeName: String(entry.officeName || entry.officeId || "Office"),
+        entryId: String(entry.entryId || entry.officeId || ""),
+        consoleIndex: Number(entry.consoleIndex) || 0,
+        consoleLabel: String(entry.consoleLabel || "Console A"),
+        playerStartIndex: Number(entry.playerStartIndex) || 0,
         competitorCount: Number(entry.competitorCount),
         rankIndex: Number.isFinite(Number(entry.rankIndex))
           ? Number(entry.rankIndex)
@@ -387,6 +474,8 @@
     validateCapacity,
     normaliseCapacity,
     normaliseCompetitorEntries,
+    normaliseConsoleEntries,
+    getCompetitorTotals,
     normaliseGame,
     getEntryValidation,
     getActiveEntries,

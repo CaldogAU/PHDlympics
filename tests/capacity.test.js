@@ -42,6 +42,96 @@ test("normalises legacy games with an explicit conservative fallback", () => {
     JSON.parse(JSON.stringify(game.competitorEntries)),
     {}
   );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(game.consoleEntries)),
+    {}
+  );
+});
+
+test("expands each team into separate console groups and totals competitors", () => {
+  const capacity = loadCapacity();
+  const game = {
+    capacity: {
+      maxPlayersPerConsole: 2,
+      maxPlayersPerLobby: 4,
+      configured: true
+    },
+    consoleEntries: {
+      melbourne: [2, 1],
+      sydney: [1]
+    }
+  };
+  capacity.normaliseGame(game);
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(game.competitorEntries)),
+    { melbourne: 3, sydney: 1 }
+  );
+  const entries = capacity.getActiveEntries(game, [
+    { id: "melbourne", name: "Melbourne" },
+    { id: "sydney", name: "Sydney" }
+  ]);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(entries)),
+    [
+      {
+        officeId: "melbourne",
+        officeName: "Melbourne",
+        entryId: "melbourne:console-1",
+        consoleIndex: 0,
+        consoleLabel: "Console A",
+        playerStartIndex: 0,
+        competitorCount: 2
+      },
+      {
+        officeId: "melbourne",
+        officeName: "Melbourne",
+        entryId: "melbourne:console-2",
+        consoleIndex: 1,
+        consoleLabel: "Console B",
+        playerStartIndex: 2,
+        competitorCount: 1
+      },
+      {
+        officeId: "sydney",
+        officeName: "Sydney",
+        entryId: "sydney:console-1",
+        consoleIndex: 0,
+        consoleLabel: "Console A",
+        playerStartIndex: 0,
+        competitorCount: 1
+      }
+    ]
+  );
+  const allocation = capacity.allocateLobbies({
+    entries,
+    maxPlayersPerLobby: 4
+  });
+  assert.equal(allocation.totalCompetitors, 4);
+  assert.equal(
+    allocation.lobbies.flatMap(lobby => lobby.entries).length,
+    3
+  );
+});
+
+test("limits teams to nine consoles and validates each console separately", () => {
+  const capacity = loadCapacity();
+  const validation = capacity.getEntryValidation(
+    {
+      capacity: {
+        maxPlayersPerConsole: 2,
+        maxPlayersPerLobby: 8,
+        configured: true
+      },
+      consoleEntries: {
+        alpha: [2, 3]
+      }
+    },
+    [{ id: "alpha", name: "Alpha" }]
+  );
+
+  assert.equal(validation.valid, false);
+  assert.match(validation.errors[0], /Console B/);
 });
 
 test("validates positive whole-number capacity and entry limits", () => {

@@ -831,10 +831,12 @@ function renderGameCapacityManagement(game) {
   const capacity =
     window.PHDGameCapacity
       .normaliseCapacity(game.capacity);
-  const entries =
+  const consoleEntries =
     window.PHDGameCapacity
-      .normaliseCompetitorEntries(
-        game.competitorEntries
+      .normaliseConsoleEntries(
+        game.consoleEntries,
+        game.competitorEntries,
+        capacity
       );
   const locked =
     gameHasGeneratedData(game) ||
@@ -856,7 +858,7 @@ function renderGameCapacityManagement(game) {
               <article class="lobby-preview-card">
                 <strong>${escapeHtml(lobby.name)} - ${lobby.competitorTotal} competitors</strong>
                 <span>${lobby.entries.map(entry =>
-                  `${escapeHtml(entry.officeName)} (${entry.competitorCount})`
+                  `${escapeHtml(entry.officeName)} ${escapeHtml(entry.consoleLabel)} (${entry.competitorCount})`
                 ).join(", ")}</span>
               </article>
             `).join("")}
@@ -896,24 +898,52 @@ function renderGameCapacityManagement(game) {
       <div class="table-wrap">
         <table class="game-entry-table">
           <thead>
-            <tr><th>Team</th><th>Competitors</th></tr>
+            <tr><th>Team</th><th>Number of Consoles</th><th>Competitors</th></tr>
           </thead>
           <tbody>
             ${PHDTournament.state.teams.map(team => {
-              const value = Number(entries[team.id]) || 0;
+              const teamConsoles = consoleEntries[team.id] || [0];
               const editable = canEditGameEntry(team.id, locked);
               return `
                 <tr data-team-id="${team.id}">
                   <td><strong>${escapeHtml(team.name)}</strong></td>
                   <td>
                     ${editable ? `
-                      <select data-competitor-team-id="${team.id}">
+                      <select data-console-count-team-id="${team.id}">
                         ${Array.from(
-                          { length: capacity.maxPlayersPerConsole + 1 },
-                          (_, count) => `<option value="${count}" ${count === value ? "selected" : ""}>${count}</option>`
+                          { length: 9 },
+                          (_, index) => {
+                            const count = index + 1;
+                            return `<option value="${count}" ${count === teamConsoles.length ? "selected" : ""}>${count}</option>`;
+                          }
                         ).join("")}
                       </select>
-                    ` : `<span>${value}</span>`}
+                    ` : `<span>${teamConsoles.length}</span>`}
+                  </td>
+                  <td>
+                    <div class="console-competitor-fields" data-console-fields-team-id="${team.id}">
+                      ${Array.from({ length: 9 }, (_, consoleIndex) => {
+                        const value = Number(teamConsoles[consoleIndex]) || 0;
+                        const visible = consoleIndex < teamConsoles.length;
+                        return `
+                          <label class="console-competitor-field" ${visible ? "" : "hidden"}>
+                            <span>Console ${String.fromCharCode(65 + consoleIndex)}</span>
+                            ${editable ? `
+                              <select
+                                data-console-competitor-team-id="${team.id}"
+                                data-console-index="${consoleIndex}"
+                                ${visible ? "" : "disabled"}
+                              >
+                                ${Array.from(
+                                  { length: capacity.maxPlayersPerConsole + 1 },
+                                  (_, count) => `<option value="${count}" ${count === value ? "selected" : ""}>${count}</option>`
+                                ).join("")}
+                              </select>
+                            ` : `<strong>${value}</strong>`}
+                          </label>
+                        `;
+                      }).join("")}
+                    </div>
                   </td>
                 </tr>
               `;
@@ -944,19 +974,35 @@ async function saveGameCompetitorEntries(gameId, section) {
   }
 
   const previous = structuredClone(
-    game.competitorEntries || {}
+    {
+      competitorEntries: game.competitorEntries || {},
+      consoleEntries: game.consoleEntries || {}
+    }
   );
-  const next = {
-    ...previous
+  const nextConsoleEntries = {
+    ...(game.consoleEntries || {})
   };
 
-  section.querySelectorAll("[data-competitor-team-id]").forEach(select => {
-    const teamId = select.dataset.competitorTeamId;
+  section.querySelectorAll("[data-console-count-team-id]").forEach(select => {
+    const teamId = select.dataset.consoleCountTeamId;
     if (!canEditGameEntry(teamId, false)) return;
-    next[teamId] = Number(select.value);
+    const consoleCount = Number(select.value);
+    nextConsoleEntries[teamId] = Array.from(
+      { length: consoleCount },
+      (_, consoleIndex) => {
+        const competitorSelect = section.querySelector(
+          `[data-console-competitor-team-id="${teamId}"][data-console-index="${consoleIndex}"]`
+        );
+        return Number(competitorSelect && competitorSelect.value) || 0;
+      }
+    );
   });
 
-  game.competitorEntries = next;
+  game.consoleEntries = nextConsoleEntries;
+  game.competitorEntries =
+    window.PHDGameCapacity.getCompetitorTotals(
+      nextConsoleEntries
+    );
   const validation =
     window.PHDGameCapacity
       .getEntryValidation(
@@ -964,7 +1010,8 @@ async function saveGameCompetitorEntries(gameId, section) {
         PHDTournament.state.teams
       );
   if (!validation.valid) {
-    game.competitorEntries = previous;
+    game.competitorEntries = previous.competitorEntries;
+    game.consoleEntries = previous.consoleEntries;
     alert(validation.errors.join("\n"));
     return;
   }
@@ -978,7 +1025,10 @@ async function saveGameCompetitorEntries(gameId, section) {
       {
         gameId,
         previous,
-        current: structuredClone(next),
+        current: {
+          competitorEntries: structuredClone(game.competitorEntries),
+          consoleEntries: structuredClone(game.consoleEntries)
+        },
         allocation: getGameLobbyAllocation(game)
       }
     );
@@ -2167,6 +2217,36 @@ function bindGameEvents() {
       }
     );
   }
+
+  document.addEventListener(
+    "change",
+    event => {
+      const select = event.target.closest(
+        "[data-console-count-team-id]"
+      );
+      if (!select) return;
+
+      const teamId =
+        select.dataset.consoleCountTeamId;
+      const consoleCount = Number(select.value);
+      const section = select.closest(
+        ".game-capacity-management"
+      );
+      if (!section) return;
+
+      section.querySelectorAll(
+        `[data-console-competitor-team-id="${teamId}"]`
+      ).forEach(competitorSelect => {
+        const visible = Number(
+          competitorSelect.dataset.consoleIndex
+        ) < consoleCount;
+        competitorSelect.disabled = !visible;
+        competitorSelect.closest(
+          ".console-competitor-field"
+        ).hidden = !visible;
+      });
+    }
+  );
 
   document.addEventListener(
     "click",

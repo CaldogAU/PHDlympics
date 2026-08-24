@@ -181,13 +181,17 @@
             }
             return Array.from(
               { length: Number(entry.competitorCount) },
-              (_, playerIndex) => ({
-                participantId: `${team.id}:player-${playerIndex + 1}`,
-                teamId: team.id,
-                playerIndex,
-                playerLabel: `Player ${String.fromCharCode(65 + playerIndex)}`,
-                placement: null
-              })
+              (_, playerIndex) => {
+                const teamPlayerIndex =
+                  Number(entry.playerStartIndex || 0) + playerIndex;
+                return {
+                  participantId: `${team.id}:player-${teamPlayerIndex + 1}`,
+                  teamId: team.id,
+                  playerIndex: teamPlayerIndex,
+                  playerLabel: `Player ${String.fromCharCode(65 + teamPlayerIndex)}`,
+                  placement: null
+                };
+              }
             );
           });
           if (participants.length !== 4) {
