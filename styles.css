@@ -947,6 +947,30 @@ select:focus-visible,
   margin-top: 18px;
 }
 
+.console-competitor-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.console-competitor-field {
+  display: grid;
+  min-width: 108px;
+  gap: 4px;
+}
+
+.console-competitor-field span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.console-competitor-field[hidden] {
+  display: none;
+}
+
 .game-entry-table select {
   min-width: 92px;
 }

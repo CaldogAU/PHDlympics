@@ -57,6 +57,7 @@ function createGame(values) {
     configured: true
   },
   competitorEntries: {},
+  consoleEntries: {},
   settings: {
     winPoints: legacyScoring.winPoints,
     drawPoints: legacyScoring.drawPoints,
@@ -81,6 +82,10 @@ function getGameAuditDetails(game) {
     competitorEntries:
       structuredClone(
         game.competitorEntries || {}
+      ),
+    consoleEntries:
+      structuredClone(
+        game.consoleEntries || {}
       ),
     createdAt: game.createdAt || ""
   };

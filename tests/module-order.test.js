@@ -234,6 +234,22 @@ test("scopes staff competitor counts to their assigned team", () => {
   );
 });
 
+test("offers one to nine consoles with per-console competitor selectors", () => {
+  const root = path.join(__dirname, "..");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const capacity = fs.readFileSync(path.join(root, "js", "capacity.js"), "utf8");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  assert.match(app, /<th>Number of Consoles<\/th>/);
+  assert.match(app, /data-console-count-team-id/);
+  assert.match(app, /\{ length: 9 \}/);
+  assert.match(app, /data-console-competitor-team-id/);
+  assert.match(app, /Console \$\{String\.fromCharCode\(65 \+ consoleIndex\)\}/);
+  assert.match(capacity, /function normaliseConsoleEntries/);
+  assert.match(capacity, /entryId: `\$\{team\.id\}:console-\$\{consoleIndex \+ 1\}`/);
+  assert.match(styles, /\.console-competitor-fields/);
+});
+
 test("shows report data tools only to administrators", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");

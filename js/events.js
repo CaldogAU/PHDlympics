@@ -82,11 +82,13 @@ function getGrandPrixParticipants(event, includeAll = false) {
         return Array.from(
           { length: entry.competitorCount },
           (_, playerIndex) => {
-            const playerLetter = String.fromCharCode(65 + playerIndex);
+            const teamPlayerIndex =
+              entry.playerStartIndex + playerIndex;
+            const playerLetter = String.fromCharCode(65 + teamPlayerIndex);
             return {
-              participantId: `${entry.officeId}:player-${playerIndex + 1}`,
+              participantId: `${entry.officeId}:player-${teamPlayerIndex + 1}`,
               teamId: entry.officeId,
-              playerIndex,
+              playerIndex: teamPlayerIndex,
               playerLabel: `Player ${playerLetter}`,
               displayName: `${team ? team.name : entry.officeName} - Player ${playerLetter}`,
               lobbyId: lobby.id,
