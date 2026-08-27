@@ -176,20 +176,48 @@ function getCompletedGameLeaderboard(game) {
       return null;
     }
   } else {
-    const event =
-      PHDTournament.state.events.find(
-        item =>
-          item.gameId === game.id
+    const plannedRounds = window.PHDSessionPlanner
+      ? window.PHDSessionPlanner.getPlannedRoundCount(
+          game,
+          PHDTournament.state.tournament
+        )
+      : 1;
+    const events = PHDTournament.state.events
+      .filter(item => item.gameId === game.id)
+      .sort((eventA, eventB) =>
+        Number(eventA.roundNumber || 1) -
+        Number(eventB.roundNumber || 1)
       );
 
-    if (!event || !event.completed) {
+    if (
+      events.length < plannedRounds ||
+      events.some(event => !event.completed)
+    ) {
       return null;
     }
 
-    context.results =
-      event.results || [];
-    context.submissions =
-      event.results || [];
+    const combinedResults = events.flatMap(event =>
+      (event.results || []).map(result => ({
+        ...result,
+        roundNumber: Number(event.roundNumber || 1)
+      }))
+    );
+    const finalResults = resultEntryType === "completion-time"
+      ? [...combinedResults.reduce((bestByTeam, result) => {
+          const existing = bestByTeam.get(result.teamId);
+          if (
+            !existing ||
+            Number(result.timeMilliseconds) <
+              Number(existing.timeMilliseconds)
+          ) {
+            bestByTeam.set(result.teamId, result);
+          }
+          return bestByTeam;
+        }, new Map()).values()]
+      : combinedResults;
+
+    context.results = finalResults;
+    context.submissions = finalResults;
   }
 
   const result =

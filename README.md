@@ -14,6 +14,7 @@ and cloud restore points.
 - Team management
 - Team colours and logo URLs
 - Per-game console and lobby capacity
+- Weekly time allowance with calculated per-game round limits
 - Per-game office competitor entries
 - Balanced indivisible console-group lobby allocation
 - Tournament logo, banner and accent colour branding
@@ -53,9 +54,9 @@ must sign in before changing shared data.
 
 1. Add tournament details.
 2. Add teams.
-3. Add the required games, select a GameMode for each, and configure their capacities.
+3. Set the weekly time allowance, then add the required games, select a GameMode, configure capacity, and enter the estimated minutes per round.
 4. Open the game page, enter each team's competitor count, and review its lobby plan.
-5. Generate Swiss rounds or create and manage the Time Trial/Grand Prix event
+5. Generate Swiss rounds up to the calculated weekly limit, or create the calculated Time Trial/Grand Prix rounds
    directly on that game page.
 6. Enter and complete results there.
 7. Review standings, reports, and the public display.

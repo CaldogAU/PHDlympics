@@ -100,6 +100,20 @@ Every feature card on a game page is collapsible. The explanatory mode diagram
 is deliberately the first card below the game header so operators can review the
 format before configuring participation or entering results.
 
+## Weekly session planning
+
+The tournament stores `timeAllowancePerWeek` in minutes and every game stores
+`minutesPerRound`. `js/session-planner.js` calculates the maximum whole rounds
+that fit with `max(1, floor(allowance / duration))`. Legacy tournaments default
+to 60 minutes and legacy games default to 60 minutes per round.
+
+Swiss and 4 Player Swiss generation stops at the calculated limit. Fall Guys
+uses the calculated value as its planned heat count. Grand Prix and Time Trial
+create a separate result workspace for every calculated round; overall Grand
+Prix rankings aggregate lobby points across those rounds, while Time Trial uses
+each team's best completed time. Overall tournament points are withheld until
+every calculated round is complete.
+
 ## Incremental migration
 
 1. Protect current behavior with regression tests.

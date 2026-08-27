@@ -37,8 +37,10 @@ function renderTournamentForm() {
 
   setValue("tournamentName", tournament.name);
   setValue(
-    "tournamentDescription",
-    tournament.description
+    "tournamentTimeAllowancePerWeek",
+    window.PHDSessionPlanner
+      ? window.PHDSessionPlanner.getWeeklyAllowance(tournament)
+      : 60
   );
   setValue(
     "tournamentBannerUrl",
@@ -90,9 +92,10 @@ function renderTournamentSummary() {
   );
 
   setText(
-    "summaryDescription",
-    tournament.description ||
-      "No description yet."
+    "summaryTimeAllowancePerWeek",
+    `${window.PHDSessionPlanner
+      ? window.PHDSessionPlanner.getWeeklyAllowance(tournament)
+      : 60} minutes`
   );
 
 
@@ -1545,8 +1548,8 @@ function getTournamentAuditDetails(
   return {
     name:
       tournament.name || "",
-    description:
-      tournament.description || "",
+    timeAllowancePerWeek:
+      Number(tournament.timeAllowancePerWeek) || 60,
     logoUrl:
       tournament.logoUrl || "",
     bannerUrl:
@@ -1566,7 +1569,7 @@ function getTournamentChanges(
 
   [
     "name",
-    "description",
+    "timeAllowancePerWeek",
     "logoUrl",
     "bannerUrl",
     "accentColour"
@@ -1629,10 +1632,61 @@ async function updateTournamentSettings() {
     ? "Untitled Tournament"
     : name;
 
-  tournament.description =
-    getValue(
-      "tournamentDescription"
-    ).trim();
+  const timeAllowancePerWeek = Number(
+    getValue("tournamentTimeAllowancePerWeek")
+  );
+
+  if (
+    !Number.isInteger(timeAllowancePerWeek) ||
+    timeAllowancePerWeek < 1
+  ) {
+    alert("Enter a whole-number weekly time allowance of at least 1 minute.");
+    return;
+  }
+  const longerGame = PHDTournament.state.games.find(game =>
+    window.PHDSessionPlanner.getRoundDuration(game) > timeAllowancePerWeek
+  );
+  if (longerGame) {
+    alert(
+      `${longerGame.name} is configured to take longer than the proposed weekly allowance. Update that game's minutes per round first.`
+    );
+    return;
+  }
+
+  const currentAllowance = window.PHDSessionPlanner
+    ? window.PHDSessionPlanner.getWeeklyAllowance(tournament)
+    : 60;
+  const hasGeneratedProgress =
+    PHDTournament.state.rounds.length > 0 ||
+    PHDTournament.state.events.length > 0 ||
+    PHDTournament.state.games.some(game =>
+      Boolean((game.fourPlayerSwiss && game.fourPlayerSwiss.rounds || []).length) ||
+      Boolean((game.fallGuysGrandPrix && game.fallGuysGrandPrix.heats || []).length)
+    );
+
+  if (
+    timeAllowancePerWeek !== currentAllowance &&
+    hasGeneratedProgress
+  ) {
+    alert(
+      "The weekly time allowance cannot be changed after game rounds or results have been generated. Reset tournament progress first."
+    );
+    return;
+  }
+
+  tournament.timeAllowancePerWeek = timeAllowancePerWeek;
+
+  PHDTournament.state.games.forEach(game => {
+    if (!window.PHDSessionPlanner) return;
+    window.PHDSessionPlanner.normaliseGame(game, tournament);
+    if (
+      game.mode === "fall-guys-grand-prix" &&
+      game.fallGuysGrandPrix &&
+      !(game.fallGuysGrandPrix.heats || []).length
+    ) {
+      game.fallGuysGrandPrix.targetHeats = game.plannedRounds;
+    }
+  });
 
   tournament.bannerUrl =
     getValue(
@@ -2095,7 +2149,7 @@ function bindTournamentEvents() {
 
   [
     "tournamentName",
-    "tournamentDescription",
+    "tournamentTimeAllowancePerWeek",
     "tournamentBannerUrl",
     "tournamentAccentColour"
   ].forEach(id => {

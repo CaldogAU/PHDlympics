@@ -17,6 +17,15 @@ function getEventByGameId(gameId) {
   );
 }
 
+function getEventsByGameId(gameId) {
+  return PHDTournament.state.events
+    .filter(event => event.gameId === gameId)
+    .sort((eventA, eventB) =>
+      Number(eventA.roundNumber || 1) -
+      Number(eventB.roundNumber || 1)
+    );
+}
+
 function getEventResultForTeam(
   event,
   teamId
@@ -280,8 +289,16 @@ function renderEventGameOptions() {
       </option>
     `,
     ...games.map(game => {
+      const existingEvents =
+        getEventsByGameId(game.id);
+      const plannedRounds = window.PHDSessionPlanner
+        ? window.PHDSessionPlanner.getPlannedRoundCount(
+            game,
+            PHDTournament.state.tournament
+          )
+        : 1;
       const existingEvent =
-        getEventByGameId(game.id);
+        existingEvents.length >= plannedRounds;
 
       return `
         <option
@@ -303,7 +320,7 @@ function renderEventGameOptions() {
           )}
           ${
             existingEvent
-              ? " (event already created)"
+              ? " (all rounds already created)"
               : ""
           }
         </option>
@@ -618,38 +635,9 @@ function renderGrandPrixEntries(
   `;
 }
 
-function renderEventGameManagement(
-  game
-) {
-  const event =
-    getEventByGameId(game.id);
+function renderEventWorkspace(game, event) {
   const modeName =
     getGameModeLabel(game);
-
-  if (!event) {
-    return `
-      <section class="card wide">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">
-              ${escapeHtml(modeName)}
-            </p>
-            <h2>Event Management</h2>
-            <p class="muted">
-              Create this event to begin entering results.
-            </p>
-          </div>
-          <button
-            class="create-game-event"
-            type="button"
-            data-game-id="${game.id}"
-          >
-            Create Event
-          </button>
-        </div>
-      </section>
-    `;
-  }
 
   return `
     <section
@@ -663,7 +651,7 @@ function renderEventGameManagement(
           <p class="eyebrow">
             ${escapeHtml(modeName)}
           </p>
-          <h2>Event Management</h2>
+          <h2>Round ${Number(event.roundNumber || 1)}</h2>
           <p class="muted">
             ${
               event.completed
@@ -708,6 +696,45 @@ function renderEventGameManagement(
           : renderGrandPrixEntries(event)
       }
     </section>
+  `;
+}
+
+function renderEventGameManagement(game) {
+  const events = getEventsByGameId(game.id);
+  const plannedRounds = window.PHDSessionPlanner
+    ? window.PHDSessionPlanner.getPlannedRoundCount(
+        game,
+        PHDTournament.state.tournament
+      )
+    : 1;
+  const allCreated = events.length >= plannedRounds;
+
+  return `
+    <section class="card wide">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">${escapeHtml(getGameModeLabel(game))}</p>
+          <h2>Weekly Round Plan</h2>
+          <p class="muted">
+            ${plannedRounds} round${plannedRounds === 1 ? "" : "s"}
+            × ${window.PHDSessionPlanner.getRoundDuration(game)} minutes
+            = ${plannedRounds * window.PHDSessionPlanner.getRoundDuration(game)} of
+            ${window.PHDSessionPlanner.getWeeklyAllowance(PHDTournament.state.tournament)} available minutes.
+          </p>
+        </div>
+        ${events.length ? "" : `
+          <button class="create-game-event" type="button"
+            data-game-id="${game.id}" ${allCreated ? "disabled" : ""}>
+            Create ${plannedRounds} Round${plannedRounds === 1 ? "" : "s"}
+          </button>
+        `}
+      </div>
+    </section>
+    ${events.length
+      ? events.map(event => renderEventWorkspace(game, event)).join("")
+      : `<section class="card wide"><div class="empty-state">
+          Create the weekly rounds to begin entering results.
+        </div></section>`}
   `;
 }
 
@@ -766,9 +793,17 @@ async function createEvent(gameId) {
     return;
   }
 
-  if (getEventByGameId(gameId)) {
+  const existingEvents = getEventsByGameId(gameId);
+  const plannedRounds = window.PHDSessionPlanner
+    ? window.PHDSessionPlanner.getPlannedRoundCount(
+        game,
+        PHDTournament.state.tournament
+      )
+    : 1;
+
+  if (existingEvents.length >= plannedRounds) {
     alert(
-      "An event already exists for this game."
+      "All weekly rounds have already been created for this game."
     );
 
     return;
@@ -791,21 +826,22 @@ async function createEvent(gameId) {
     return;
   }
 
-  const event = {
-    id: crypto.randomUUID(),
-    gameId,
-    mode,
-    completed: false,
-    createdAt:
-      new Date().toISOString(),
-    updatedAt:
-      new Date().toISOString(),
-    results: []
-  };
-
-  PHDTournament.state.events.push(
-    event
+  const now = new Date().toISOString();
+  const createdEvents = Array.from(
+    { length: plannedRounds - existingEvents.length },
+    (_, index) => ({
+      id: crypto.randomUUID(),
+      gameId,
+      mode,
+      roundNumber: existingEvents.length + index + 1,
+      completed: false,
+      createdAt: now,
+      updatedAt: now,
+      results: []
+    })
   );
+
+  PHDTournament.state.events.push(...createdEvents);
 
   render();
 
@@ -818,14 +854,11 @@ async function createEvent(gameId) {
     ) {
       await recordAuditEntry(
         "event.created",
-        `Created ${getGameModeLabel(
+        `Created ${createdEvents.length} ${getGameModeLabel(
           game
-        )} event for ${game.name}.`,
+        )} round${createdEvents.length === 1 ? "" : "s"} for ${game.name}.`,
         {
-          event:
-            getEventAuditDetails(
-              event
-            )
+          events: createdEvents.map(getEventAuditDetails)
         }
       );
     }
@@ -833,7 +866,7 @@ async function createEvent(gameId) {
     PHDTournament.state.events =
       PHDTournament.state.events.filter(
         existingEvent =>
-          existingEvent.id !== event.id
+          !createdEvents.some(event => event.id === existingEvent.id)
       );
 
     render();

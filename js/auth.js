@@ -12,7 +12,7 @@ const PHDAuth = {
 
 const ADMIN_CONTROL_IDS = [
   "tournamentName",
-  "tournamentDescription",
+  "tournamentTimeAllowancePerWeek",
   "tournamentBannerUrl",
   "tournamentAccentColour",
   "saveTournament",
@@ -28,6 +28,7 @@ const ADMIN_CONTROL_IDS = [
   "gameMode",
   "gameMaxPlayersPerConsole",
   "gameMaxPlayersPerLobby",
+  "gameMinutesPerRound",
   "gameLogoUrl",
   "saveGame",
   "clearGameForm",

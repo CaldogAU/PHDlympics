@@ -238,11 +238,14 @@
               </label>
 
               <label>
-                Description
-                <textarea
-                  id="tournamentDescription"
-                  placeholder="Optional tournament notes"
-                ></textarea>
+                Time Allowance Per Week (minutes)
+                <input
+                  id="tournamentTimeAllowancePerWeek"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value="60"
+                />
               </label>
 
               <label>
@@ -276,8 +279,8 @@
                 </div>
 
                 <div>
-                  <dt>Description</dt>
-                  <dd id="summaryDescription">—</dd>
+                  <dt>Time Allowance Per Week</dt>
+                  <dd id="summaryTimeAllowancePerWeek">60 minutes</dd>
                 </div>
 
                 <div>
@@ -525,6 +528,16 @@
     value="8"
     aria-label="Maximum players per lobby"
     placeholder="Players per lobby"
+  />
+
+  <input
+    id="gameMinutesPerRound"
+    type="number"
+    min="1"
+    step="1"
+    value="60"
+    aria-label="Minutes per round"
+    placeholder="Minutes per round"
   />
 
   <input
@@ -808,6 +821,7 @@
   <script src="js/auth.js"></script>
 
   <script src="js/state.js"></script>
+  <script src="js/session-planner.js"></script>
   <script src="js/capacity.js"></script>
   <script src="js/audit.js"></script>
   <script src="js/audit-ui.js"></script>

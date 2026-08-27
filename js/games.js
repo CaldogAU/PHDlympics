@@ -30,6 +30,7 @@ setValue("gamePlatform", "");
 setValue("gameMode", "swiss");
 setValue("gameMaxPlayersPerConsole", "1");
 setValue("gameMaxPlayersPerLobby", "8");
+setValue("gameMinutesPerRound", "60");
 setValue("gameLogoUrl", "");
 
   const saveButton =
@@ -49,6 +50,12 @@ function createGame(values) {
   platform: values.platform,
   mode: values.mode,
   logoUrl: values.logoUrl,
+  minutesPerRound: values.minutesPerRound,
+  plannedRounds:
+    window.PHDSessionPlanner.getPlannedRoundCount(
+      { minutesPerRound: values.minutesPerRound },
+      PHDTournament.state.tournament
+    ),
   capacity: {
     maxPlayersPerConsole:
       values.maxPlayersPerConsole,
@@ -75,6 +82,8 @@ function getGameAuditDetails(game) {
     mode: game.mode || "swiss",
     format: game.format || "",
     logoUrl: game.logoUrl || "",
+    minutesPerRound: Number(game.minutesPerRound) || 60,
+    plannedRounds: Number(game.plannedRounds) || 1,
     capacity:
       structuredClone(
         game.capacity || {}
@@ -101,7 +110,9 @@ function getGameChanges(
   "name",
   "platform",
   "mode",
-  "logoUrl"
+  "logoUrl",
+  "minutesPerRound",
+  "plannedRounds"
 ].forEach(field => {
     const previousValue =
       previousGame[field] || "";
@@ -154,8 +165,29 @@ async function saveGameFromForm() {
   maxPlayersPerLobby:
     Number(
       getValue("gameMaxPlayersPerLobby")
-    )
+    ),
+
+  minutesPerRound:
+    Number(getValue("gameMinutesPerRound"))
 };
+
+  if (
+    !Number.isInteger(values.minutesPerRound) ||
+    values.minutesPerRound < 1
+  ) {
+    alert("Enter a whole-number round duration of at least 1 minute.");
+    return;
+  }
+  const weeklyAllowance =
+    window.PHDSessionPlanner.getWeeklyAllowance(
+      PHDTournament.state.tournament
+    );
+  if (values.minutesPerRound > weeklyAllowance) {
+    alert(
+      `A round cannot exceed the ${weeklyAllowance}-minute weekly allowance.`
+    );
+    return;
+  }
 
   const capacityValidation =
     window.PHDGameCapacity
@@ -234,6 +266,15 @@ async function saveGameFromForm() {
     const capacityChanged =
       JSON.stringify(game.capacity || {}) !==
       JSON.stringify(capacityValidation.value);
+    const nextPlannedRounds =
+      window.PHDSessionPlanner.getPlannedRoundCount(
+        { ...game, minutesPerRound: values.minutesPerRound },
+        PHDTournament.state.tournament
+      );
+    const scheduleChanged =
+      window.PHDSessionPlanner.getRoundDuration(game) !==
+        values.minutesPerRound ||
+      Number(game.plannedRounds || 1) !== nextPlannedRounds;
     const hasGeneratedData =
       PHDTournament.state.rounds.some(
         round =>
@@ -254,9 +295,9 @@ async function saveGameFromForm() {
         (game.fallGuysGrandPrix.heats || []).length
       );
 
-    if (capacityChanged && hasGeneratedData) {
+    if ((capacityChanged || scheduleChanged) && hasGeneratedData) {
       alert(
-        "Capacity cannot be changed after rounds or results have been generated. Reopen or clear the game data first."
+        "Capacity and round timing cannot be changed after rounds or results have been generated. Clear the game progress first."
       );
       return;
     }
@@ -267,6 +308,20 @@ game.mode = values.mode;
 game.logoUrl = values.logoUrl;
 game.capacity =
   capacityValidation.value;
+game.minutesPerRound = values.minutesPerRound;
+game.plannedRounds =
+  window.PHDSessionPlanner.getPlannedRoundCount(
+    game,
+    PHDTournament.state.tournament
+  );
+
+if (
+  game.mode === "fall-guys-grand-prix" &&
+  game.fallGuysGrandPrix &&
+  !(game.fallGuysGrandPrix.heats || []).length
+) {
+  game.fallGuysGrandPrix.targetHeats = game.plannedRounds;
+}
 
     auditAction = "game.updated";
     auditSummary =
@@ -365,6 +420,11 @@ setValue(
   setValue(
     "gameMaxPlayersPerLobby",
     capacity.maxPlayersPerLobby
+  );
+
+  setValue(
+    "gameMinutesPerRound",
+    window.PHDSessionPlanner.getRoundDuration(game)
   );
 
   setValue(
@@ -644,6 +704,17 @@ function renderGames() {
         .maxPlayersPerLobby || 1
     )
   )} per lobby
+</span>
+
+<span>
+  Schedule: ${escapeHtml(String(
+    window.PHDSessionPlanner.getRoundDuration(game)
+  ))} minutes per round · ${escapeHtml(String(
+    window.PHDSessionPlanner.getPlannedRoundCount(
+      game,
+      PHDTournament.state.tournament
+    )
+  ))} rounds per week
 </span>
 
           </div>

@@ -250,6 +250,26 @@ test("offers one to nine consoles with per-console competitor selectors", () => 
   assert.match(styles, /\.console-competitor-fields/);
 });
 
+test("plans weekly rounds from tournament allowance and game duration", () => {
+  const root = path.join(__dirname, "..");
+  const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const app = fs.readFileSync(path.join(root, "js", "app.js"), "utf8");
+  const games = fs.readFileSync(path.join(root, "js", "games.js"), "utf8");
+  const events = fs.readFileSync(path.join(root, "js", "events.js"), "utf8");
+  const rounds = fs.readFileSync(path.join(root, "js", "rounds.js"), "utf8");
+  const fourPlayer = fs.readFileSync(path.join(root, "js", "four-player-swiss.js"), "utf8");
+
+  assert.match(index, /tournamentTimeAllowancePerWeek/);
+  assert.match(index, /gameMinutesPerRound/);
+  assert.doesNotMatch(index, /tournamentDescription/);
+  assert.match(app, /timeAllowancePerWeek/);
+  assert.match(games, /getPlannedRoundCount/);
+  assert.match(events, /Create \$\{plannedRounds\} Round/);
+  assert.match(events, /roundNumber/);
+  assert.match(rounds, /Weekly Round Limit Reached/);
+  assert.match(fourPlayer, /Weekly Round Limit Reached/);
+});
+
 test("shows report data tools only to administrators", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
