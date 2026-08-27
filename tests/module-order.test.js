@@ -270,6 +270,25 @@ test("plans weekly rounds from tournament allowance and game duration", () => {
   assert.match(fourPlayer, /Weekly Round Limit Reached/);
 });
 
+test("labels every Games form field beneath its control", () => {
+  const root = path.join(__dirname, "..");
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+
+  [
+    "Game name",
+    "Platform",
+    "Game mode",
+    "Capacity per console",
+    "Capacity per lobby",
+    "Minutes per round",
+    "Cover/logo URL"
+  ].forEach(label => {
+    assert.match(html, new RegExp(`<span>${label}<\\/span>`));
+  });
+  assert.match(styles, /\.game-form-field span/);
+});
+
 test("shows report data tools only to administrators", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
