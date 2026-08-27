@@ -60,6 +60,18 @@ function mergeTournamentState(sourceState) {
       : []
   };
 
+  if (window.PHDSessionPlanner) {
+    window.PHDSessionPlanner.normaliseTournament(
+      mergedState.tournament
+    );
+    mergedState.games.forEach(game => {
+      window.PHDSessionPlanner.normaliseGame(
+        game,
+        mergedState.tournament
+      );
+    });
+  }
+
   const officesById = new Map(
     mergedState.offices
       .filter(office => office && office.id)

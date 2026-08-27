@@ -26,12 +26,18 @@
   }
 
   function ensureTournament(game) {
+    const plannedHeats = global.PHDSessionPlanner
+      ? global.PHDSessionPlanner.getPlannedRoundCount(
+          game,
+          tournamentState.state.tournament
+        )
+      : DEFAULT_TARGET_HEATS;
     if (
       !game.fallGuysGrandPrix ||
       typeof game.fallGuysGrandPrix !== "object"
     ) {
       game.fallGuysGrandPrix = {
-        targetHeats: DEFAULT_TARGET_HEATS,
+        targetHeats: plannedHeats,
         countedResults: DEFAULT_COUNTED_RESULTS,
         heats: [],
         closed: false,
@@ -42,10 +48,8 @@
 
     const tournament = game.fallGuysGrandPrix;
     tournament.targetHeats = Math.max(
-      1,
-      toNonNegativeInteger(
-        tournament.targetHeats
-      ) || DEFAULT_TARGET_HEATS
+      tournament.heats.length || 1,
+      plannedHeats
     );
     tournament.countedResults = Math.max(
       1,
@@ -625,7 +629,7 @@
               min="1"
               max="30"
               value="${tournament.targetHeats}"
-              ${tournament.closed ? "disabled" : ""}
+              disabled
             />
           </label>
           <label>
@@ -765,14 +769,12 @@
       ensureTournament(game);
     tournament.targetHeats = Math.max(
       tournament.heats.length || 1,
-      Math.min(
-        30,
-        toNonNegativeInteger(
-          workspace.querySelector(
-            ".fall-guys-target-heats"
-          ).value
-        ) || DEFAULT_TARGET_HEATS
-      )
+      global.PHDSessionPlanner
+        ? global.PHDSessionPlanner.getPlannedRoundCount(
+            game,
+            tournamentState.state.tournament
+          )
+        : DEFAULT_TARGET_HEATS
     );
     tournament.countedResults = Math.min(
       10,

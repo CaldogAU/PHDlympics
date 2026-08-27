@@ -283,6 +283,19 @@ async function generateRound(gameId) {
 
   const gameRounds =
     getRoundsForGame(gameId);
+  const plannedRounds = window.PHDSessionPlanner
+    ? window.PHDSessionPlanner.getPlannedRoundCount(
+        game,
+        PHDTournament.state.tournament
+      )
+    : 1;
+
+  if (gameRounds.length >= plannedRounds) {
+    alert(
+      `This game is limited to ${plannedRounds} round${plannedRounds === 1 ? "" : "s"} by the weekly time allowance.`
+    );
+    return;
+  }
   const latestRound =
     gameRounds.at(-1);
 
@@ -684,6 +697,14 @@ function renderSwissGameManagement(
     byePoints: 3,
     ...(game.settings || {})
   };
+  const plannedRounds = window.PHDSessionPlanner
+    ? window.PHDSessionPlanner.getPlannedRoundCount(
+        game,
+        PHDTournament.state.tournament
+      )
+    : 1;
+  const generatedRounds = getRoundsForGame(game.id).length;
+  const roundLimitReached = generatedRounds >= plannedRounds;
   return `
     <section class="card wide">
       <div class="section-heading">
@@ -698,6 +719,10 @@ function renderSwissGameManagement(
           >
             No rounds generated yet.
           </p>
+          <p class="muted">
+            Weekly plan: ${plannedRounds} round${plannedRounds === 1 ? "" : "s"}
+            × ${window.PHDSessionPlanner.getRoundDuration(game)} minutes.
+          </p>
         </div>
 
         <div class="button-row">
@@ -709,7 +734,9 @@ function renderSwissGameManagement(
               ? `<button class="secondary reopen-match-game" type="button"
                    data-game-id="${game.id}">Reopen Game</button>`
               : `<button class="generate-game-round" type="button"
-                   data-game-id="${game.id}">Generate Next Round</button>
+                   data-game-id="${game.id}" ${roundLimitReached ? "disabled" : ""}>
+                   ${roundLimitReached ? "Weekly Round Limit Reached" : "Generate Next Round"}
+                 </button>
                  <button class="success close-match-game" type="button"
                    data-game-id="${game.id}">Complete Game</button>`
           }

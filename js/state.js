@@ -9,7 +9,7 @@ const PHDTournament = {
   defaultState: {
     appName: "PHDlympics",
     version: "1.3.0",
-    schemaVersion: 5,
+    schemaVersion: 6,
     access: {
       assignments: {}
     },
@@ -19,7 +19,7 @@ const PHDTournament = {
     archive: [],
     tournament: {
       name: "PHDlympics",
-      description: "",
+      timeAllowancePerWeek: 60,
       logoUrl: "https://media.licdn.com/dms/image/v2/D4D0BAQEMKjVjgICdBQ/company-logo_200_200/company-logo_200_200/0/1708434484760/phd__logo?e=2147483647&v=beta&t=3V6CvaNB9bLOL84Ecc_OARY-vVa-WfTbPwu8_ExwIb8",
       bannerUrl: "assets/phdlympics-banner.jfif",
       accentColour: "#6d5dfc",

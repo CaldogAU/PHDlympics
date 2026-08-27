@@ -25,7 +25,11 @@ function buildTournamentReportHtml() {
   return `
     <section class="report-preview">
       <h2>${escapeHtml(tournament.name)}</h2>
-      <p>${escapeHtml(tournament.description || "Tournament report")}</p>
+      <p>${escapeHtml(String(
+        window.PHDSessionPlanner
+          ? window.PHDSessionPlanner.getWeeklyAllowance(tournament)
+          : 60
+      ))} minutes available per game each week.</p>
 
       <h3>Country Championship</h3>
       <div class="table-wrap">

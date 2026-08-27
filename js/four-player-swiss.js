@@ -441,8 +441,18 @@ function renderFourPlayerSwissManagement(game) {
         )
       : standings;
   const latestRound = tournament.rounds.at(-1);
+  const plannedRounds = global.PHDSessionPlanner
+    ? global.PHDSessionPlanner.getPlannedRoundCount(
+        game,
+        tournamentState.state.tournament
+      )
+    : 1;
+  const roundLimitReached =
+    tournament.rounds.length >= plannedRounds;
   const canGenerate =
-    !tournament.closed && (!latestRound || latestRound.completed);
+    !tournament.closed &&
+    !roundLimitReached &&
+    (!latestRound || latestRound.completed);
   const canClose =
     !tournament.closed &&
     tournament.rounds.length > 0 &&
@@ -462,6 +472,10 @@ function renderFourPlayerSwissManagement(game) {
             Round points: 1st = 4, 2nd = 3, 3rd = 2, 4th = 1.
             Placement record and opponent score break ties.
           </p>
+          <p class="muted">
+            Weekly plan: ${plannedRounds} round${plannedRounds === 1 ? "" : "s"}
+            × ${global.PHDSessionPlanner.getRoundDuration(game)} minutes.
+          </p>
         </div>
         <div class="button-row">
           <span class="status-pill ${tournament.closed ? "completed" : "open"}">
@@ -474,7 +488,7 @@ function renderFourPlayerSwissManagement(game) {
             <button class="generate-four-player-round" type="button"
               data-game-id="${game.id}"
               ${canGenerate && validTeamCount ? "" : "disabled"}>
-              Generate Next Round
+              ${roundLimitReached ? "Weekly Round Limit Reached" : "Generate Next Round"}
             </button>
             <button class="danger close-four-player-tournament" type="button"
               data-game-id="${game.id}" ${canClose ? "" : "disabled"}>
@@ -520,6 +534,18 @@ async function generateFourPlayerSwissRound(gameId) {
   const tournament = ensureFourPlayerSwissState(game);
   if (tournament.closed) {
     alert("Reopen the tournament before generating another round.");
+    return;
+  }
+  const plannedRounds = global.PHDSessionPlanner
+    ? global.PHDSessionPlanner.getPlannedRoundCount(
+        game,
+        tournamentState.state.tournament
+      )
+    : 1;
+  if (tournament.rounds.length >= plannedRounds) {
+    alert(
+      `This game is limited to ${plannedRounds} round${plannedRounds === 1 ? "" : "s"} by the weekly time allowance.`
+    );
     return;
   }
   try {
