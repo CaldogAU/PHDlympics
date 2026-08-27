@@ -930,14 +930,22 @@ select:focus-visible,
 }
 
 .game-form {
-  grid-template-columns:
-    minmax(150px, 1fr)
-    minmax(140px, 0.8fr)
-    minmax(150px, 1fr)
-    minmax(150px, 0.8fr)
-    minmax(150px, 0.8fr)
-    minmax(180px, 1.2fr)
-    auto;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  align-items: start;
+}
+
+.game-form-field {
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.game-form-field span {
+  padding-inline: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .game-capacity-grid {

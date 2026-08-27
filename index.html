@@ -484,67 +484,47 @@
               </div>
               
                         <div class="game-form">
-  <input
-    id="gameName"
-    type="text"
-    placeholder="Game name"
-  />
+  <label class="game-form-field">
+    <input id="gameName" type="text" placeholder="Game name" />
+    <span>Game name</span>
+  </label>
 
-  <input
-    id="gamePlatform"
-    type="text"
-    placeholder="Platform e.g. PC, Switch, PS5"
-  />
+  <label class="game-form-field">
+    <input id="gamePlatform" type="text" placeholder="Platform e.g. PC, Switch, PS5" />
+    <span>Platform</span>
+  </label>
 
-  <select id="gameMode">
-    <option value="swiss">
-      Swiss Tournament
-    </option>
+  <label class="game-form-field">
+    <select id="gameMode">
+      <option value="swiss">Swiss Tournament</option>
+      <option value="time-trial">Time Trial</option>
+      <option value="grand-prix">Grand Prix</option>
+    </select>
+    <span>Game mode</span>
+  </label>
 
-    <option value="time-trial">
-      Time Trial
-    </option>
+  <label class="game-form-field">
+    <input id="gameMaxPlayersPerConsole" type="number" min="1" step="1"
+      value="1" placeholder="Players per console" />
+    <span>Capacity per console</span>
+  </label>
 
-    <option value="grand-prix">
-      Grand Prix
-    </option>
-  </select>
+  <label class="game-form-field">
+    <input id="gameMaxPlayersPerLobby" type="number" min="1" step="1"
+      value="8" placeholder="Players per lobby" />
+    <span>Capacity per lobby</span>
+  </label>
 
-  <input
-    id="gameMaxPlayersPerConsole"
-    type="number"
-    min="1"
-    step="1"
-    value="1"
-    aria-label="Maximum players per console"
-    placeholder="Players per console"
-  />
+  <label class="game-form-field">
+    <input id="gameMinutesPerRound" type="number" min="1" step="1"
+      value="60" placeholder="Minutes per round" />
+    <span>Minutes per round</span>
+  </label>
 
-  <input
-    id="gameMaxPlayersPerLobby"
-    type="number"
-    min="1"
-    step="1"
-    value="8"
-    aria-label="Maximum players per lobby"
-    placeholder="Players per lobby"
-  />
-
-  <input
-    id="gameMinutesPerRound"
-    type="number"
-    min="1"
-    step="1"
-    value="60"
-    aria-label="Minutes per round"
-    placeholder="Minutes per round"
-  />
-
-  <input
-    id="gameLogoUrl"
-    type="url"
-    placeholder="Cover/logo URL optional"
-  />
+  <label class="game-form-field">
+    <input id="gameLogoUrl" type="url" placeholder="Cover/logo URL optional" />
+    <span>Cover/logo URL</span>
+  </label>
 
   <button
     id="saveGame"
