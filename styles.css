@@ -2128,6 +2128,28 @@ body.display-active .display-mode {
   white-space: nowrap;
 }
 
+.display-country-name {
+  display: flex;
+  align-items: center;
+  gap: clamp(7px, 1vw, 16px);
+}
+
+.display-country-flag {
+  flex: 0 0 auto;
+  width: clamp(28px, 3.2vw, 58px);
+  height: clamp(19px, 2.15vw, 39px);
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.display-country-name span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .display-panel h3 {
   font-size: clamp(30px, 3vw, 52px);
   margin-bottom: 24px;
@@ -2678,6 +2700,10 @@ body.display-active .display-mode {
   }
 
   .display-standings-panel .display-row strong {
+    white-space: normal;
+  }
+
+  .display-country-name span {
     white-space: normal;
   }
 }

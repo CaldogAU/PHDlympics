@@ -768,6 +768,15 @@ test("display mode shows every team below the faster ticker", () => {
   assert.match(display, /displayStandingsScrollTimer = setInterval\([\s\S]*?40/);
 });
 
+test("display Country Championship shows flags beside country names", () => {
+  const display = fs.readFileSync(path.join(__dirname, "..", "js", "display.js"), "utf8");
+  const styles = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+  assert.match(display, /getCountryFlagUrl\(team, 80\)/);
+  assert.match(display, /class="display-country-flag"/);
+  assert.match(display, /class="display-country-name"/);
+  assert.match(styles, /\.display-country-flag\s*\{[\s\S]*?object-fit:\s*cover;/);
+});
+
 test("sidebar banner has a motion-safe white liquid border", () => {
   const styles = fs.readFileSync(
     path.join(__dirname, "..", "styles.css"),

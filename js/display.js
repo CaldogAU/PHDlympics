@@ -58,13 +58,20 @@ function renderDisplayMode() {
   previousDisplayLeader = currentLeader;
 
   const standingsHtml = standings.length
-    ? standings.map((team, index) => `
+    ? standings.map((team, index) => {
+      const flagUrl = typeof getCountryFlagUrl === "function"
+        ? getCountryFlagUrl(team, 80)
+        : "";
+      return `
       <div class="display-row ${index === 0 ? "leader" : ""} ${leaderChanged && index === 0 ? "changed" : ""}">
         <span class="display-rank">${index + 1}</span>
-        <strong>${escapeHtml(team.shortName || team.name)}</strong>
+        <strong class="display-country-name">
+          ${flagUrl ? `<img class="display-country-flag" src="${escapeHtml(flagUrl)}" alt="" aria-hidden="true" onerror="this.remove()" />` : ""}
+          <span>${escapeHtml(team.shortName || team.name)}</span>
+        </strong>
         <span>${team.points} pts</span>
       </div>
-    `).join("")
+    `;}).join("")
     : `<p>No standings yet.</p>`;
 
   const displayHtml = `
