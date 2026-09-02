@@ -1227,6 +1227,74 @@ select:focus-visible,
   );
 }
 
+.grand-prix-lobby-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.grand-prix-lobby-tool {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.8fr) auto;
+  align-items: end;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, var(--accent) 8%);
+}
+
+.grand-prix-lobby-tool label,
+.grand-prix-lobby-tool input {
+  width: 100%;
+}
+
+.lobby-host-label {
+  display: block;
+  margin-top: 0.35rem;
+  color: #ff9f43;
+  font-weight: 700;
+}
+
+.lobby-host-badge {
+  display: inline-block;
+  margin-left: 0.55rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  color: #241202;
+  background: #ff9f43;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.four-player-lobby-details {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(170px, 0.8fr) auto;
+  align-items: end;
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.four-player-lobby-details input {
+  width: 100%;
+}
+
+.four-player-competitor.is-lobby-host {
+  border-color: #ff9f43;
+  background: color-mix(in srgb, #ff9f43 16%, transparent);
+}
+
+@media (max-width: 720px) {
+  .grand-prix-lobby-tool {
+    grid-template-columns: 1fr;
+  }
+  .four-player-lobby-details {
+    grid-template-columns: 1fr;
+  }
+}
+
 .event-tournament-points {
   font-weight: 800;
   text-align: center;

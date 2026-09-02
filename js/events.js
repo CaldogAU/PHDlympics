@@ -65,7 +65,11 @@ function getGrandPrixParticipants(event, includeAll = false) {
   let participants = [];
 
   if (!game.capacity || game.capacity.configured === false) {
-    participants = allTeams.map(team => ({
+    participants = allTeams.map(team => {
+      const country = typeof getOfficeById === "function"
+        ? getOfficeById(team.officeId)
+        : null;
+      return {
       participantId: team.id,
       teamId: team.id,
       playerIndex: 0,
@@ -73,7 +77,19 @@ function getGrandPrixParticipants(event, includeAll = false) {
       displayName: team.name,
       lobbyId: "lobby-1",
       lobbyName: "Lobby 1",
-      lobbySize: allTeams.length
+      lobbySize: allTeams.length,
+      countryName: country ? country.name : ""
+    };
+    });
+    const preferredHost = participants.find(item =>
+      ["singapore", "malaysia", "thailand"].includes(
+        String(item.countryName || "").trim().toLowerCase()
+      )
+    );
+    const hostId = (preferredHost || participants[0] || {}).participantId;
+    participants = participants.map(item => ({
+      ...item,
+      isHost: item.participantId === hostId
     }));
   } else {
     const allocation = window.PHDGameCapacity.allocateLobbies({
@@ -85,9 +101,12 @@ function getGrandPrixParticipants(event, includeAll = false) {
     });
     if (!allocation.valid) return [];
 
-    participants = allocation.lobbies.flatMap(lobby =>
-      lobby.entries.flatMap(entry => {
+    participants = allocation.lobbies.flatMap(lobby => {
+      const lobbyParticipants = lobby.entries.flatMap(entry => {
         const team = getTeamById(entry.officeId);
+        const country = team && typeof getOfficeById === "function"
+          ? getOfficeById(team.officeId)
+          : null;
         return Array.from(
           { length: entry.competitorCount },
           (_, playerIndex) => {
@@ -100,14 +119,25 @@ function getGrandPrixParticipants(event, includeAll = false) {
               playerIndex: teamPlayerIndex,
               playerLabel: `Player ${playerLetter}`,
               displayName: `${team ? team.name : entry.officeName} - Player ${playerLetter}`,
+              countryName: country ? country.name : entry.countryName || "",
               lobbyId: lobby.id,
               lobbyName: lobby.name,
               lobbySize: lobby.competitorTotal
             };
           }
         );
-      })
-    );
+      });
+      const preferredHost = lobbyParticipants.find(item =>
+        ["singapore", "malaysia", "thailand"].includes(
+          String(item.countryName || "").trim().toLowerCase()
+        )
+      );
+      const hostId = (preferredHost || lobbyParticipants[0] || {}).participantId;
+      return lobbyParticipants.map(item => ({
+        ...item,
+        isHost: item.participantId === hostId
+      }));
+    });
   }
 
   if (
@@ -515,6 +545,37 @@ function renderGrandPrixEntries(
   }
 
   return `
+    <div class="grand-prix-lobby-tools">
+      ${[...new Map(allParticipants.map(participant => [
+        participant.lobbyId,
+        participant
+      ])).values()].map(participant => {
+        const host = allParticipants.find(item =>
+          item.lobbyId === participant.lobbyId && item.isHost
+        );
+        const code = event.lobbyCodes && event.lobbyCodes[participant.lobbyId]
+          ? event.lobbyCodes[participant.lobbyId]
+          : "";
+        return `
+          <section class="grand-prix-lobby-tool" data-lobby-id="${participant.lobbyId}">
+            <div>
+              <strong>${escapeHtml(participant.lobbyName)}</strong>
+              <span class="lobby-host-label">HOST: ${escapeHtml(host ? host.displayName : "To be assigned")}</span>
+            </div>
+            <label>
+              Lobby code
+              <input class="grand-prix-lobby-code" type="text" maxlength="24"
+                value="${escapeHtml(code)}" placeholder="Enter lobby code"
+                ${event.completed ? "disabled" : ""} />
+            </label>
+            ${event.completed ? "" : `
+              <button class="save-grand-prix-lobby-code small-button" type="button"
+                data-event-id="${event.id}" data-lobby-id="${participant.lobbyId}">
+                Save Code
+              </button>`}
+          </section>`;
+      }).join("")}
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -575,6 +636,7 @@ function renderGrandPrixEntries(
                   <strong>
                     ${escapeHtml(participant.displayName)}
                   </strong>
+                  ${participant.isHost ? '<span class="lobby-host-badge">HOST</span>' : ""}
                 </td>
                 <td>${escapeHtml(participant.lobbyName)}</td>
                 <td>
@@ -633,6 +695,32 @@ function renderGrandPrixEntries(
         `
     }
   `;
+}
+
+async function saveGrandPrixLobbyCode(eventId, lobbyId) {
+  const event = getEventById(eventId);
+  const workspace = document.querySelector(`[data-event-workspace="${eventId}"]`);
+  const tool = workspace && workspace.querySelector(
+    `.grand-prix-lobby-tool[data-lobby-id="${lobbyId}"]`
+  );
+  const input = tool && tool.querySelector(".grand-prix-lobby-code");
+  if (!event || !input || event.completed) return;
+
+  const previousCodes = structuredClone(event.lobbyCodes || {});
+  event.lobbyCodes = {
+    ...previousCodes,
+    [lobbyId]: input.value.trim()
+  };
+  event.updatedAt = new Date().toISOString();
+  render();
+  try {
+    await saveState();
+  } catch (error) {
+    event.lobbyCodes = previousCodes;
+    render();
+    console.error("Lobby code could not be saved.", error);
+    alert(error && error.message ? error.message : "Lobby code could not be saved.");
+  }
 }
 
 function renderEventWorkspace(game, event) {
@@ -1485,6 +1573,9 @@ function initialiseEventControls() {
           "save-grand-prix-results"
         ) ||
         target.classList.contains(
+          "save-grand-prix-lobby-code"
+        ) ||
+        target.classList.contains(
           "reopen-game-event"
         );
 
@@ -1507,6 +1598,13 @@ function initialiseEventControls() {
       ) {
         createEvent(
           target.dataset.gameId
+        );
+      } else if (
+        target.classList.contains("save-grand-prix-lobby-code")
+      ) {
+        saveGrandPrixLobbyCode(
+          target.dataset.eventId,
+          target.dataset.lobbyId
         );
       } else if (
         target.classList.contains(

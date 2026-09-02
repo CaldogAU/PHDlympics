@@ -234,9 +234,13 @@
       let playerStartIndex = 0;
       return (consoleEntries[team.id] || [0])
         .map((competitorCount, consoleIndex) => {
+          const country = typeof getOfficeById === "function"
+            ? getOfficeById(team.officeId)
+            : null;
           const entry = {
             officeId: String(team.id),
             officeName: String(team.name || team.id),
+            ...(country ? { countryName: String(country.name || "") } : {}),
             entryId: `${team.id}:console-${consoleIndex + 1}`,
             consoleIndex,
             consoleLabel: `Console ${String.fromCharCode(65 + consoleIndex)}`,
@@ -301,8 +305,27 @@
       },
       0
     );
+    const priorityCountries = new Set(["singapore", "malaysia", "thailand"]);
+    const priorityCounts = lobbies.map(lobby =>
+      lobby.entries.reduce(
+        (count, entry) => count + (
+          priorityCountries.has(String(entry.countryName || "").trim().toLowerCase())
+            ? entry.competitorCount
+            : 0
+        ),
+        0
+      )
+    );
+    const missingPriorityLobbies = priorityCounts.filter(count => count === 0).length;
+    const priorityAverage = priorityCounts.reduce((sum, value) => sum + value, 0) /
+      lobbies.length;
 
     return [
+      missingPriorityLobbies,
+      priorityCounts.reduce(
+        (sum, value) => sum + ((value - priorityAverage) ** 2),
+        0
+      ),
       Math.max(...totals) - Math.min(...totals),
       totals.reduce((sum, value) => sum + ((value - average) ** 2), 0),
       Math.max(...counts) - Math.min(...counts),
@@ -383,6 +406,7 @@
       .map(entry => ({
         officeId: String(entry.officeId || ""),
         officeName: String(entry.officeName || entry.officeId || "Office"),
+        countryName: String(entry.countryName || ""),
         entryId: String(entry.entryId || entry.officeId || ""),
         consoleIndex: Number(entry.consoleIndex) || 0,
         consoleLabel: String(entry.consoleLabel || "Console A"),

@@ -279,3 +279,21 @@ test("reports lobby compatibility without forcing it onto every mode", () => {
   assert.equal(capacity.modeUsesLobbyAllocation("round-robin"), false);
   assert.equal(capacity.modeUsesLobbyAllocation("single-elimination"), false);
 });
+
+test("spreads Southeast Asian host candidates across lobbies when possible", () => {
+  const capacity = loadCapacity();
+  const entries = [
+    { officeId: "sg", officeName: "Singapore", countryName: "Singapore", competitorCount: 1 },
+    { officeId: "my", officeName: "Malaysia", countryName: "Malaysia", competitorCount: 1 },
+    { officeId: "th", officeName: "Thailand", countryName: "Thailand", competitorCount: 1 },
+    ...onePlayerEntries(9)
+  ];
+  const result = capacity.allocateLobbies({ entries, maxPlayersPerLobby: 4 });
+  assert.equal(result.valid, true);
+  assert.equal(result.lobbies.length, 3);
+  assert.ok(result.lobbies.every(lobby =>
+    lobby.entries.some(entry =>
+      ["Singapore", "Malaysia", "Thailand"].includes(entry.countryName)
+    )
+  ));
+});
