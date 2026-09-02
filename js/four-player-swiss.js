@@ -350,6 +350,14 @@ function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
             scopedTeamId
         )
       : group.competitors;
+  const preferredCountries = new Set(["singapore", "malaysia", "thailand"]);
+  const host = group.competitors.find(competitor => {
+    const team = getTeamById(competitor.teamId);
+    const country = team && typeof getOfficeById === "function"
+      ? getOfficeById(team.officeId)
+      : null;
+    return preferredCountries.has(String(country && country.name || "").trim().toLowerCase());
+  }) || group.competitors[0];
 
   if (
     scopedTeamId &&
@@ -374,6 +382,22 @@ function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
             Edit Placements
           </button>` : ""}
       </div>
+      <div class="four-player-lobby-details">
+        <span class="lobby-host-label">HOST: ${escapeHtml((() => {
+          const team = host ? getTeamById(host.teamId) : null;
+          return host
+            ? `${team ? team.name : "Unknown"}${host.playerLabel ? ` - ${host.playerLabel}` : ""}`
+            : "To be assigned";
+        })())}</span>
+        <label>
+          Lobby code
+          <input class="four-player-lobby-code" type="text" maxlength="24"
+            value="${escapeHtml(group.lobbyCode || "")}" placeholder="Enter lobby code"
+            ${locked ? "disabled" : ""} />
+        </label>
+        ${locked ? "" : `<button class="save-four-player-lobby-code small-button" type="button"
+          data-round-id="${round.id}" data-group-id="${group.id}">Save Code</button>`}
+      </div>
       <div class="four-player-competitors">
         ${visibleCompetitors.map(competitor => {
           const team = getTeamById(competitor.teamId);
@@ -383,7 +407,7 @@ function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
               ? team.name
               : "Unknown";
           return `
-            <label class="four-player-competitor">
+            <label class="four-player-competitor${host && competitor.participantId === host.participantId ? " is-lobby-host" : ""}">
               <span class="team-cell">
                 <strong>${escapeHtml(competitorName)}</strong>
               </span>
@@ -410,6 +434,27 @@ function renderFourPlayerSwissGroup(round, group, tournamentClosed) {
         </button>` : ""}
     </article>
   `;
+}
+
+async function saveFourPlayerLobbyCode(gameId, roundId, groupId) {
+  const game = getGameById(gameId);
+  const details = game ? getFourPlayerSwissGroup(game, roundId, groupId) : {};
+  const group = details.group;
+  const card = document.querySelector(
+    `[data-four-player-game-id="${gameId}"] [data-round-id="${roundId}"][data-group-id="${groupId}"]`
+  );
+  const input = card && card.querySelector(".four-player-lobby-code");
+  if (!game || !group || !input || group.completed || details.tournament.closed) return;
+  const previousCode = group.lobbyCode || "";
+  group.lobbyCode = input.value.trim();
+  render();
+  try {
+    await saveState();
+  } catch (error) {
+    group.lobbyCode = previousCode;
+    render();
+    alert(error && error.message ? error.message : "Lobby code could not be saved.");
+  }
 }
 
 function renderFourPlayerSwissManagement(game) {
@@ -848,6 +893,7 @@ function initialiseFourPlayerSwissControls() {
     const actions = [
       "generate-four-player-round",
       "save-four-player-group",
+      "save-four-player-lobby-code",
       "reopen-four-player-group",
       "close-four-player-tournament",
       "reopen-four-player-tournament"
@@ -867,6 +913,12 @@ function initialiseFourPlayerSwissControls() {
         target.dataset.roundId,
         target.dataset.groupId,
         target.closest("[data-four-player-group]")
+      );
+    } else if (target.classList.contains("save-four-player-lobby-code")) {
+      saveFourPlayerLobbyCode(
+        gameId,
+        target.dataset.roundId,
+        target.dataset.groupId
       );
     } else if (target.classList.contains("reopen-four-player-group")) {
       reopenFourPlayerSwissGroup(gameId, target.dataset.roundId, target.dataset.groupId);

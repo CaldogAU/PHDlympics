@@ -174,6 +174,19 @@ test("Grand Prix lobbies alternate their result-row shade", () => {
   );
 });
 
+test("lobby workspaces expose shared codes and highlighted regional hosts", () => {
+  const events = read("js/events.js");
+  const fourPlayer = read("js/four-player-swiss.js");
+  const styles = read("styles.css");
+  assert.match(events, /\["singapore", "malaysia", "thailand"\]/);
+  assert.match(events, /grand-prix-lobby-code/);
+  assert.match(events, /saveGrandPrixLobbyCode/);
+  assert.match(events, /lobby-host-badge/);
+  assert.match(fourPlayer, /four-player-lobby-code/);
+  assert.match(fourPlayer, /saveFourPlayerLobbyCode/);
+  assert.match(styles, /\.lobby-host-badge[\s\S]*?#ff9f43/);
+});
+
 test("team-scoped staff receive partial result controls", () => {
   const auth = read("js/auth.js");
   const events = read("js/events.js");
