@@ -249,6 +249,47 @@ test("updates the single Singapore team to the durian mascot", () => {
   );
 });
 
+test("updates the single India team to the elephant mascot", () => {
+  const { mergeTournamentState } = loadMergeTournamentState();
+  const merged = mergeTournamentState({
+    schemaVersion: 6,
+    offices: [
+      { id: "india", name: "India" },
+      { id: "australia", name: "Australia" }
+    ],
+    teams: [
+      {
+        id: "ind",
+        name: "India",
+        officeId: "india",
+        logoUrl: "old-india-logo.png"
+      },
+      {
+        id: "syd",
+        name: "Sydney",
+        officeId: "australia",
+        logoUrl: "sydney.png"
+      }
+    ],
+    games: [],
+    rounds: [],
+    events: []
+  });
+
+  assert.equal(
+    merged.teams.find(team => team.id === "ind").logoUrl,
+    "assets/india-elephant-mascot.png"
+  );
+  assert.equal(
+    merged.teams.find(team => team.id === "syd").logoUrl,
+    "sydney.png"
+  );
+  assert.equal(
+    fs.existsSync(path.join(__dirname, "..", "assets", "india-elephant-mascot.png")),
+    true
+  );
+});
+
 test("creates independent collections when resetting to defaults", () => {
   const {
     defaultState,
