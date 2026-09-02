@@ -857,14 +857,31 @@ function renderGameCapacityManagement(game) {
       ? `<div class="empty-state">No competitors entered. Lobby allocation is pending.</div>`
       : usesLobbies
         ? `<div class="lobby-preview-grid">
-            ${allocation.lobbies.map(lobby => `
+            ${allocation.lobbies.map(lobby => {
+              const priorityCountries = new Set([
+                "singapore",
+                "malaysia",
+                "thailand"
+              ]);
+              const hostEntry = lobby.entries.find(entry =>
+                priorityCountries.has(
+                  String(entry.countryName || "").trim().toLowerCase()
+                )
+              ) || lobby.entries[0];
+              return `
               <article class="lobby-preview-card">
                 <strong>${escapeHtml(lobby.name)} - ${lobby.competitorTotal} competitors</strong>
-                <span>${lobby.entries.map(entry =>
-                  `${escapeHtml(entry.officeName)} ${escapeHtml(entry.consoleLabel)} (${entry.competitorCount})`
-                ).join(", ")}</span>
+                <span class="lobby-preview-host">
+                  HOST: ${escapeHtml(hostEntry.officeName)} ${escapeHtml(hostEntry.consoleLabel)}
+                </span>
+                <span class="lobby-preview-entries">${lobby.entries.map(entry => {
+                  const regional = priorityCountries.has(
+                    String(entry.countryName || "").trim().toLowerCase()
+                  );
+                  return `<span class="lobby-preview-entry${regional ? " regional-host-candidate" : ""}">${escapeHtml(entry.officeName)} ${escapeHtml(entry.consoleLabel)} (${entry.competitorCount})</span>`;
+                }).join('<span class="lobby-preview-separator">, </span>')}</span>
               </article>
-            `).join("")}
+            `;}).join("")}
           </div>`
         : `<div class="empty-state">
             ${escapeHtml(getGameModeLabel(game))} records office entries but does not use shared simultaneous lobbies.

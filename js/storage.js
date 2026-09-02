@@ -119,6 +119,24 @@ function mergeTournamentState(sourceState) {
     }
   }
 
+  if (Number(source.schemaVersion || 0) < 7) {
+    const indiaOfficeIds = new Set(
+      mergedState.offices
+        .filter(office =>
+          /^india$/i.test(String(office.name || "").trim())
+        )
+        .map(office => office.id)
+    );
+    const indiaTeams = mergedState.teams.filter(team =>
+      indiaOfficeIds.has(team.officeId) ||
+      /^india$/i.test(String(team.name || "").trim())
+    );
+
+    if (indiaTeams.length === 1) {
+      indiaTeams[0].logoUrl = "assets/india-elephant-mascot.png";
+    }
+  }
+
   if (
     !mergedState.tournament.bannerUrl ||
     String(

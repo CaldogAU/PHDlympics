@@ -1009,6 +1009,23 @@ select:focus-visible,
   font-size: 13px;
 }
 
+.lobby-preview-card .lobby-preview-host {
+  color: #ff9f43;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+}
+
+.lobby-preview-card .lobby-preview-entries,
+.lobby-preview-card .lobby-preview-entry,
+.lobby-preview-card .lobby-preview-separator {
+  display: inline;
+}
+
+.lobby-preview-card .regional-host-candidate {
+  color: #ffb15f;
+  font-weight: 750;
+}
+
 .capacity-warning {
   margin-top: 14px;
   padding: 12px 14px;

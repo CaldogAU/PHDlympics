@@ -289,6 +289,15 @@ test("labels every Games form field beneath its control", () => {
   assert.match(styles, /\.game-form-field span/);
 });
 
+test("indicative lobby cards identify regional host coverage clearly", () => {
+  const app = fs.readFileSync(path.join(__dirname, "..", "js", "app.js"), "utf8");
+  const styles = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+  assert.match(app, /lobby-preview-host/);
+  assert.match(app, /regional-host-candidate/);
+  assert.match(app, /"singapore",[\s\S]*?"malaysia",[\s\S]*?"thailand"/);
+  assert.match(styles, /\.lobby-preview-card \.lobby-preview-host[\s\S]*?#ff9f43/);
+});
+
 test("shows report data tools only to administrators", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
