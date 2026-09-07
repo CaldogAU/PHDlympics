@@ -143,6 +143,25 @@ function getGameChanges(
   return changes;
 }
 
+function resetGameModeProgress(game) {
+  const state = PHDTournament.state;
+  state.events = state.events.filter(event => event.gameId !== game.id);
+  state.rounds = state.rounds.flatMap(round => {
+    if (round.gameId === game.id) return [];
+    const matches = (round.matches || []).filter(match => match.gameId !== game.id);
+    if (matches.length === (round.matches || []).length) return [round];
+    return matches.length ? [{
+      ...round,
+      matches,
+      completed: matches.every(match => match.completed)
+    }] : [];
+  });
+  delete game.fourPlayerSwiss;
+  delete game.fallGuysGrandPrix;
+  game.completed = false;
+  game.completedAt = "";
+}
+
 async function saveGameFromForm() {
   const values = {
   name:
@@ -233,6 +252,7 @@ async function saveGameFromForm() {
   let auditAction = "";
   let auditSummary = "";
   let auditDetails = {};
+  let stateBeforeModeReset = null;
 
   if (editingGameId) {
     const game =
@@ -295,11 +315,27 @@ async function saveGameFromForm() {
         (game.fallGuysGrandPrix.heats || []).length
       );
 
-    if ((capacityChanged || scheduleChanged) && hasGeneratedData) {
+    const modeChanged = (game.mode || "swiss") !== values.mode;
+    const mismatchedEvents = PHDTournament.state.events.some(
+      event => event.gameId === game.id && event.mode !== values.mode
+    );
+    const resetModeProgress = modeChanged || mismatchedEvents;
+
+    if (!resetModeProgress && (capacityChanged || scheduleChanged) && hasGeneratedData) {
       alert(
         "Capacity and round timing cannot be changed after rounds or results have been generated. Clear the game progress first."
       );
       return;
+    }
+
+    if (resetModeProgress) {
+      if (hasGeneratedData && !confirm(
+        `Reset ${game.name} for the selected game mode? This removes this game's generated rounds and results. Its entries and other games will be kept.`
+      )) {
+        return;
+      }
+      stateBeforeModeReset = structuredClone(PHDTournament.state);
+      resetGameModeProgress(game);
     }
 
 game.name = values.name;
@@ -328,6 +364,7 @@ if (
       `Updated game "${game.name}".`;
 
     auditDetails = {
+      progressReset: resetModeProgress,
       game: getGameAuditDetails(game),
       changes: getGameChanges(
         previousGame,
@@ -355,6 +392,7 @@ if (
 
   try {
     await saveState();
+    stateBeforeModeReset = null;
 
     if (
       typeof recordAuditEntry ===
@@ -367,6 +405,11 @@ if (
       );
     }
   } catch (error) {
+    if (stateBeforeModeReset) {
+      PHDTournament.state = stateBeforeModeReset;
+      editGame(editingGameId);
+      render();
+    }
     console.error(
       "Game changes could not be saved.",
       error
