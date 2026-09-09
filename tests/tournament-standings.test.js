@@ -224,6 +224,35 @@ test("aggregates reverse-position points from every completed event", () => {
   );
 });
 
+test("aggregates course points and shares tied final Time Trial places", () => {
+  const state = createState();
+  state.events.push({
+    gameId: "tt",
+    mode: "time-trial",
+    roundNumber: 2,
+    completed: true,
+    results: [
+      { teamId: "a", timeMilliseconds: 1000 },
+      { teamId: "b", timeMilliseconds: 2000 },
+      { teamId: "c", timeMilliseconds: 2000 },
+      { teamId: "d", timeMilliseconds: 4000 }
+    ]
+  });
+
+  const standings = loadStandings(state);
+  const timeTrialPoints = Object.fromEntries(
+    standings.map(team => [
+      team.id,
+      team.gamePoints.find(result => result.gameId === "tt").points
+    ])
+  );
+
+  assert.deepEqual(
+    timeTrialPoints,
+    { a: 2.5, b: 1, c: 4, d: 2.5 }
+  );
+});
+
 test("excludes match games until the game itself is completed", () => {
   const state = createState();
   const before =

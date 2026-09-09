@@ -667,7 +667,7 @@ test("labels tournament-point outcomes clearly in multiplayer diagrams", () => {
   );
   assert.match(
     app,
-    /\["Live ranking"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Tournament points"/
+    /\["Course 1"[\s\S]*?\["Aggregate"[\s\S]*?\["Overall Tournament Points Allocated", \[\["Final aggregate rank"/
   );
   assert.match(
     app,

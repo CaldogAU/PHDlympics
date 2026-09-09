@@ -290,6 +290,141 @@ function getEventResultPosition(
     : index + 1;
 }
 
+function getTimeTrialRoundStandings(event) {
+  const teams = getVisibleEventTeams({ ...event, completed: true });
+  const participantCount = teams.length;
+  const rankings = teams
+    .map(team => {
+      const result = getEventResultForTeam(event, team.id);
+      const timeMilliseconds = result && Number.isFinite(Number(result.timeMilliseconds))
+        ? Number(result.timeMilliseconds)
+        : null;
+      return {
+        teamId: team.id,
+        teamName: team.name,
+        timeMilliseconds
+      };
+    })
+    .filter(entry => entry.timeMilliseconds !== null)
+    .sort((entryA, entryB) =>
+      entryA.timeMilliseconds - entryB.timeMilliseconds ||
+      entryA.teamName.localeCompare(entryB.teamName)
+    )
+    .map((entry, index, allEntries) => ({
+      ...entry,
+      position: allEntries.findIndex(candidate =>
+        candidate.timeMilliseconds === entry.timeMilliseconds
+      ) + 1
+    }));
+
+  const pointsByPosition = new Map();
+  rankings.forEach((entry, index) => {
+    if (!pointsByPosition.has(entry.position)) {
+      pointsByPosition.set(entry.position, []);
+    }
+    pointsByPosition.get(entry.position).push(
+      Math.max(1, participantCount - index)
+    );
+  });
+
+  return rankings.map(entry => ({
+    ...entry,
+    roundPoints: pointsByPosition.get(entry.position).reduce(
+      (sum, points) => sum + points,
+      0
+    ) / pointsByPosition.get(entry.position).length
+  }));
+}
+
+function formatTimeTrialPoints(points) {
+  return Number.isInteger(points) ? String(points) : Number(points).toFixed(1);
+}
+
+function getTimeTrialAggregateStandings(game, events) {
+  const teams = window.PHDGameCapacity
+    ? window.PHDGameCapacity.getEligibleTeams(game, PHDTournament.state.teams || [])
+    : [...(PHDTournament.state.teams || [])];
+  const roundStandings = events.map(event =>
+    new Map(getTimeTrialRoundStandings(event).map(entry => [entry.teamId, entry]))
+  );
+  const anyCompleted = events.some(event => event.completed);
+  const allComplete = events.length > 0 && events.every(event => event.completed);
+  const rankings = teams.map(team => {
+    const coursePoints = roundStandings.map((standings, index) =>
+      events[index].completed && standings.has(team.id)
+        ? standings.get(team.id).roundPoints
+        : null
+    );
+    return {
+      teamId: team.id,
+      teamName: team.name,
+      coursePoints,
+      totalRoundPoints: coursePoints.reduce(
+        (sum, points) => sum + (Number.isFinite(points) ? points : 0),
+        0
+      )
+    };
+  }).sort((entryA, entryB) =>
+    entryB.totalRoundPoints - entryA.totalRoundPoints ||
+    entryA.teamName.localeCompare(entryB.teamName)
+  ).map((entry, index, allEntries) => ({
+    ...entry,
+    position: allEntries.findIndex(candidate =>
+      candidate.totalRoundPoints === entry.totalRoundPoints
+    ) + 1
+  }));
+
+  return {
+    anyCompleted,
+    allComplete,
+    rankings: allComplete && window.PHDGameModes
+      ? window.PHDGameModes.awardSharedPositionPoints(rankings)
+      : rankings
+  };
+}
+
+function renderTimeTrialAggregateStandings(game, events) {
+  const aggregate = getTimeTrialAggregateStandings(game, events);
+  if (
+    typeof isTeamScopedStaff === "function" &&
+    isTeamScopedStaff() &&
+    !aggregate.allComplete
+  ) {
+    return `<section class="card wide"><div class="empty-state">
+      The combined course ranking will be revealed after every course is completed.
+    </div></section>`;
+  }
+
+  return `
+    <section class="card wide time-trial-aggregate">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Time Trial (Multiple Course)</p>
+          <h2>Combined Course Ranking</h2>
+          <p class="muted">Course points are added together. Equal times share the average points for their occupied places.</p>
+        </div>
+        <span class="status-pill ${aggregate.allComplete ? "completed" : "open"}">
+          ${aggregate.allComplete ? "Final Ranking" : "Pending Courses"}
+        </span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Rank</th><th>Team</th>
+          ${events.map(event => `<th>Course ${Number(event.roundNumber || 1)}</th>`).join("")}
+          <th>Total Course Points</th><th>Overall Tournament Points</th>
+        </tr></thead>
+        <tbody>${aggregate.rankings.map(entry => `
+          <tr class="animated-ranking-row">
+            <td>${aggregate.anyCompleted ? entry.position : "—"}</td>
+            <td><strong>${escapeHtml(entry.teamName)}</strong></td>
+            ${entry.coursePoints.map(points => `<td>${Number.isFinite(points) ? formatTimeTrialPoints(points) : "—"}</td>`).join("")}
+            <td><strong>${aggregate.anyCompleted ? formatTimeTrialPoints(entry.totalRoundPoints) : "—"}</strong></td>
+            <td><strong>${aggregate.allComplete ? formatTimeTrialPoints(entry.championshipPoints) : "—"}</strong></td>
+          </tr>`).join("")}</tbody>
+      </table></div>
+    </section>`;
+}
+
 function canRevealDraftEventRankings() {
   return !(
     typeof isTeamScopedStaff ===
@@ -364,11 +499,7 @@ function renderTimeTrialEntries(
 ) {
   const teams =
     getVisibleEventTeams(event);
-  const participantCount =
-    getVisibleEventTeams({
-      ...event,
-      completed: true
-    }).length;
+  const roundStandings = getTimeTrialRoundStandings(event);
 
   if (teams.length === 0) {
     return `
@@ -387,7 +518,7 @@ function renderTimeTrialEntries(
             <th>Team</th>
             <th>Minutes</th>
             <th>Seconds</th>
-            <th>Tournament Points</th>
+            <th>Course Points</th>
           </tr>
         </thead>
 
@@ -430,11 +561,8 @@ function renderTimeTrialEntries(
                 totalSeconds == null
                   ? ""
                   : totalSeconds % 60;
-              const position =
-                getEventResultPosition(
-                  event,
-                  team.id
-                );
+              const standing = roundStandings.find(entry => entry.teamId === team.id);
+              const position = standing ? standing.position : null;
 
               return `
                 <tr
@@ -487,10 +615,8 @@ function renderTimeTrialEntries(
 
                   <td class="event-tournament-points">
                     ${
-                      position
-                        ? participantCount -
-                          position +
-                          1
+                      standing
+                        ? formatTimeTrialPoints(standing.roundPoints)
                         : "—"
                     }
                   </td>
@@ -739,7 +865,7 @@ function renderEventWorkspace(game, event) {
           <p class="eyebrow">
             ${escapeHtml(modeName)}
           </p>
-          <h2>Round ${Number(event.roundNumber || 1)}</h2>
+          <h2>${event.mode === "time-trial" ? "Course" : "Round"} ${Number(event.roundNumber || 1)}</h2>
           <p class="muted">
             ${
               event.completed
@@ -823,6 +949,9 @@ function renderEventGameManagement(game) {
       : `<section class="card wide"><div class="empty-state">
           Create the weekly rounds to begin entering results.
         </div></section>`}
+    ${events.length && (game.mode || "swiss") === "time-trial"
+      ? renderTimeTrialAggregateStandings(game, events)
+      : ""}
   `;
 }
 

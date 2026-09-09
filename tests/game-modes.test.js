@@ -428,6 +428,42 @@ test("keeps time trial results hidden until every team finishes", () => {
   );
 });
 
+test("shares occupied Time Trial points between racers with equal times", () => {
+  const gameModes = loadGameModes();
+  const result = gameModes.buildResult(
+    gameModes.get("time-trial"),
+    {
+      teamIds: ["a", "b", "c", "d", "e", "f", "g"],
+      submissions: [
+        { teamId: "a", teamName: "Alpha", timeMilliseconds: 310000 },
+        { teamId: "b", teamName: "Bravo", timeMilliseconds: 315000 },
+        { teamId: "c", teamName: "Charlie", timeMilliseconds: 315000 },
+        { teamId: "d", teamName: "Delta", timeMilliseconds: 320000 },
+        { teamId: "e", teamName: "Echo", timeMilliseconds: 325000 },
+        { teamId: "f", teamName: "Foxtrot", timeMilliseconds: 330000 },
+        { teamId: "g", teamName: "Golf", timeMilliseconds: 335000 }
+      ]
+    }
+  );
+
+  assert.deepEqual(
+    result.leaderboard.map(entry => [
+      entry.teamId,
+      entry.position,
+      entry.championshipPoints
+    ]),
+    [
+      ["a", 1, 7],
+      ["b", 2, 5.5],
+      ["c", 2, 5.5],
+      ["d", 4, 4],
+      ["e", 5, 3],
+      ["f", 6, 2],
+      ["g", 7, 1]
+    ]
+  );
+});
+
 test("ranks Grand Prix results by finishing position", () => {
   const gameModes = loadGameModes();
   const result = gameModes.buildResult(

@@ -202,19 +202,54 @@ function getCompletedGameLeaderboard(game) {
         roundNumber: Number(event.roundNumber || 1)
       }))
     );
-    const finalResults = resultEntryType === "completion-time"
-      ? [...combinedResults.reduce((bestByTeam, result) => {
-          const existing = bestByTeam.get(result.teamId);
-          if (
-            !existing ||
-            Number(result.timeMilliseconds) <
-              Number(existing.timeMilliseconds)
-          ) {
-            bestByTeam.set(result.teamId, result);
-          }
-          return bestByTeam;
-        }, new Map()).values()]
-      : combinedResults;
+    if (resultEntryType === "completion-time") {
+      const totals = new Map(eligibleTeams.map(team => [team.id, {
+        teamId: team.id,
+        teamName: team.name,
+        totalRoundPoints: 0,
+        coursePoints: []
+      }]));
+
+      events.forEach(event => {
+        const courseRankings = mode.calculateRankings({
+          submissions: (event.results || []).map(result => ({
+            ...result,
+            teamName: (eligibleTeams.find(team => team.id === result.teamId) || {}).name || ""
+          }))
+        });
+        const positioned = window.PHDGameModes.assignPositions(
+          courseRankings,
+          mode.tieFields
+        );
+        const scored = window.PHDGameModes.awardSharedPositionPoints(
+          positioned,
+          "roundPoints"
+        );
+        scored.forEach(result => {
+          const total = totals.get(result.teamId);
+          if (!total) return;
+          total.totalRoundPoints += result.roundPoints;
+          total.coursePoints.push({
+            roundNumber: Number(event.roundNumber || 1),
+            points: result.roundPoints
+          });
+        });
+      });
+
+      const aggregateRankings = window.PHDGameModes.assignPositions(
+        [...totals.values()].sort((entryA, entryB) =>
+          entryB.totalRoundPoints - entryA.totalRoundPoints ||
+          entryA.teamName.localeCompare(entryB.teamName)
+        ),
+        ["totalRoundPoints"]
+      );
+
+      return window.PHDGameModes.awardSharedPositionPoints(
+        aggregateRankings
+      );
+    }
+
+    const finalResults = combinedResults;
 
     context.results = finalResults;
     context.submissions = finalResults;
@@ -234,7 +269,8 @@ function getCompletedGameLeaderboard(game) {
 function buildOfficeLeaderboard(
   teamLeaderboard,
   teams = PHDTournament.state.teams,
-  offices = PHDTournament.state.offices
+  offices = PHDTournament.state.offices,
+  shareTiedPoints = false
 ) {
   const teamsById = new Map(
     (teams || []).map(team => [team.id, team])
@@ -276,7 +312,11 @@ function buildOfficeLeaderboard(
       });
     });
 
-  return window.PHDGameModes.awardChampionshipPoints(officeRankings)
+  const scoredRankings = shareTiedPoints
+    ? window.PHDGameModes.awardSharedPositionPoints(officeRankings)
+    : window.PHDGameModes.awardChampionshipPoints(officeRankings);
+
+  return scoredRankings
     .map(({ sourcePosition, ...entry }) => entry);
 }
 
@@ -323,7 +363,8 @@ function getTournamentStandings() {
       buildOfficeLeaderboard(
         leaderboard,
         PHDTournament.state.teams,
-        PHDTournament.state.offices
+        PHDTournament.state.offices,
+        (game.mode || "swiss") === "time-trial"
       ).forEach(result => {
         const standing =
           standings.get(result.officeId);
