@@ -260,24 +260,12 @@
         index,
         allEntries
       ) => {
-        const tiedWithPrevious =
-          index > 0 &&
-          rankingsMatch(
-            entry,
-            allEntries[
-              index - 1
-            ],
-            fields
-          );
-
         return {
           ...entry,
           position:
-            tiedWithPrevious
-              ? allEntries[
-                  index - 1
-                ].position
-              : index + 1
+            allEntries.findIndex(
+              candidate => rankingsMatch(entry, candidate, fields)
+            ) + 1
         };
       }
     );
@@ -311,6 +299,39 @@
         };
       }
     );
+  }
+
+  function awardSharedPositionPoints(
+    rankings,
+    fieldName = "championshipPoints"
+  ) {
+    const participantCount = rankings.length;
+    const groups = new Map();
+
+    rankings.forEach((entry, index) => {
+      const position = Number.isInteger(Number(entry.position))
+        ? Number(entry.position)
+        : index + 1;
+      if (!groups.has(position)) groups.set(position, []);
+      groups.get(position).push({ entry, index, position });
+    });
+
+    const pointsByIndex = new Map();
+    groups.forEach(group => {
+      const occupiedPoints = group.map(({ index }) =>
+        Math.max(1, participantCount - index)
+      );
+      const sharedPoints = occupiedPoints.reduce(
+        (sum, points) => sum + points,
+        0
+      ) / occupiedPoints.length;
+      group.forEach(({ index }) => pointsByIndex.set(index, sharedPoints));
+    });
+
+    return rankings.map((entry, index) => ({
+      ...entry,
+      [fieldName]: pointsByIndex.get(index)
+    }));
   }
 
   function buildResult(
@@ -620,7 +641,7 @@
   register({
     id: "time-trial",
 
-    name: "Time Trial",
+    name: "Time Trial (Multiple Course)",
 
     icon: "timer",
 
@@ -630,7 +651,7 @@
       SDK_VERSION,
 
     description:
-      "Each team submits a completion time; fastest wins.",
+      "Teams race a different course each round and aggregate their course points.",
 
     tieFields: [
       "timeMilliseconds"
@@ -708,9 +729,7 @@
     calculateChampionshipPoints(
       rankings
     ) {
-      return awardChampionshipPoints(
-        rankings
-      );
+      return awardSharedPositionPoints(rankings);
     },
 
     areResultsComplete(
@@ -1211,6 +1230,8 @@
       assignPositions,
 
       awardChampionshipPoints,
+
+      awardSharedPositionPoints,
 
       buildResult
     });

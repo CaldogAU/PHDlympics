@@ -88,7 +88,7 @@ function loadEventHelpers({
   };
 }
 
-test("Grand Prix and Time Trial render ranks and tournament points", () => {
+test("Grand Prix and Time Trial render ranks and course points", () => {
   const events = read("js/events.js");
 
   assert.match(
@@ -101,7 +101,15 @@ test("Grand Prix and Time Trial render ranks and tournament points", () => {
   );
   assert.match(
     events,
-    /participantCount\s*-\s*position\s*\+\s*1/
+    /getTimeTrialRoundStandings/
+  );
+  assert.match(
+    events,
+    /Combined Course Ranking/
+  );
+  assert.match(
+    events,
+    /Course Points/
   );
 });
 

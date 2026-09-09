@@ -199,12 +199,12 @@ const GAME_MODE_OVERVIEWS = {
   },
   "time-trial": {
     summary:
-      "Every team records a time; the fastest completed run ranks first.",
+      "Teams race a different course each round and combine their course points.",
     steps: [
-      ["Attempt", "Each team completes the challenge"],
-      ["Record time", "Enter minutes and seconds"],
-      ["Rank times", "Fastest valid time leads"],
-      ["Complete", "Lock results and award points"]
+      ["Race courses", "Each round uses a different course"],
+      ["Record times", "Enter minutes and seconds for every team"],
+      ["Score each course", "Fastest receives the most course points"],
+      ["Combine points", "Course totals set the final ranking"]
     ],
     exampleHeaders: ["Rank", "Team", "Time", "Points"],
     exampleRows: [
@@ -214,7 +214,7 @@ const GAME_MODE_OVERVIEWS = {
       ["4th", "Auckland", "1:24", "1"]
     ],
     note:
-      "The event completes after every team has a valid whole-second time."
+      "Equal times share the average points for the places they occupy."
   },
   "grand-prix": {
     summary:
@@ -301,14 +301,14 @@ const GAME_MODE_DETAILS = {
     ["Close the tournament", "After all desired rounds are complete, close the game. Final place becomes overall tournament points: last receives 1 and each higher place receives one more." ]
   ],
   "time-trial": [
-    ["Confirm entrants", "Enter a competitor count for every office taking part in the Time Trial."],
-    ["Run the challenge", "Each office completes the same course, lap or challenge under the agreed tournament conditions."],
-    ["Record the result", "Enter each office's best valid time using minutes and seconds only."],
-    ["Save provisional times", "The table automatically reorders as valid times are entered, with the fastest office at the top."],
-    ["Complete every office", "The event cannot be finalised until every participating office has a valid recorded time."],
-    ["Review the ranking", "Lower times rank ahead of higher times. Check the complete fastest-to-slowest order before locking it."],
-    ["Complete the event", "Mark the Time Trial complete to lock the results and reveal the final ranking."],
-    ["Allocate tournament points", "Last place receives 1 overall tournament point and every faster position receives one additional point." ]
+    ["Confirm entrants", "Enter a competitor count for every office taking part in the multi-course Time Trial."],
+    ["Create the courses", "The weekly plan creates one Time Trial course for every round that fits within the time allowance."],
+    ["Race Course 1", "Every office completes the first course under the same agreed tournament conditions."],
+    ["Record the times", "Enter each office's valid time using minutes and seconds. Lower times rank ahead of higher times."],
+    ["Award course points", "The slowest time receives 1 point and each faster place receives one more. Equal times split the average points for their occupied places."],
+    ["Repeat each course", "Run the same process on a different course for every generated round."],
+    ["Combine course points", "The Combined Course Ranking adds every office's course points across all completed rounds."],
+    ["Allocate tournament points", "When all courses are complete, the aggregate ranking converts to overall tournament points, with last receiving 1 and each higher place receiving one more." ]
   ],
   "grand-prix": [
     ["Enter competitor counts", "Set how many players each office is entering. Multiple players are labelled by office as Player A, Player B and so on."],
@@ -384,10 +384,10 @@ const GAME_MODE_DIAGRAMS = {
     ["Overall Tournament Points Allocated", [["Final points", ["1st - 8 pts", "2nd - 7 pts", "...", "8th - 1 pt"], "advance"]]]
   ],
   "time-trial": [
-    ["Attempts", [["Complete the course", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
-    ["Record times", [["Minutes : seconds", ["Run A 1:08", "Run B 1:12", "Run C 1:17", "Run D 1:24"]]]],
-    ["Live ranking", [["Fastest to slowest", ["1 Run A", "2 Run B", "3 Run C", "4 Run D"], "advance"]]],
-    ["Overall Tournament Points Allocated", [["Tournament points", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"], "advance"]]]
+    ["Course 1", [["Race and score", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"]]]],
+    ["Course 2", [["New course", ["1st 4 pts", "Tied 2nd 2.5 pts each", "4th 1 pt"]]]],
+    ["Aggregate", [["Add course points", ["Team A 8 pts", "Team B 5.5 pts", "Team C 4.5 pts", "Team D 2 pts"], "advance"]]],
+    ["Overall Tournament Points Allocated", [["Final aggregate rank", ["1st 4 pts", "2nd 3 pts", "3rd 2 pts", "4th 1 pt"], "advance"]]]
   ],
   "grand-prix": [
     ["Starting field", [["All teams compete", ["Sydney", "Melbourne", "Brisbane", "Auckland"]]]],
