@@ -123,6 +123,11 @@ function getCompletedMatchCount(
       .length;
 
   return headToHeadCount +
+    (PHDTournament.state.events || []).filter(event =>
+      event.completed &&
+      ["time-trial", "runbow-offline", "pico-park-attempts"].includes(event.mode) &&
+      (!teamId || (event.results || []).some(result => result.teamId === teamId))
+    ).length +
     getCompletedGrandPrixMatchCount(
       teamId
     ) +
