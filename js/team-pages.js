@@ -342,6 +342,8 @@ function getTeamPageStanding(teamId) {
   }
 
   const standings = getStandings();
+  const team = (PHDTournament.state.teams || []).find(item => item.id === teamId);
+  const countryId = team && team.officeId;
   const matchStanding =
     typeof getGameStandings ===
       "function"
@@ -354,7 +356,7 @@ function getTeamPageStanding(teamId) {
   const index =
     standings.findIndex(
       standing =>
-        standing.id === teamId
+        standing.id === countryId
     );
 
   if (index === -1) {
@@ -978,6 +980,25 @@ function renderTeamPageMatchRows(
     .join("");
 }
 
+function getTeamPageEventBreakdown(teamId) {
+  const games = typeof getGames === "function" ? getGames() : PHDTournament.state.games || [];
+  return games.flatMap(game => {
+    const events = (PHDTournament.state.events || []).filter(event =>
+      event.gameId === game.id && (event.results || []).some(result => result.teamId === teamId)
+    );
+    if (!events.length) return [];
+    const leaderboard = typeof getCompletedGameLeaderboard === "function" ? getCompletedGameLeaderboard(game) : null;
+    const result = leaderboard && leaderboard.find(entry => entry.teamId === teamId);
+    return [{
+      gameId: game.id, multiplayer: true,
+      played: events.filter(event => event.completed).length,
+      recorded: events.length,
+      position: result ? result.position : null,
+      tournamentPoints: result ? result.championshipPoints : null
+    }];
+  });
+}
+
 function renderTeamPageGameRows(
   breakdown
 ) {
@@ -1002,6 +1023,16 @@ function renderTeamPageGameRows(
       const difference =
         record.pointsFor -
         record.pointsAgainst;
+
+      if (record.multiplayer) {
+        return `<div class="team-page-game-row">
+          <div><strong>${escapeHtml(game ? game.name : "Unknown game")}</strong><span class="muted">Recorded rounds and final game ranking</span></div>
+          <span>${record.played} completed</span>
+          <span>${record.recorded} recorded</span>
+          <span>${record.position ? getPlacementLabel(record.position) : "Ranking pending"}</span>
+          <strong>${record.tournamentPoints == null ? "—" : record.tournamentPoints} tournament points</strong>
+        </div>`;
+      }
 
       return `
         <div class="team-page-game-row">
@@ -1083,6 +1114,7 @@ function renderTeamPagePanel(team) {
       team.id,
       matches
     );
+  getTeamPageEventBreakdown(team.id).forEach(record => breakdown.push(record));
 
   const wins =
     standing
@@ -1198,7 +1230,7 @@ function renderTeamPagePanel(team) {
         </section>
 
         <section class="card">
-          <h3>Record</h3>
+          <h3>Head-to-head Record</h3>
 
           <strong class="big-number team-page-record">
             ${wins}-${draws}-${losses}
@@ -1210,21 +1242,20 @@ function renderTeamPagePanel(team) {
         </section>
 
         <section class="card">
-          <h3>Matches Played</h3>
+          <h3>Matches / Rounds Played</h3>
 
           <strong class="big-number">
             ${matchesPlayed}
           </strong>
 
           <p class="muted">
-            ${matches.length -
-              completedMatches.length}
+            ${historyEntries.filter(entry => !entry.completed).length}
             scheduled
           </p>
         </section>
 
         <section class="card">
-          <h3>Score Difference</h3>
+          <h3>Head-to-head Score Difference</h3>
 
           <strong class="big-number">
             ${difference > 0 ? "+" : ""}

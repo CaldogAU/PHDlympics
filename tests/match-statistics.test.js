@@ -118,17 +118,29 @@ function createState() {
 test("multiplayer modes contribute to matches played", () => {
   assert.equal(
     calculate(createState()),
-    10
+    11
   );
 });
 
 test("team match totals use the same four-match weighting", () => {
   assert.equal(
     calculate(createState(), "a"),
-    10
+    11
   );
   assert.equal(
     calculate(createState(), "c"),
     9
   );
+});
+
+test("event modes count each completed team round once regardless of player count", () => {
+  const state = { rounds: [], games: [], events: [
+    ...["time-trial", "runbow-offline", "pico-park-attempts"].map(mode => ({
+      mode, completed: true, results: [{ teamId: "a" }, { teamId: "a" }, { teamId: "b" }]
+    })),
+    { mode: "runbow-offline", completed: false, results: [{ teamId: "a" }] }
+  ] };
+  assert.equal(calculate(state), 3);
+  assert.equal(calculate(state, "a"), 3);
+  assert.equal(calculate(state, "missing"), 0);
 });

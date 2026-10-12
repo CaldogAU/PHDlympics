@@ -4,6 +4,44 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
+test("team page championship stats resolve country IDs and preserve team match stats", () => {
+  const c = {
+    window: { addEventListener() {} },
+    PHDTournament: { modules: [], state: { teams: [{ id: "team-a", officeId: "country-a" }, { id: "team-b", officeId: "country-a" }] } },
+    document: { addEventListener() {} },
+    getStandings: () => [{ id: "country-b", points: 20 }, { id: "country-a", points: 12, gamesCompleted: 2, gamePoints: [{ gameId: "g", points: 12 }] }],
+    getGameStandings: () => [{ id: "team-a", wins: 3, points: 99 }, { id: "team-b", wins: 1 }]
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "js", "team-pages.js"), "utf8"), c);
+  const standing = c.getTeamPageStanding("team-a");
+  assert.equal(standing.points, 12);
+  assert.equal(standing.position, 2);
+  assert.equal(standing.gamesCompleted, 2);
+  assert.equal(standing.wins, 3);
+  assert.equal(c.getTeamPageStanding("team-b").points, 12);
+});
+
+test("event game breakdown includes recorded rounds and final placement without premature points", () => {
+  const c = {
+    window: { addEventListener() {} },
+    PHDTournament: { modules: [], state: { games: [{ id: "g" }], events: [
+      { gameId: "g", completed: true, results: [{ teamId: "a" }, { teamId: "a" }] },
+      { gameId: "g", completed: false, results: [{ teamId: "a" }] }
+    ] } },
+    document: { addEventListener() {} },
+    getCompletedGameLeaderboard: () => null
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "js", "team-pages.js"), "utf8"), c);
+  let record = c.getTeamPageEventBreakdown("a")[0];
+  assert.equal(record.played, 1);
+  assert.equal(record.recorded, 2);
+  assert.equal(record.tournamentPoints, null);
+  c.getCompletedGameLeaderboard = () => [{ teamId: "a", position: 2, championshipPoints: 3 }];
+  record = c.getTeamPageEventBreakdown("a")[0];
+  assert.equal(record.position, 2);
+  assert.equal(record.tournamentPoints, 3);
+});
+
 test("team page logos use the enlarged scalable image frame", () => {
   const styles = fs.readFileSync(
     path.join(__dirname, "..", "styles.css"),

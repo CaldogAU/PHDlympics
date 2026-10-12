@@ -468,8 +468,7 @@ function startCountryLogoRotation() {
 
 function renderStandings() {
   const standings = getStandings();
-  const games =
-    PHDTournament.state.games || [];
+  const games = getGames();
 
   [
     ["homeStandingsBody", "homeStandingsHeader"]
