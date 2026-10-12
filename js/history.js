@@ -143,7 +143,7 @@ function getMatchHistory() {
         results, teams: PHDTournament.state.teams || []
       }), mode.tieFields);
       const detail = ranked.map(result =>
-        `${formatHistoryPlacement(result.position)} ${getHistoryTeamName(result.teamId)} ${event.mode === "pico-park-attempts" ? `${result.attempts} attempts` : `${result.points} points (medals minus deaths)`}`
+        `${event.mode === "runbow-offline" ? "" : `${formatHistoryPlacement(result.position)} `}${getHistoryTeamName(result.teamId)} ${event.mode === "pico-park-attempts" ? `${result.attempts} attempts` : `${result.medals} medals, ${result.deaths} deaths (round contribution: ${result.points})`}`
       ).join(", ");
       history.push({
         round: event.roundNumber || "", type: mode.displayName, mode: event.mode,
