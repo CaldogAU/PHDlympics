@@ -197,6 +197,20 @@ const GAME_MODE_OVERVIEWS = {
     note:
       "Every team plays in each round. New groups use the updated rankings, then closing the tournament converts the final order into points."
   },
+  "pico-park-attempts": {
+    summary: "Complete each named world in as few attempts as possible.",
+    steps: [["Choose worlds", "Name the world for each round"], ["Play", "Count attempts until completion"], ["Record attempts", "Enter a count for each team"], ["Rank teams", "Lowest total attempts wins"]],
+    exampleHeaders: ["Team", "Attempts", "Tournament points"],
+    exampleRows: [["Sydney", "2", "3"], ["Melbourne", "5", "2"], ["Brisbane", "8", "1"]],
+    note: "Add attempts across the same worlds for every team. Most attempts ranks last and earns 1 tournament point; each higher place earns one more. Ties share occupied points. Unfinished worlds remain pending."
+  },
+  "runbow-offline": {
+    summary: "Collect medals and subtract deaths to score for your team.",
+    steps: [["Play offline", "Every entered player plays"], ["Record results", "Enter medals and deaths"], ["Add scores", "Sum medals minus deaths for each team"], ["Award points", "Highest team score ranks first"]],
+    exampleHeaders: ["Medals", "Deaths", "Player score"],
+    exampleRows: [["14", "6", "8"], ["3", "5", "−2"]],
+    note: "Last team receives 1 championship point and each higher place receives one more. Ties share the average points for their occupied places. Scores across all rounds are added before the final ranking."
+  },
   "time-trial": {
     summary:
       "Teams race a different course each round and combine their course points.",
@@ -259,6 +273,7 @@ const GAME_MODE_OVERVIEWS = {
 };
 
 const GAME_MODE_DETAILS = {
+  "pico-park-attempts": [["Create worlds", "Create the weekly rounds and name a specific world in each."], ["Count attempts", "Record a positive whole number after each team completes the world."], ["Complete all worlds", "Every team must finish every world before final points are awarded."], ["Rank and score", "Fewest total attempts ranks first. Last place earns 1 tournament point, and each higher place earns one more. Ties share points."]],
   swiss: [
     ["Confirm entrants", "Enter each office's competitor count on the game page. Offices with competitors become eligible for this game."],
     ["Generate the opening round", "Select Generate Round. The first round creates one-versus-one pairings and assigns a bye when the field has an odd number of offices."],
@@ -300,6 +315,7 @@ const GAME_MODE_DETAILS = {
     ["Generate the next round", "The next set of four-player lobbies is built from the updated rankings. Complete the current round before generating another."],
     ["Close the tournament", "After all desired rounds are complete, close the game. Final place becomes overall tournament points: last receives 1 and each higher place receives one more." ]
   ],
+  "runbow-offline": [["Enter players", "Configure competitors for each team."], ["Create rounds", "Create the weekly round plan."], ["Save results", "Record non-negative whole numbers for medals and deaths for every player."], ["Rank teams", "Add all player scores across all rounds. Highest total wins; last receives 1 point."]],
   "time-trial": [
     ["Confirm entrants", "Enter a competitor count for every office taking part in the multi-course Time Trial."],
     ["Create the courses", "The weekly plan creates one Time Trial course for every round that fits within the time allowance."],
@@ -335,6 +351,12 @@ const GAME_MODE_DETAILS = {
 };
 
 const GAME_MODE_DIAGRAMS = {
+  "pico-park-attempts": [["Complete worlds", [["Record attempts", ["World 1: 2 attempts", "World 2: 3 attempts"]]]], ["Add attempts", [["Team total", ["2 + 3 = 5 attempts", "Lowest total ranks first"]]]], ["Overall Tournament Points Allocated", [["Reverse rank", ["Most attempts = 1 point", "Each higher place = +1 point"]]]]],
+  "runbow-offline": [
+    ["Player score", [["Medals minus deaths", ["14 medals − 6 deaths = 8 points"]]]],
+    ["Team score", [["Add every player", ["Sum scores across all rounds"]]]],
+    ["Overall Tournament Points Allocated", [["Rank highest to lowest", ["Last = 1 point", "Each higher place = +1 point", "Ties share occupied points"]]]]
+  ],
   swiss: [
     ["Round 1", [["Opening pairings", ["Sydney vs Melbourne", "Brisbane vs Auckland"]]]],
     ["After Round 1", [
@@ -2253,6 +2275,9 @@ function bindGameEvents() {
           event.target.dataset.gameId;
 
         if (!gameId) return;
+
+        if (event.target.classList.contains("clear-game-results")) { clearGameResults(gameId); return; }
+        if (event.target.classList.contains("restore-game-results")) { restoreGameResults(gameId); return; }
 
         if (
           event.target.classList.contains(

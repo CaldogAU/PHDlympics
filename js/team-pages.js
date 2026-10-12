@@ -96,7 +96,11 @@ function getTeamPageEventHistory(
     const isGrandPrix =
       event.mode === "grand-prix";
     const displayScore =
-      isGrandPrix
+      event.mode === "pico-park-attempts"
+        ? `${Number(result.attempts)} attempts (${event.worldName || `World ${event.roundNumber || 1}`})`
+        : event.mode === "runbow-offline"
+        ? `${teamResults.reduce((sum, item) => sum + Number(item.medals) - Number(item.deaths), 0)} points (medals minus deaths)`
+        : isGrandPrix
         ? teamResults
             .map(item =>
               item.playerLabel
@@ -121,7 +125,7 @@ function getTeamPageEventHistory(
       roundLabel:
         isGrandPrix
           ? "Grand Prix"
-          : "Time Trial",
+          : event.mode === "pico-park-attempts" ? "Pico Park Attempts To Complete" : event.mode === "runbow-offline" ? "Runbow offline" : "Time Trial",
       displayScore,
       resultLabel:
         event.completed

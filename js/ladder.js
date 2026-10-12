@@ -249,6 +249,11 @@ function getCompletedGameLeaderboard(game) {
       );
     }
 
+    if (resultEntryType === "completion-attempts" && !events.every(event => mode.areResultsComplete({ teamIds: context.teamIds, results: event.results || [] }))) return null;
+    if (resultEntryType === "medals-deaths") {
+      const participantIds = getRunbowParticipants({ gameId: game.id }, true).map(player => player.participantId);
+      if (!events.every(event => mode.areResultsComplete({ participantIds, results: event.results || [] }))) return null;
+    }
     const finalResults = combinedResults;
 
     context.results = finalResults;
@@ -364,7 +369,7 @@ function getTournamentStandings() {
         leaderboard,
         PHDTournament.state.teams,
         PHDTournament.state.offices,
-        (game.mode || "swiss") === "time-trial"
+        ["time-trial", "runbow-offline", "pico-park-attempts"].includes(game.mode || "swiss")
       ).forEach(result => {
         const standing =
           standings.get(result.officeId);

@@ -1,5 +1,10 @@
 function getGames() {
-  return PHDTournament.state.games || [];
+  const order = ["Mario Kart 8 Deluxe - Week 1", "Pico Park 2 - Week 2", "Runbow - Week 3", "Pico Park 2 - Week 4"];
+  const priority = game => {
+    const index = order.findIndex(name => name.toLowerCase() === String(game.name || "").trim().toLowerCase());
+    return index < 0 ? order.length : index;
+  };
+  return [...(PHDTournament.state.games || [])].sort((a, b) => priority(a) - priority(b));
 }
 
 function getGameById(gameId) {
@@ -141,6 +146,68 @@ function getGameChanges(
   }
 
   return changes;
+}
+
+async function clearGameResults(gameId) {
+  if (typeof canTournament === "function" && !canTournament("tournament.manage")) return;
+  const game = getGameById(gameId);
+  if (!game) return;
+  if (!confirm(`Clear generated rounds and results for ${game.name}? A recoverable copy will be kept. Other games and this game's entries and mode will be preserved.`)) return;
+  const before = structuredClone(PHDTournament.state);
+  const rounds = PHDTournament.state.rounds.flatMap(round => {
+    if (round.gameId === gameId) return [structuredClone(round)];
+    const matches = (round.matches || []).filter(match => match.gameId === gameId);
+    return matches.length ? [{ ...structuredClone(round), matches: structuredClone(matches) }] : [];
+  });
+  const events = PHDTournament.state.events.filter(event => event.gameId === gameId);
+  const hasProgress = rounds.length || events.length || game.fourPlayerSwiss || game.fallGuysGrandPrix || game.completed;
+  if (!hasProgress) { alert("This game has no generated results to clear."); return; }
+  game.clearedProgress = {
+    mode: game.mode || "swiss",
+    rounds, events: structuredClone(events),
+    completed: Boolean(game.completed), completedAt: game.completedAt || "",
+    ...(game.fourPlayerSwiss ? { fourPlayerSwiss: structuredClone(game.fourPlayerSwiss) } : {}),
+    ...(game.fallGuysGrandPrix ? { fallGuysGrandPrix: structuredClone(game.fallGuysGrandPrix) } : {})
+  };
+  resetGameModeProgress(game);
+  render();
+  try {
+    await saveState();
+  } catch (error) {
+    PHDTournament.state = before; render(); alert(error.message || "Results could not be cleared."); return;
+  }
+  if (typeof recordAuditEntry === "function") await recordAuditEntry("game.results.cleared", `Cleared ${game.name} results with a recoverable copy.`, { gameId });
+}
+
+async function restoreGameResults(gameId) {
+  if (typeof canTournament === "function" && !canTournament("tournament.manage")) return;
+  const game = getGameById(gameId);
+  if (!game || !game.clearedProgress) return;
+  const backup = game.clearedProgress;
+  const hasNewProgress = PHDTournament.state.events.some(event => event.gameId === gameId) ||
+    PHDTournament.state.rounds.some(round => round.gameId === gameId || (round.matches || []).some(match => match.gameId === gameId)) ||
+    Boolean(game.fourPlayerSwiss || game.fallGuysGrandPrix || game.completed);
+  if (hasNewProgress) { alert("Clear the new game progress before restoring previous results."); return; }
+  if (!confirm(`Restore cleared results and the previous game mode for ${game.name}?`)) return;
+  const before = structuredClone(PHDTournament.state);
+  for (const round of backup.rounds) {
+    const existing = PHDTournament.state.rounds.find(item => item.id === round.id);
+    if (existing && round.gameId !== gameId) {
+      existing.matches.push(...structuredClone(round.matches));
+      existing.completed = existing.matches.every(match => match.completed);
+    } else PHDTournament.state.rounds.push(structuredClone(round));
+  }
+  PHDTournament.state.events.push(...structuredClone(backup.events));
+  game.mode = backup.mode;
+  game.completed = backup.completed;
+  game.completedAt = backup.completedAt;
+  if (backup.fourPlayerSwiss) game.fourPlayerSwiss = structuredClone(backup.fourPlayerSwiss);
+  if (backup.fallGuysGrandPrix) game.fallGuysGrandPrix = structuredClone(backup.fallGuysGrandPrix);
+  delete game.clearedProgress;
+  render();
+  try { await saveState(); }
+  catch (error) { PHDTournament.state = before; render(); alert(error.message || "Results could not be restored."); return; }
+  if (typeof recordAuditEntry === "function") await recordAuditEntry("game.results.restored", `Restored cleared results for ${game.name}.`, { gameId });
 }
 
 function resetGameModeProgress(game) {
@@ -375,7 +442,7 @@ if (
     const newGame =
       createGame(values);
 
-    games.push(newGame);
+    PHDTournament.state.games.push(newGame);
 
     auditAction = "game.created";
     auditSummary =
@@ -763,6 +830,8 @@ function renderGames() {
           </div>
 
           <div class="game-actions">
+            <button class="small-button danger clear-game-results" type="button" data-game-id="${game.id}">Clear Results</button>
+            ${game.clearedProgress ? `<button class="small-button secondary restore-game-results" type="button" data-game-id="${game.id}">Restore Cleared Results</button>` : ""}
             <button
               class="small-button secondary edit-game"
               type="button"

@@ -1071,6 +1071,80 @@
     }
   });
 
+  function validRunbowResult(result) {
+    return [result.medals, result.deaths].every(value =>
+      value !== null && value !== undefined && String(value).trim() !== "" &&
+      Number.isSafeInteger(Number(value)) && Number(value) >= 0
+    );
+  }
+
+  register({
+    id: "runbow-offline",
+    name: "Runbow offline",
+    icon: "trophy",
+    description: "Each player's medals minus deaths are added to their team score. Highest team score wins.",
+    tieFields: ["points"],
+    getResultEntryType() { return "medals-deaths"; },
+    calculateRankings(context = {}) {
+      const teams = new Map();
+      (context.results || []).filter(validRunbowResult).forEach(result => {
+        if (!teams.has(result.teamId)) teams.set(result.teamId, {
+          teamId: result.teamId,
+          teamName: result.teamName || ((context.teams || []).find(team => team.id === result.teamId) || {}).name || "",
+          medals: 0, deaths: 0, points: 0
+        });
+        const team = teams.get(result.teamId);
+        team.medals += Number(result.medals);
+        team.deaths += Number(result.deaths);
+        team.points = team.medals - team.deaths;
+      });
+      return [...teams.values()].sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName))
+        .map(team => ({ ...team, rankValue: team.points, custom: { medals: team.medals, deaths: team.deaths } }));
+    },
+    calculateChampionshipPoints(rankings) { return awardSharedPositionPoints(rankings); },
+    areResultsComplete(context = {}) {
+      const ids = context.participantIds || context.teamIds || [];
+      const submitted = new Set((context.results || []).filter(validRunbowResult)
+        .map(result => context.participantIds ? result.participantId : result.teamId));
+      return ids.length > 0 && ids.every(id => submitted.has(id));
+    },
+    shouldRevealResults(context) { return Boolean(context && context.complete); }
+  });
+
+  function validAttemptsResult(result) {
+    return result.attempts !== null && result.attempts !== undefined && String(result.attempts).trim() !== "" &&
+      Number.isSafeInteger(Number(result.attempts)) && Number(result.attempts) >= 1;
+  }
+
+  register({
+    id: "pico-park-attempts",
+    name: "Pico Park Attempts To Complete",
+    icon: "flag",
+    description: "Record each team's attempts to complete each world. Fewest total attempts wins.",
+    tieFields: ["attempts"],
+    getResultEntryType() { return "completion-attempts"; },
+    calculateRankings(context = {}) {
+      const teams = new Map();
+      (context.results || []).filter(validAttemptsResult).forEach(result => {
+        if (!teams.has(result.teamId)) teams.set(result.teamId, {
+          teamId: result.teamId,
+          teamName: result.teamName || ((context.teams || []).find(team => team.id === result.teamId) || {}).name || "",
+          attempts: 0
+        });
+        teams.get(result.teamId).attempts += Number(result.attempts);
+      });
+      return [...teams.values()].sort((a, b) => a.attempts - b.attempts || a.teamName.localeCompare(b.teamName))
+        .map(team => ({ ...team, rankValue: team.attempts, custom: { attempts: team.attempts } }));
+    },
+    calculateChampionshipPoints(rankings) { return awardSharedPositionPoints(rankings); },
+    areResultsComplete(context = {}) {
+      const ids = context.teamIds || [];
+      const submitted = new Set((context.results || []).filter(validAttemptsResult).map(result => result.teamId));
+      return ids.length > 0 && ids.every(id => submitted.has(id));
+    },
+    shouldRevealResults(context) { return Boolean(context && context.complete); }
+  });
+
   function createMatchMode(modeId, displayName, description, createSchedule) {
     register({
       id: modeId,

@@ -659,7 +659,7 @@ test("labels tournament-point outcomes clearly in multiplayer diagrams", () => {
         /"Overall Tournament Points Allocated"/g
       ) || []
     ).length,
-    4
+    6
   );
   assert.doesNotMatch(
     app,

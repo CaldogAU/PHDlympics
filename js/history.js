@@ -136,6 +136,25 @@ function getMatchHistory() {
     if (results.length === 0) return;
 
     const game = getGameById(event.gameId);
+    if (["runbow-offline", "pico-park-attempts"].includes(event.mode)) {
+      if (!event.completed) return;
+      const mode = window.PHDGameModes.getRequired(event.mode);
+      const ranked = window.PHDGameModes.assignPositions(mode.calculateRankings({
+        results, teams: PHDTournament.state.teams || []
+      }), mode.tieFields);
+      const detail = ranked.map(result =>
+        `${formatHistoryPlacement(result.position)} ${getHistoryTeamName(result.teamId)} ${event.mode === "pico-park-attempts" ? `${result.attempts} attempts` : `${result.points} points (medals minus deaths)`}`
+      ).join(", ");
+      history.push({
+        round: event.roundNumber || "", type: mode.displayName, mode: event.mode,
+        game: game ? getGameLabel(game.id) : "Unknown game",
+        teamA: ranked.length ? getHistoryTeamName(ranked[0].teamId) : "Unknown",
+        teamB: "Multiple", score: event.worldName ? `${event.worldName}: ${detail}` : detail,
+        detail, status: "Completed", hasResult: true,
+        updatedAt: event.updatedAt || event.createdAt || ""
+      });
+      return;
+    }
     const isGrandPrix = event.mode === "grand-prix";
     const rankedResults = [...results].sort((resultA, resultB) =>
       isGrandPrix
