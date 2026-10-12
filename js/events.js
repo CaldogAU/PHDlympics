@@ -1,10 +1,154 @@
+function getPicoAttemptsContext(event) {
+  const game = getGameById(event.gameId);
+  const teams = window.PHDGameCapacity.getEligibleTeams(game, PHDTournament.state.teams || []);
+  return { teams, teamIds: teams.map(team => team.id), results: event.results || [] };
+}
+
+function renderPicoAttemptsEntries(event) {
+  const context = getPicoAttemptsContext(event);
+  const staffScoped = typeof isTeamScopedStaff === "function" && isTeamScopedStaff();
+  const teams = !event.completed && staffScoped
+    ? context.teams.filter(team => team.id === getAssignedStaffTeamId()) : context.teams;
+  const rankings = event.completed ? window.PHDGameModes.buildResult(
+    window.PHDGameModes.getRequired("pico-park-attempts"), context
+  ).leaderboard : [];
+  const ordered = event.completed ? [...teams].sort((a, b) =>
+    rankings.findIndex(team => team.teamId === a.id) - rankings.findIndex(team => team.teamId === b.id)
+  ) : teams;
+  return `<p class="muted">Record attempts after the team completes this world. Fewer attempts ranks higher. Leave unfinished teams blank. Final tournament points use the total attempts across all worlds.</p>
+    <label>Game world <input type="text" class="pico-world-name" maxlength="100" value="${escapeHtml(event.worldName || `World ${event.roundNumber || 1}`)}" ${event.completed || staffScoped ? "disabled" : ""}></label>
+    <div class="table-wrap"><table><thead><tr><th>Team</th><th>Attempts to complete</th><th>World rank</th></tr></thead><tbody>${ordered.map(team => {
+      const result = getEventResultForTeam(event, team.id);
+      const ranking = rankings.find(entry => entry.teamId === team.id);
+      return `<tr data-team-id="${escapeHtml(team.id)}"><td>${escapeHtml(team.name)}</td><td><input type="number" min="1" step="1" class="pico-attempts" aria-label="${escapeHtml(team.name)} attempts to complete" value="${result ? Number(result.attempts) : ""}" ${event.completed ? "disabled" : ""}></td><td>${ranking ? ranking.position : "—"}</td></tr>`;
+    }).join("")}</tbody></table></div>
+    ${event.completed ? "" : `<button type="button" class="save-pico-attempts-results" data-event-id="${escapeHtml(event.id)}">Save Attempts</button>`}`;
+}
+
+function renderPicoAttemptsAggregate(game) {
+  const rankings = getCompletedGameLeaderboard(game);
+  return `<section class="card wide"><h2>Combined World Ranking</h2>
+    ${rankings ? `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Total attempts</th><th>Tournament points</th></tr></thead><tbody>${rankings.map(team => `<tr><td>${team.position}</td><td>${escapeHtml(team.teamName)}</td><td>${team.attempts}</td><td>${team.championshipPoints}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Every team must complete every world before final rankings and tournament points are revealed.</p>`}
+  </section>`;
+}
+
+async function savePicoAttemptsResults(eventId) {
+  if (typeof requireAdminForAction === "function" && !requireAdminForAction()) return;
+  const event = getEventById(eventId);
+  const workspace = document.querySelector(`[data-event-workspace="${eventId}"]`);
+  if (!event || !workspace || event.completed || event.mode !== "pico-park-attempts") return;
+  const context = getPicoAttemptsContext(event);
+  const staffScoped = typeof isTeamScopedStaff === "function" && isTeamScopedStaff();
+  const allowed = new Set(context.teamIds.filter(id => !staffScoped || id === getAssignedStaffTeamId()));
+  const worldName = staffScoped ? event.worldName || `World ${event.roundNumber || 1}`
+    : workspace.querySelector(".pico-world-name").value.trim();
+  if (!worldName || worldName.length > 100) { alert("Enter a game world name of up to 100 characters."); return; }
+  const next = [...(event.results || [])];
+  for (const row of workspace.querySelectorAll("tr[data-team-id]")) {
+    const teamId = row.dataset.teamId;
+    if (!allowed.has(teamId)) continue;
+    const input = row.querySelector(".pico-attempts").value.trim();
+    const index = next.findIndex(result => result.teamId === teamId);
+    if (input === "") { if (index >= 0) next.splice(index, 1); continue; }
+    if (!Number.isSafeInteger(Number(input)) || Number(input) < 1) {
+      alert("Attempts must be a positive whole number. Leave unfinished teams blank."); return;
+    }
+    const result = { teamId, attempts: Number(input) };
+    if (index < 0) next.push(result); else next[index] = result;
+  }
+  const mode = window.PHDGameModes.getRequired("pico-park-attempts");
+  await persistEventResults(event, next, `Saved attempts for ${worldName}.`,
+    mode.areResultsComplete({ ...context, results: next }), { worldName });
+}
+
+function getRunbowParticipants(event, includeAll = false) {
+  const game = getGameById(event.gameId);
+  if (!game) return [];
+  const teams = window.PHDGameCapacity.getEligibleTeams(game, PHDTournament.state.teams || []);
+  let players = !game.capacity || game.capacity.configured === false
+    ? teams.map(team => ({ participantId: team.id, teamId: team.id, displayName: team.name }))
+    : window.PHDGameCapacity.getActiveEntries(game, teams).flatMap(entry =>
+      Array.from({ length: entry.competitorCount }, (_, index) => ({
+        participantId: `${entry.officeId}:player-${entry.playerStartIndex + index + 1}`,
+        teamId: entry.officeId,
+        displayName: `${entry.officeName} - Player ${String.fromCharCode(65 + entry.playerStartIndex + index)}`
+      }))
+    );
+  if (!includeAll && !event.completed && typeof isTeamScopedStaff === "function" && isTeamScopedStaff()) {
+    players = players.filter(player => player.teamId === getAssignedStaffTeamId());
+  }
+  return players;
+}
+
+function renderRunbowEntries(event) {
+  const players = getRunbowParticipants(event);
+  const mode = window.PHDGameModes.getRequired("runbow-offline");
+  const rankings = event.completed
+    ? window.PHDGameModes.buildResult(mode, {
+      teams: PHDTournament.state.teams,
+      participantIds: getRunbowParticipants(event, true).map(player => player.participantId),
+      results: event.results || []
+    }).leaderboard : [];
+  return `
+    <p class="muted">Player score = medals minus deaths (14 − 6 = 8). All player scores are added for their team, including negative scores. Last team receives 1 championship point, with one more per higher place. Ties share the points for their occupied places.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Player</th><th>Medals</th><th>Deaths</th><th>Score</th></tr></thead>
+      <tbody>${players.map(player => {
+        const result = getEventResultForParticipant(event, player.participantId);
+        return `<tr data-team-id="${escapeHtml(player.teamId)}" data-participant-id="${escapeHtml(player.participantId)}">
+          <td>${escapeHtml(player.displayName)}</td>
+          <td><input type="number" min="0" step="1" class="runbow-medals" aria-label="${escapeHtml(player.displayName)} medals" value="${result ? Number(result.medals) : ""}" ${event.completed ? "disabled" : ""}></td>
+          <td><input type="number" min="0" step="1" class="runbow-deaths" aria-label="${escapeHtml(player.displayName)} deaths" value="${result ? Number(result.deaths) : ""}" ${event.completed ? "disabled" : ""}></td>
+          <td>${result ? Number(result.medals) - Number(result.deaths) : "—"}</td></tr>`;
+      }).join("")}</tbody></table></div>
+    ${rankings.length ? `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Score</th><th>Championship points</th></tr></thead><tbody>${rankings.map(team => `<tr><td>${team.position}</td><td>${escapeHtml(team.teamName)}</td><td>${team.points}</td><td>${team.championshipPoints}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    ${event.completed ? "" : `<button type="button" class="save-runbow-results" data-event-id="${escapeHtml(event.id)}">Save Results</button>`}
+  `;
+}
+
+function renderRunbowAggregateStandings(game) {
+  const rankings = getCompletedGameLeaderboard(game);
+  return `<section class="card wide"><h2>Combined Runbow Ranking</h2>
+    ${rankings ? `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Total score</th><th>Championship points</th></tr></thead><tbody>${rankings.map(team => `<tr><td>${team.position}</td><td>${escapeHtml(team.teamName)}</td><td>${team.points}</td><td>${team.championshipPoints}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Complete every player's results in every planned round to reveal the final team ranking and championship points.</p>`}
+  </section>`;
+}
+
+async function saveRunbowResults(eventId) {
+  if (typeof requireAdminForAction === "function" && !requireAdminForAction()) return;
+  const event = getEventById(eventId);
+  const workspace = document.querySelector(`[data-event-workspace="${eventId}"]`);
+  if (!event || !workspace || event.completed || event.mode !== "runbow-offline") return;
+  const allowed = new Set(getRunbowParticipants(event).map(player => player.participantId));
+  const next = [...(event.results || [])];
+  for (const row of workspace.querySelectorAll("tr[data-participant-id]")) {
+    const participantId = row.dataset.participantId;
+    if (!allowed.has(participantId)) continue;
+    const medals = row.querySelector(".runbow-medals").value.trim();
+    const deaths = row.querySelector(".runbow-deaths").value.trim();
+    if (medals === "" && deaths === "") continue;
+    if ([medals, deaths].some(value => value === "" || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
+      alert("Enter non-negative whole numbers for both medals and deaths for each player.");
+      return;
+    }
+    const index = next.findIndex(result => result.participantId === participantId);
+    const result = { participantId, teamId: row.dataset.teamId, medals: Number(medals), deaths: Number(deaths) };
+    if (index < 0) next.push(result); else next[index] = result;
+  }
+  const complete = window.PHDGameModes.getRequired("runbow-offline").areResultsComplete({
+    participantIds: getRunbowParticipants(event, true).map(player => player.participantId), results: next
+  });
+  await persistEventResults(event, next, complete ? "Completed Runbow offline results." : "Saved Runbow offline results.", complete);
+}
+
 function getEventGames() {
   return getGames().filter(game => {
     const mode = game.mode || "swiss";
 
     return (
       mode === "time-trial" ||
-      mode === "grand-prix"
+      mode === "grand-prix" ||
+      mode === "runbow-offline" ||
+      mode === "pico-park-attempts"
     );
   });
 }
@@ -865,7 +1009,7 @@ function renderEventWorkspace(game, event) {
           <p class="eyebrow">
             ${escapeHtml(modeName)}
           </p>
-          <h2>${event.mode === "time-trial" ? "Course" : "Round"} ${Number(event.roundNumber || 1)}</h2>
+          <h2>${event.mode === "pico-park-attempts" ? "World" : event.mode === "time-trial" ? "Course" : "Round"} ${Number(event.roundNumber || 1)}</h2>
           <p class="muted">
             ${
               event.completed
@@ -907,7 +1051,9 @@ function renderEventWorkspace(game, event) {
       ${
         event.mode === "time-trial"
           ? renderTimeTrialEntries(event)
-          : renderGrandPrixEntries(event)
+          : event.mode === "runbow-offline"
+            ? renderRunbowEntries(event)
+            : event.mode === "pico-park-attempts" ? renderPicoAttemptsEntries(event) : renderGrandPrixEntries(event)
       }
     </section>
   `;
@@ -949,6 +1095,8 @@ function renderEventGameManagement(game) {
       : `<section class="card wide"><div class="empty-state">
           Create the weekly rounds to begin entering results.
         </div></section>`}
+    ${events.length && game.mode === "runbow-offline" ? renderRunbowAggregateStandings(game) : ""}
+    ${events.length && game.mode === "pico-park-attempts" ? renderPicoAttemptsAggregate(game) : ""}
     ${events.length && (game.mode || "swiss") === "time-trial"
       ? renderTimeTrialAggregateStandings(game, events)
       : ""}
@@ -1001,10 +1149,12 @@ async function createEvent(gameId) {
 
   if (
     mode !== "time-trial" &&
-    mode !== "grand-prix"
+    mode !== "grand-prix" &&
+    mode !== "runbow-offline" &&
+    mode !== "pico-park-attempts"
   ) {
     alert(
-      "Only Time Trial and Grand Prix games can create events."
+      "Only Time Trial, Grand Prix, Runbow offline and Pico Park Attempts games can create events."
     );
 
     return;
@@ -1113,11 +1263,13 @@ async function persistEventResults(
   event,
   results,
   summary,
-  completed = true
+  completed = true,
+  metadata = {}
 ) {
   const previousEvent =
     structuredClone(event);
 
+  Object.assign(event, metadata);
   event.results = results;
   event.completed =
     Boolean(completed);
@@ -1144,6 +1296,7 @@ async function persistEventResults(
       );
     }
   } catch (error) {
+    Object.keys(event).forEach(key => { if (!(key in previousEvent)) delete event[key]; });
     Object.assign(
       event,
       previousEvent
@@ -1701,6 +1854,8 @@ function initialiseEventControls() {
         target.classList.contains(
           "save-grand-prix-results"
         ) ||
+        target.classList.contains("save-runbow-results") ||
+        target.classList.contains("save-pico-attempts-results") ||
         target.classList.contains(
           "save-grand-prix-lobby-code"
         ) ||
@@ -1728,6 +1883,10 @@ function initialiseEventControls() {
         createEvent(
           target.dataset.gameId
         );
+      } else if (target.classList.contains("save-pico-attempts-results")) {
+        savePicoAttemptsResults(target.dataset.eventId);
+      } else if (target.classList.contains("save-runbow-results")) {
+        saveRunbowResults(target.dataset.eventId);
       } else if (
         target.classList.contains("save-grand-prix-lobby-code")
       ) {

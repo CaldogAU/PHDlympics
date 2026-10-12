@@ -49,6 +49,14 @@ const ADMIN_DYNAMIC_SELECTORS = [
   ".delete-team",
   ".edit-game",
   ".delete-game",
+  ".clear-game-results",
+  ".restore-game-results",
+  ".save-runbow-results",
+  ".save-pico-attempts-results",
+  ".pico-world-name",
+  ".pico-attempts",
+  ".runbow-medals",
+  ".runbow-deaths",
   ".save-match",
   ".clear-match",
   ".toggle-round",
@@ -584,7 +592,7 @@ function applyAdminAccessState() {
     const lifecycleControl =
       Boolean(
         element.closest(
-          ".generate-game-round, .create-game-event, .reopen-game-event, .toggle-round, .generate-four-player-round, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, .close-match-game, .reopen-match-game, .add-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament"
+          ".pico-world-name, .generate-game-round, .create-game-event, .reopen-game-event, .toggle-round, .generate-four-player-round, .reopen-four-player-group, .close-four-player-tournament, .reopen-four-player-tournament, .close-match-game, .reopen-match-game, .add-fall-guys-heat, .reopen-fall-guys-heat, .close-fall-guys-tournament, .reopen-fall-guys-tournament"
         )
       );
     const teamElement =

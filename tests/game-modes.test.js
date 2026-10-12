@@ -64,7 +64,9 @@ test("registers the supported game modes", () => {
       "four-player-swiss",
       "time-trial",
       "fall-guys-grand-prix",
-      "grand-prix"
+      "grand-prix",
+      "runbow-offline",
+      "pico-park-attempts"
     ]
   );
 
@@ -92,7 +94,7 @@ test("registers approved bracket modes when format engines are available", () =>
   const gameModes = loadAllGameModes();
   assert.deepEqual(
     Array.from(gameModes.list(), mode => mode.id),
-    ["swiss", "four-player-swiss", "time-trial", "fall-guys-grand-prix", "grand-prix", "single-elimination", "round-robin"]
+    ["swiss", "four-player-swiss", "time-trial", "fall-guys-grand-prix", "grand-prix", "runbow-offline", "pico-park-attempts", "single-elimination", "round-robin"]
   );
   assert.equal(gameModes.getRequired("single-elimination").getResultEntryType(), "match-score");
 });
