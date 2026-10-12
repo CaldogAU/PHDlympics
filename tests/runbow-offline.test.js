@@ -72,3 +72,34 @@ test("Runbow completion waits for every player in every planned round", () => {
   c.PHDTournament.state.events[1].results = results;
   assert.deepEqual(Array.from(c.getCompletedGameLeaderboard(game), x => [x.teamId, x.points, x.championshipPoints]), [["a", 16, 2], ["b", 8, 1]]);
 });
+
+test("Runbow final ranking uses raw totals instead of accumulated round placements", () => {
+  const c = load();
+  const game = { id: "g", mode: "runbow-offline", capacity: { configured: false } };
+  c.PHDTournament.state.games = [game];
+  c.PHDTournament.state.teams = [{ id: "a", name: "A" }, { id: "b", name: "B" }];
+  c.window.PHDGameCapacity = { getEligibleTeams: (_, teams) => teams };
+  c.window.PHDSessionPlanner = { getPlannedRoundCount: () => 3 };
+  c.PHDTournament.state.tournament = {};
+  c.PHDTournament.state.events = [[100, 1], [0, 2], [0, 2]].map((scores, index) => ({
+    gameId: "g", completed: true, roundNumber: index + 1,
+    results: scores.map((score, i) => ({ teamId: i ? "b" : "a", participantId: i ? "b" : "a", medals: score + 6, deaths: 6 }))
+  }));
+  // B wins two rounds, but A has the higher final medals-minus-deaths total.
+  assert.deepEqual(Array.from(c.getCompletedGameLeaderboard(game), x => [x.teamId, x.medals, x.deaths, x.points, x.championshipPoints]),
+    [["a", 118, 18, 100, 2], ["b", 23, 18, 5, 1]]);
+});
+
+test("Runbow rounds show counts without separate rankings or tournament points", () => {
+  const c = load();
+  const game = { id: "g", mode: "runbow-offline", capacity: { configured: false } };
+  c.PHDTournament.state.games = [game];
+  c.PHDTournament.state.teams = [{ id: "a", name: "A" }];
+  c.window.PHDGameCapacity = { getEligibleTeams: (_, teams) => teams };
+  c.escapeHtml = value => String(value);
+  const html = c.renderRunbowEntries({ gameId: "g", completed: true, results: [{ teamId: "a", participantId: "a", medals: 14, deaths: 6 }] });
+  assert.ok(html.includes('value="14"'));
+  assert.ok(html.includes('value="6"'));
+  assert.ok(!html.includes('<th>Rank</th>'));
+  assert.ok(!html.includes('<th>Championship points</th>'));
+});

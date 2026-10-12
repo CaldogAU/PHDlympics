@@ -82,15 +82,8 @@ function getRunbowParticipants(event, includeAll = false) {
 
 function renderRunbowEntries(event) {
   const players = getRunbowParticipants(event);
-  const mode = window.PHDGameModes.getRequired("runbow-offline");
-  const rankings = event.completed
-    ? window.PHDGameModes.buildResult(mode, {
-      teams: PHDTournament.state.teams,
-      participantIds: getRunbowParticipants(event, true).map(player => player.participantId),
-      results: event.results || []
-    }).leaderboard : [];
   return `
-    <p class="muted">Player score = medals minus deaths (14 − 6 = 8). All player scores are added for their team, including negative scores. Last team receives 1 championship point, with one more per higher place. Ties share the points for their occupied places.</p>
+    <p class="muted">Record medals and deaths for this round. Final team score = total medals across all players and rounds minus total deaths. Teams are ranked once on that final score; tournament points are awarded only in the final ranking.</p>
     <div class="table-wrap"><table>
       <thead><tr><th>Player</th><th>Medals</th><th>Deaths</th><th>Score</th></tr></thead>
       <tbody>${players.map(player => {
@@ -101,15 +94,15 @@ function renderRunbowEntries(event) {
           <td><input type="number" min="0" step="1" class="runbow-deaths" aria-label="${escapeHtml(player.displayName)} deaths" value="${result ? Number(result.deaths) : ""}" ${event.completed ? "disabled" : ""}></td>
           <td>${result ? Number(result.medals) - Number(result.deaths) : "—"}</td></tr>`;
       }).join("")}</tbody></table></div>
-    ${rankings.length ? `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Score</th><th>Championship points</th></tr></thead><tbody>${rankings.map(team => `<tr><td>${team.position}</td><td>${escapeHtml(team.teamName)}</td><td>${team.points}</td><td>${team.championshipPoints}</td></tr>`).join("")}</tbody></table></div>` : ""}
     ${event.completed ? "" : `<button type="button" class="save-runbow-results" data-event-id="${escapeHtml(event.id)}">Save Results</button>`}
   `;
 }
 
 function renderRunbowAggregateStandings(game) {
   const rankings = getCompletedGameLeaderboard(game);
-  return `<section class="card wide"><h2>Combined Runbow Ranking</h2>
-    ${rankings ? `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Total score</th><th>Championship points</th></tr></thead><tbody>${rankings.map(team => `<tr><td>${team.position}</td><td>${escapeHtml(team.teamName)}</td><td>${team.points}</td><td>${team.championshipPoints}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Complete every player's results in every planned round to reveal the final team ranking and championship points.</p>`}
+  return `<section class="card wide"><h2>Final Runbow Ranking</h2>
+    <p class="muted">Final score = total medals minus total deaths across all players and rounds. Tournament points are awarded once from this final ranking; last place receives 1 point, with one more per higher place. Ties share the points for their occupied places.</p>
+    ${rankings ? `<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Team</th><th>Total medals</th><th>Total deaths</th><th>Final score</th><th>Tournament points</th></tr></thead><tbody>${rankings.map(team => `<tr><td>${team.position}</td><td>${escapeHtml(team.teamName)}</td><td>${team.medals}</td><td>${team.deaths}</td><td>${team.points}</td><td>${team.championshipPoints}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Complete every player's results in every planned round to reveal the final team ranking and championship points.</p>`}
   </section>`;
 }
 
